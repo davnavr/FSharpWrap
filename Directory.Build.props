@@ -1,0 +1,11 @@
+<Project>
+
+  <!-- Common properties -->
+  <PropertyGroup>
+    <LangVersion>4.7</LangVersion>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <RootNamespace>$(AssemblyName)</RootNamespace>
+    <RootDirectory>$(MSBuildThisFileDirectory)</RootDirectory>
+  </PropertyGroup>
+
+</Project>
