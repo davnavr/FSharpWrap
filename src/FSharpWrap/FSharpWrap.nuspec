@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <authors>davnavr</authors>
+    <id>FSharpWrap</id>
+    <version>$PackageVersion$</version>
+    <description>
+      Generates F# modules and functions from non-F# dependencies.
+    </description>
+  </metadata>
+</package>
