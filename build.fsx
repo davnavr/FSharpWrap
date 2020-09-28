@@ -14,12 +14,14 @@ open Fake.Core.TargetOperators
 open Fake.DotNet
 open Fake.IO
 open Fake.IO.FileSystemOperators
+open Fake.IO.Globbing.Operators
 
 module DotNetCli = Fake.DotNet.DotNet
 module NuGetCli = Fake.DotNet.NuGet.NuGet
 
 let rootDir = __SOURCE_DIRECTORY__
 let outDir = rootDir </> "out"
+let localFeed = rootDir </> "local"
 let slnFile = rootDir </> "FSharpWrap.sln"
 
 let version = Environment.environVarOrDefault "PACKAGE_VERSION" "0.0.0"
@@ -64,6 +66,16 @@ Target.create "Pack" (fun _ ->
         (rootDir </> "src" </> "FSharpWrap" </> "FSharpWrap.nuspec")
 )
 
-"Clean" ==> "Build Tool" ==>  "Pack"
+Target.create "Build Examples" (fun _ ->
+    ()
+)
 
-Target.runOrDefault "Pack"
+Target.create "All" ignore
+
+"Clean"
+==> "Build Tool"
+==> "Pack"
+==> "Build Examples"
+==> "All"
+
+Target.runOrDefault "All"
