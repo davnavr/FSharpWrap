@@ -11,8 +11,7 @@
   <!-- References -->
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="1.7.1" />
-    <!-- TODO: How to ensure that the package referenced is always the local one? -->
-    <!--<PackageReference Include="FSharpWrap" />-->
+    <PackageReference Include="FSharpWrap" Version="0.0.0+local" />
   </ItemGroup>
 
 </Project>

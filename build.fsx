@@ -23,6 +23,7 @@ let rootDir = __SOURCE_DIRECTORY__
 let outDir = rootDir </> "out"
 let localFeed = rootDir </> "local"
 let slnFile = rootDir </> "FSharpWrap.sln"
+let examplesFile = rootDir </> "FSharpWrap.Examples.sln"
 
 let version = Environment.environVarOrDefault "PACKAGE_VERSION" "0.0.0"
 let notes = Environment.environVar "PACKAGE_RELEASE_NOTES"
@@ -35,9 +36,14 @@ let handleErr msg: ProcessResult -> _ =
 
 Target.create "Clean" (fun _ ->
     Shell.cleanDir outDir
+    Shell.cleanDir localFeed
+    
+    slnFile
+    |> DotNetCli.exec id "clean"
+    |> handleErr "Unexpected error while cleaning solution"
 )
 
-Target.create "Build Tool" (fun _ ->
+let buildProj proj _ =
     DotNetCli.build
         (fun opt ->
             { opt with
@@ -49,8 +55,9 @@ Target.create "Build Tool" (fun _ ->
                                 "Version", version
                             ]}
                 NoRestore = true })
-        slnFile
-)
+        proj
+
+Target.create "Build Tool" (buildProj slnFile)
 
 let pushpkg todir ver _ =
     NuGetCli.NuGetPackDirectly
@@ -70,9 +77,7 @@ Target.create "Pack" (pushpkg outDir version)
 
 Target.create "Push Local" (pushpkg localFeed "0.0.0+local")
 
-Target.create "Build Examples" (fun _ ->
-    ()
-)
+Target.create "Build Examples" (buildProj examplesFile)
 
 Target.create "All" ignore
 
