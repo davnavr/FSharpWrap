@@ -2,10 +2,12 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <authors>davnavr</authors>
-    <id>FSharpWrap</id>
-    <version>$PackageVersion$</version>
     <description>
       Generates F# modules and functions from non-F# dependencies.
     </description>
+    <id>FSharpWrap</id>
+    <releaseNotes>$PackageReleaseNotes$</releaseNotes>
+    <repository type="git" url="https://github.com/davnavr/FSharpWrap" />
+    <version>$PackageVersion$</version>
   </metadata>
 </package>

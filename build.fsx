@@ -2,6 +2,7 @@
 #r "paket:
 nuget Fake.Core.Target
 nuget Fake.DotNet.Cli
+nuget Fake.DotNet.NuGet
 nuget Fake.IO.FileSystem
 //"
 #endif
@@ -15,6 +16,7 @@ open Fake.IO
 open Fake.IO.FileSystemOperators
 
 module DotNetCli = Fake.DotNet.DotNet
+module NuGetCli = Fake.DotNet.NuGet.NuGet
 
 let rootDir = __SOURCE_DIRECTORY__
 let outDir = rootDir </> "out"
@@ -29,22 +31,11 @@ let handleErr msg: ProcessResult -> _ =
         failwithf "Process exited with code %i: %s" ecode msg
     | _ -> ()
 
-let runProj args proj =
-    sprintf
-        "--project %s --no-build --no-restore --configuration Release -- %s"
-        proj
-        args
-    |> DotNetCli.exec id "run"
-
 Target.create "Clean" (fun _ ->
     Shell.cleanDir outDir
-
-    slnFile
-    |> DotNetCli.exec id "clean"
-    |> handleErr "Unexpected error while cleaning solution"
 )
 
-Target.create "Build" (fun _ ->
+Target.create "Build Tool" (fun _ ->
     DotNetCli.build
         (fun opt ->
             { opt with
@@ -59,14 +50,20 @@ Target.create "Build" (fun _ ->
         slnFile
 )
 
-Target.create "Test" (fun _ ->
-    Trace.log "Testing..."
-)
-
 Target.create "Pack" (fun _ ->
-    Trace.log "Packing..."
+    NuGetCli.NuGetPackDirectly
+        (fun nparams ->
+            { nparams with
+                OutputPath = outDir
+                Properties =
+                    [
+                        "PackageVersion", version
+                        "PackageReleaseNotes", notes
+                    ]
+                WorkingDir = rootDir })
+        (rootDir </> "src" </> "FSharpWrap" </> "FSharpWrap.nuspec")
 )
 
-"Clean" ==> "Build" ==> "Test" ==> "Pack"
+"Clean" ==> "Build Tool" ==>  "Pack"
 
-Target.runOrDefault "Test"
+Target.runOrDefault "Pack"
