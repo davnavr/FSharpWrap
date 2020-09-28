@@ -1,8 +1,12 @@
 <Project>
 
+  <!-- TODO: Fix problem where fsharpwrap package appears in the user's cache, which might be used instead of the one from the local feed. -->
   <Target Name="FSharpWrap" BeforeTargets="Compile">
-    <Message Text="Starting..." Importance="high" />
-    <Message Text="@(Reference, '&#10;')" Importance="high" />
+    <!-- TODO: How to check that 'dotnet' exists? -->
+    <Exec
+      Command="dotnet exec &quot;$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll&quot;"
+      ConsoleToMsBuild="true"
+      LogStandardErrorAsError="true" />
   </Target>
 
 </Project>
