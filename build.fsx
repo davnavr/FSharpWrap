@@ -21,9 +21,9 @@ module NuGetCli = Fake.DotNet.NuGet.NuGet
 
 let rootDir = __SOURCE_DIRECTORY__
 let outDir = rootDir </> "out"
+let srcDir = rootDir </> "src"
 let localFeed = rootDir </> "local"
 let slnFile = rootDir </> "FSharpWrap.sln"
-let examplesFile = rootDir </> "FSharpWrap.Examples.sln"
 
 let version = Environment.environVarOrDefault "PACKAGE_VERSION" "0.0.0"
 let notes = Environment.environVar "PACKAGE_RELEASE_NOTES"
@@ -43,7 +43,7 @@ Target.create "Clean" (fun _ ->
     |> handleErr "Unexpected error while cleaning solution"
 )
 
-let buildProj proj _ =
+let buildProj proj =
     DotNetCli.build
         (fun opt ->
             { opt with
@@ -57,7 +57,20 @@ let buildProj proj _ =
                 NoRestore = true })
         proj
 
-Target.create "Build Tool" (buildProj slnFile)
+Target.create "Build Tool" (fun _ ->
+    buildProj slnFile
+
+    DotNetCli.publish
+        (fun options ->
+            { options with
+                Configuration = DotNetCli.Release
+                NoBuild = true
+                NoRestore = true
+                OutputPath = srcDir </> "FSharpWrap" </> "tool" |> Some })
+        (srcDir </> "FSharpWrap.Tool" </> "FSharpWrap.Tool.fsproj")
+)
+
+// TODO: Copy output of build into the folder containing the .nuspec
 
 let pushpkg todir ver _ =
     NuGetCli.NuGetPackDirectly
@@ -68,16 +81,19 @@ let pushpkg todir ver _ =
                     [
                         "PackageVersion", ver
                         "PackageReleaseNotes", notes
+                        "RootDir", rootDir
                     ]
                 Version = ver
                 WorkingDir = rootDir })
-        (rootDir </> "src" </> "FSharpWrap" </> "FSharpWrap.nuspec")
+        (srcDir </> "FSharpWrap" </> "FSharpWrap.nuspec")
 
 Target.create "Pack" (pushpkg outDir version)
 
 Target.create "Push Local" (pushpkg localFeed "0.0.0+local")
 
-Target.create "Build Examples" (buildProj examplesFile)
+Target.create "Build Examples" (fun _ ->
+    rootDir </> "FSharpWrap.Examples.sln" |> buildProj
+)
 
 Target.create "All" ignore
 
