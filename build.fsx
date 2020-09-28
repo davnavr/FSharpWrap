@@ -52,19 +52,23 @@ Target.create "Build Tool" (fun _ ->
         slnFile
 )
 
-Target.create "Pack" (fun _ ->
+let pushpkg todir ver _ =
     NuGetCli.NuGetPackDirectly
         (fun nparams ->
             { nparams with
-                OutputPath = outDir
+                OutputPath = todir
                 Properties =
                     [
-                        "PackageVersion", version
+                        "PackageVersion", ver
                         "PackageReleaseNotes", notes
                     ]
+                Version = ver
                 WorkingDir = rootDir })
         (rootDir </> "src" </> "FSharpWrap" </> "FSharpWrap.nuspec")
-)
+
+Target.create "Pack" (pushpkg outDir version)
+
+Target.create "Push Local" (pushpkg localFeed "0.0.0+local")
 
 Target.create "Build Examples" (fun _ ->
     ()
@@ -75,6 +79,7 @@ Target.create "All" ignore
 "Clean"
 ==> "Build Tool"
 ==> "Pack"
+==> "Push Local"
 ==> "Build Examples"
 ==> "All"
 
