@@ -9,6 +9,11 @@
 
   <!-- Source files -->
   <ItemGroup>
+    <Compile Include="Reflection\TypePatterns.fs" />
+    <Compile Include="Reflection\Type.fs" />
+    <Compile Include="Reflection\Reflect.fs" />
+    <Compile Include="Generate.fs" />
+    <Compile Include="Arguments.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

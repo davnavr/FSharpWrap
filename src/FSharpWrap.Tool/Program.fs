@@ -1,8 +1,8 @@
-﻿// Learn more about F# at http://fsharp.org
-
-open System
+﻿[<RequireQualifiedAccess>]
+module FSharpWrap.Tool.Program
 
 [<EntryPoint>]
 let main argv =
-    printfn "Hello World from F#!"
-    0 // return an integer exit code
+    let args = Arguments.parse argv
+    printfn "Hello World!"
+    0
