@@ -2,7 +2,17 @@
 [<RequireQualifiedAccess>]
 module FSharpWrap.Tool.Reflection.Member
 
+open System
 open System.Reflection
+
+let fsname (m: Member) =
+    let name =
+        String.mapi
+            (function
+            | 0 -> Char.ToLowerInvariant
+            | _ -> id)
+            m.Name
+    name
 
 let ofInfo (info: MemberInfo) =
     let membert cond inst stat =
@@ -35,4 +45,4 @@ let ofInfo (info: MemberInfo) =
             (mthd.Attributes.HasFlag MethodAttributes.Static)
             InstanceMethod
             StaticMethod
-    | _ -> UnknownMember info
+    | _ -> UnknownMember info.Name
