@@ -13,8 +13,8 @@ module Arguments =
     type StateType =
         private
         | AssemblyPaths
-        | Invalid
         | OutputFile
+        | Invalid of msg: string option
         | Unknown
 
     type private State =
@@ -24,7 +24,8 @@ module Arguments =
           Type: StateType }
 
     [<RequireQualifiedAccess>]
-    module private State = let invalidate st = { st with Type = Invalid }
+    module private State =
+        let invalidate msg st = { st with Type = Some msg |> Invalid }
 
     type ArgumentType =
         | Optional of string
@@ -42,15 +43,15 @@ module Arguments =
 
     type Info =
         { ArgType: ArgumentType
-          ArgValue: string option
+          ArgValue: string
           Description: string
           State: StateType }
 
     let all =
         [
-            Optional "help", Invalid, "Shows this help message", None
-            Required "assembly-paths", AssemblyPaths, "Specifies the paths to the assemblies to generate F# code for", Some "paths"
-            Required "output-file", OutputFile, "Specifies the path to the file containing the generated F# code", Some "file"
+            Optional "help", Invalid None, "Shows this help message", ""
+            Required "assembly-paths", AssemblyPaths, "Specifies the semicolon separated paths to the assemblies", "path list"
+            Required "output-file", OutputFile, "Specifies the path to the file containing the generated F# code", "file"
         ]
         |> Seq.map (fun (name, st, desc, value) ->
             let info =
@@ -72,19 +73,22 @@ module Arguments =
                         .TrimEnd()
                 Map.tryFind name all
             | _ -> None
-        let rec inner state =
-            function
-            | [] ->
+        let rec inner state args =
+            match (state.Type, args) with
+            | (Invalid msg, _) -> Error msg
+            | (_, []) ->
                 match state with
-                | { Type = Invalid } -> None
                 | { AssemblyPaths = (Path.Valid phead) :: (Path.ValidList ptail)
                     OutputFile = Path.Valid out } ->
                     { AssemblyPaths = phead, ptail
                       ExcludeNamespaces = state.ExcludeNamespaces
                       OutputFile = out }
-                    |> Some
-                | _ -> None
-            | arg :: tail ->
+                    |> Ok
+                | { OutputFile = Path.Invalid } ->
+                    Some "The path to the output file is invalid" |> Error
+                | { AssemblyPaths = _ } ->
+                    Some "One or more paths to the assemblies are invalid" |> Error
+            | (_, arg :: tail) ->
                 let state' =
                     match (arg, state.Type) with
                     | (Argument arg', _) -> { state with Type = arg'.State }
@@ -92,7 +96,12 @@ module Arguments =
                         { state with AssemblyPaths = path :: state.AssemblyPaths }
                     | (path, OutputFile) ->
                         { state with OutputFile = path; Type = Unknown }
-                    | _ -> State.invalidate state
+                    | _ ->
+                        { state with
+                            Type =
+                                sprintf "Unknown option '%s'" arg
+                                |> Some
+                                |> Invalid }
                 inner state' tail
         inner
             { AssemblyPaths = []

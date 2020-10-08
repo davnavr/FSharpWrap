@@ -9,9 +9,9 @@ let private help =
             |> Seq.map snd
         let argstr f (arg: Arguments.Info) =
             match arg.ArgValue with
-            | Some value' ->
-                (fun s -> sprintf "%s <%s>" s value')
-            | None -> id
+            | "" -> id
+            | value' ->
+                fun s -> sprintf "%s <%s>" s value'
             <| f arg.ArgType
         args
         |> Seq.map (argstr string)
@@ -39,7 +39,12 @@ let private help =
 [<EntryPoint>]
 let main argv =
     match List.ofArray argv |> Arguments.parse with
-    | Some args -> 0
-    | None ->
+    | Ok args ->
+        printfn "%A" args
+        0
+    | Error msg ->
+        match msg with
+        | Some msg' -> printfn "%s" msg'
+        | _ -> ()
         List.iter (printfn "%s") help
         -1

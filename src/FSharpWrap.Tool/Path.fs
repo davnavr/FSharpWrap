@@ -25,7 +25,10 @@ module Path =
             | :? NotSupportedException
             | :? PathTooLongException -> None
 
-    let (|Valid|_|) = ofStr
+    let (|Valid|Invalid|) =
+        ofStr
+        >> Option.map Choice1Of2
+        >> Option.defaultValue (Choice2Of2())
     let (|ValidList|_|) =
         let rec inner state =
             function
