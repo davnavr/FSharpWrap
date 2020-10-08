@@ -26,16 +26,39 @@ module Arguments =
     [<RequireQualifiedAccess>]
     module private State = let invalidate st = { st with Type = Invalid }
 
+    type ArgumentType =
+        | Optional of string
+        | Required of string
+
+        member this.Name =
+            match this with
+            | Optional name
+            | Required name -> name
+
+        override this.ToString() =
+            match this with
+            | Optional name -> sprintf "[--%s]" name
+            | Required name -> sprintf "--%s" name
+
+    type Info =
+        { ArgType: ArgumentType
+          ArgValue: string option
+          Description: string
+          State: StateType }
+
     let all =
         [
-            "help", Invalid, "Shows this help message"
+            Optional "help", Invalid, "Shows this help message", None
+            Required "assembly-paths", AssemblyPaths, "Specifies the paths to the assemblies to generate F# code for", Some "paths"
+            Required "output-file", OutputFile, "Specifies the path to the file containing the generated F# code", Some "file"
         ]
-        |> Seq.map (fun (name, t, desc) ->
+        |> Seq.map (fun (name, st, desc, value) ->
             let info =
-                {| Description = desc
-                   Name = name
-                   Type = t |}
-            name, info)
+                { ArgType = name
+                  ArgValue = value
+                  Description = desc
+                  State = st }
+            name.Name, info)
         |> Map.ofSeq
 
     let parse =
@@ -64,7 +87,7 @@ module Arguments =
             | arg :: tail ->
                 let state' =
                     match (arg, state.Type) with
-                    | (Argument arg', _) -> { state with Type = arg'.Type }
+                    | (Argument arg', _) -> { state with Type = arg'.State }
                     | (path, AssemblyPaths) ->
                         { state with AssemblyPaths = path :: state.AssemblyPaths }
                     | (path, OutputFile) ->
