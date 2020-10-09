@@ -2,13 +2,15 @@
 
   <!-- Project properties -->
   <PropertyGroup>
-    <AssemblyName>FSharpWrap.Tool</AssemblyName>
+    <AssemblyName>fsharpwrap</AssemblyName>
     <OutputType>Exe</OutputType>
+    <RootNamespace>FSharpWrap.Tool</RootNamespace>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <!-- Source files -->
   <ItemGroup>
+    <Compile Include="Path.fs" />
     <Compile Include="Reflection\Namespace.fs" />
     <Compile Include="Reflection\Types.fs" />
     <Compile Include="Reflection\TypeRef.fs" />

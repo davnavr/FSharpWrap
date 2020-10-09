@@ -13,5 +13,5 @@ let ofType (t: System.Type) =
             t.Name.LastIndexOf '`' |> t.Name.Remove
         else
             t.Name
-      Namespace = Option.ofObj t.Namespace
+      Namespace = Namespace.ofStr t.Namespace
       TypeArgs = invalidOp "type args" }
