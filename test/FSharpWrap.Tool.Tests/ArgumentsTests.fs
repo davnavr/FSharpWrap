@@ -13,6 +13,10 @@ type InvalidArgumentOptions =
     private
     | InvalidArgumentOptions of string list
 
+type ValidArguments =
+    private
+    | ValidArguments of string list
+
 [<AutoOpen>]
 module Generators =
     let private option name =
@@ -25,39 +29,49 @@ module Generators =
                 ws2
         }
 
+    let assemblies =
+        gen {
+            let! opt = option "assembly-paths"
+            let! paths =
+                Gen.path
+                |> Gen.nonEmptyListOf
+                |> Gen.resize 6
+                |> Gen.map (List.map string)
+            return
+                [
+                    opt
+                    yield! paths
+                ]
+        }
+
+    let outfile =
+        gen {
+            let! opt = option "output-file"
+            let! file = Gen.map string Gen.path
+            return [ opt; file ]
+        }
+
+    let private arguments more t =
+        gen {
+            let! assemblies' = assemblies
+            let! outfile' = outfile
+            return!
+                [
+                    assemblies'
+                    outfile'
+                    more
+                ]
+                |> Gen.shuffle
+                |> Gen.map (List.ofArray >> List.collect id >> t)
+        }
+
     type ArgumentGenerators =
         static member ArgumentsWithHelp() =
-            gen {
-                let! assemblies =
-                    gen {
-                        let! opt = option "assembly-paths"
-                        let! paths =
-                            Gen.listOf Gen.path
-                            |> Gen.resize 6
-                            |> Gen.map (List.map string)
-                        return
-                            [
-                                opt
-                                yield! paths
-                            ]
-                    }
-                let! outfile =
-                    gen {
-                        let! opt = option "output-file"
-                        let! file = Gen.map string Gen.path
-                        return [ opt; file ]
-                    }
-                let! args =
-                    [
-                        assemblies
-                        outfile
-                        [ "--help" ]
-                    ]
-                    |> Gen.shuffle
-                    |> Gen.map (List.ofArray >> List.collect id)
-                return ArgumentsWithHelp args
-            }
+            arguments
+                [ "--help" ]
+                ArgumentsWithHelp
             |> Arb.fromGen
+
         static member InvalidArgumentOptions() =
             let badopt =
                 gen {
@@ -77,6 +91,11 @@ module Generators =
             |> Gen.map InvalidArgumentOptions
             |> Arb.fromGen
 
+        static member ValidArguments() =
+            ValidArguments
+            |> arguments []
+            |> Arb.fromGen
+
 module private Expect =
     let parseError msg args =
         Expect.isError
@@ -93,17 +112,38 @@ let tests =
         testPropertyWithConfig
             config
             name
-    let parseFails reason f =
-        Expect.parseError reason
-        |> f
+    let parsingProperty reason check expect =
+        check
+        >> expect reason
         |> argumentsProperty reason
+    let successfulParse reason f =
+        parsingProperty
+            reason
+            (fun (ValidArguments args) -> args)
+            (fun msg argv ->
+                let args =
+                    Expect.wantOk (Arguments.parse argv) "Parsing unexpectedly failed"
+                f argv args msg)
 
     testList "argument parsing tests" [
-        parseFails
-            "fails when --help is specified"
-            (fun f (ArgumentsWithHelp args) -> f args)
+        parsingProperty
+            "parsing fails when --help is specified"
+            (fun (ArgumentsWithHelp args) -> args)
+            Expect.parseError
 
-        parseFails
-            "fails when invalid flag is specified"
-            (fun f (InvalidArgumentOptions args) -> f args)
+        parsingProperty
+            "parsing fails when invalid flag is specified"
+            (fun (InvalidArgumentOptions args) -> args)
+            Expect.parseError
+
+        successfulParse
+            "parsed arguments should contain validated output path"
+            (fun argv args -> string args.OutputFile |> Expect.contains argv)
+
+        successfulParse
+            "parsed arguments should contain validated assembly paths"
+            (fun argv args ->
+                args.Assemblies
+                |> List.map string
+                |> Expect.containsAll argv)
     ]
