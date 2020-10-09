@@ -7,6 +7,18 @@ open System
 
 open FSharpWrap.Tool
 
+let ws =
+    gen {
+        let! len = Gen.choose(0, 10)
+        return String.replicate len " "
+    }
+
+let chars: seq<char> -> _ =
+    Gen.elements
+    >> Gen.arrayOf
+    >> Gen.resize 7
+    >> Gen.map String
+
 let path =
     let name =
         [
@@ -16,10 +28,7 @@ let path =
             [ '_'; '-'; ' ' ]
         ]
         |> List.collect id
-        |> Gen.elements
-        |> Gen.arrayOf
-        |> Gen.resize 7
-        |> Gen.map String
+        |> chars
     let sep = Gen.elements [ '\\'; '/' ]
     gen {
         let! drive =
