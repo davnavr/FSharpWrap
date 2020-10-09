@@ -14,7 +14,7 @@ module Arguments =
         private
         | AssemblyPaths
         | OutputFile
-        | Invalid of msg: string option
+        | Invalid of string option
         | Unknown
 
     type private State =
@@ -22,10 +22,6 @@ module Arguments =
           ExcludeNamespaces: string list
           OutputFile: string
           Type: StateType }
-
-    [<RequireQualifiedAccess>]
-    module private State =
-        let invalidate msg st = { st with Type = Some msg |> Invalid }
 
     type ArgumentType =
         | Optional of string
