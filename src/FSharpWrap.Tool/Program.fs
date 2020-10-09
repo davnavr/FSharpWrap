@@ -1,6 +1,8 @@
 ﻿[<RequireQualifiedAccess>]
 module FSharpWrap.Tool.Program
 
+open System.IO
+
 let private help =
     [
         let args =
@@ -40,7 +42,12 @@ let private help =
 let main argv =
     match List.ofArray argv |> Arguments.parse with
     | Ok args ->
-        printfn "%A" args
+        // TODO: Handle errors raised during reading and writing of files
+        let content =
+            args.Assemblies
+            |> Reflection.Reflect.paths
+            |> Generate.fromAssemblies
+        File.WriteAllLines(string args.OutputFile, content)
         0
     | Error msg ->
         match msg with

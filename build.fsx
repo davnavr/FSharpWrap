@@ -22,7 +22,6 @@ module NuGetCli = Fake.DotNet.NuGet.NuGet
 let rootDir = __SOURCE_DIRECTORY__
 let outDir = rootDir </> "out"
 let srcDir = rootDir </> "src"
-let localFeed = rootDir </> "local"
 let slnFile = rootDir </> "FSharpWrap.sln"
 
 let version = Environment.environVarOrDefault "PACKAGE_VERSION" "0.0.0"
@@ -34,14 +33,13 @@ let handleErr msg: ProcessResult -> _ =
         failwithf "Process exited with code %i: %s" ecode msg
     | _ -> ()
 
-Target.create "Clean" (fun _ ->
+Target.create "Clean" <| fun _ ->
     Shell.cleanDir outDir
-    Shell.cleanDir localFeed
+    // TODO: Clean examples.
     
     slnFile
     |> DotNetCli.exec id "clean"
     |> handleErr "Unexpected error while cleaning solution"
-)
 
 let buildProj proj =
     DotNetCli.build
@@ -57,7 +55,7 @@ let buildProj proj =
                 NoRestore = true })
         proj
 
-Target.create "Build Tool" (fun _ ->
+Target.create "Build Tool" <| fun _ ->
     buildProj slnFile
 
     DotNetCli.publish
@@ -68,9 +66,12 @@ Target.create "Build Tool" (fun _ ->
                 NoRestore = true
                 OutputPath = srcDir </> "FSharpWrap" </> "tool" |> Some })
         (srcDir </> "FSharpWrap.Tool" </> "FSharpWrap.Tool.fsproj")
-)
 
-// TODO: Copy output of build into the folder containing the .nuspec
+Target.create "Test Tool" <| fun _ ->
+    ()
+
+Target.create "Build Examples" <| fun _ ->
+    rootDir </> "FSharpWrap.Examples.sln" |> buildProj
 
 let pushpkg todir ver _ =
     NuGetCli.NuGetPackDirectly
@@ -89,19 +90,10 @@ let pushpkg todir ver _ =
 
 Target.create "Pack" (pushpkg outDir version)
 
-Target.create "Push Local" (pushpkg localFeed "0.0.0+local")
-
-Target.create "Build Examples" (fun _ ->
-    rootDir </> "FSharpWrap.Examples.sln" |> buildProj
-)
-
-Target.create "All" ignore
-
 "Clean"
 ==> "Build Tool"
-==> "Pack"
-==> "Push Local"
+==> "Test Tool"
 ==> "Build Examples"
-==> "All"
+==> "Pack"
 
-Target.runOrDefault "All"
+Target.runOrDefault "Pack"

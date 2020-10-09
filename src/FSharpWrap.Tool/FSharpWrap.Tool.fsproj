@@ -2,9 +2,8 @@
 
   <!-- Project properties -->
   <PropertyGroup>
-    <AssemblyName>fsharpwrap</AssemblyName>
+    <AssemblyName>FSharpWrap.Tool</AssemblyName>
     <OutputType>Exe</OutputType>
-    <RootNamespace>FSharpWrap.Tool</RootNamespace>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
