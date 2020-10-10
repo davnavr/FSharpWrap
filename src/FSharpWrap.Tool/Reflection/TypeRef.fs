@@ -3,15 +3,13 @@
 module FSharpWrap.Tool.Reflection.TypeRef
 
 let fsname (t: TypeRef) =
-    // TODO: Factor out common code for surrounding a full name with `` ``.
     sprintf
-        "global."
+        "%s.%s"
+        (Namespace.identifier t.Namespace)
+        t.Name
+        // TODO: include generic arguments/parameters.
 
 let ofType (t: System.Type) =
-    { Name =
-        if t.IsGenericTypeDefinition then
-            t.Name.LastIndexOf '`' |> t.Name.Remove
-        else
-            t.Name
+    { Name = t.Name // TODO: How to handle names of generic types or nested types inside of generic types?
       Namespace = Namespace.ofStr t.Namespace
-      TypeArgs = invalidOp "type args" }
+      TypeArgs = [] (*TODO: Add type arguments*) }

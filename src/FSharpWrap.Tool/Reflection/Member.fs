@@ -40,7 +40,7 @@ let ofInfo (info: MemberInfo) =
             |> Seq.map (fun pinfo -> TypeRef.ofType pinfo.ParameterType)
             |> List.ofSeq
           RetType = TypeRef.ofType mthd.ReturnType
-          TypeParams = invalidOp "type params" }
+          TypeParams = [] } // TODO: Type parameters.
         |> membert
             (mthd.Attributes.HasFlag MethodAttributes.Static)
             InstanceMethod

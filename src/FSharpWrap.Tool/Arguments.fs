@@ -46,7 +46,10 @@ module Arguments =
     let all =
         [
             Optional "help", Invalid None, "Shows this help message", ""
-            Required "assembly-paths", AssemblyPaths, "Specifies the semicolon separated paths to the assemblies", "path list"
+            // TODO: Make this option accept directories as well.
+            Required "assembly-paths", AssemblyPaths, "Specifies the paths to the assemblies", "path list"
+            // TODO: Add argument to exclude some assemblies.
+            // Optional "excluded-assemblies", ExcludedAssemblies, "Specifies the names of the assemblies to exclude from module generation", "name list"
             Required "output-file", OutputFile, "Specifies the path to the file containing the generated F# code", "file"
         ]
         |> Seq.map (fun (name, st, desc, value) ->
