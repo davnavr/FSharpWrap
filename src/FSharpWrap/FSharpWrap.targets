@@ -10,7 +10,7 @@
   <Target Name="FSharpWrap" BeforeTargets="Compile">
     <!-- TODO: How to check that 'dotnet' exists? -->
     <Exec
-      Command="dotnet exec &quot;$(FSharpWrapToolPath)&quot; --assembly-paths @(Reference, ' ') --output-file &quot;$(FSharpWrapOutputFilePath)&quot;"
+      Command="dotnet exec &quot;$(FSharpWrapToolPath)&quot; --assembly-paths &quot;@(Reference, '&quot; &quot;')&quot; --output-file &quot;$(FSharpWrapOutputFilePath)&quot;"
       ConsoleToMsBuild="true"
       LogStandardErrorAsError="true" />
   </Target>
