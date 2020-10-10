@@ -8,8 +8,4 @@
     <Compile Include="Library.fs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="FSharpWrap" Version="0.0.0+local" />
-  </ItemGroup>
-
 </Project>

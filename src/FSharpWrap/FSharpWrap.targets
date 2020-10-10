@@ -1,10 +1,16 @@
 <Project>
 
-  <!-- TODO: Fix problem where fsharpwrap package appears in the user's cache, which might be used instead of the one from the local feed. -->
+  <!-- FSharpWrap Settings -->
+  <PropertyGroup>
+    <FSharpWrapOutputFileName Condition="'$(FSharpWrapOutputFileName)'==''">output.autogen.fs</FSharpWrapOutputFileName>
+    <FSharpWrapOutputFilePath Condition="'$(FSharpWrapOutputFilePath)'==''">$(MSBuildProjectDirectory)/$(FSharpWrapOutputFileName)</FSharpWrapOutputFilePath>
+    <FSharpWrapToolPath Condition="'$(FSharpWrapToolPath)'==''">$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll</FSharpWrapToolPath>
+  </PropertyGroup>
+
   <Target Name="FSharpWrap" BeforeTargets="Compile">
     <!-- TODO: How to check that 'dotnet' exists? -->
     <Exec
-      Command="dotnet exec &quot;$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll&quot;"
+      Command="dotnet exec &quot;$(FSharpWrapToolPath)&quot; --assembly-paths &quot;@(Reference, '&quot; &quot;')&quot; --output-file &quot;$(FSharpWrapOutputFilePath)&quot;"
       ConsoleToMsBuild="true"
       LogStandardErrorAsError="true" />
   </Target>

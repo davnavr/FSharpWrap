@@ -9,7 +9,9 @@
   
   <!-- Source files -->
   <ItemGroup>
+    <Compile Include="Gen.fs" />
     <Compile Include="GenerateTests.fs" />
+    <Compile Include="ArgumentsTests.fs" />
     <Compile Include="Test.fs" />
   </ItemGroup>
 
