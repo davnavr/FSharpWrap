@@ -22,7 +22,7 @@ let fromMembers mname members =
         sprintf "module ``%s`` =" mname
         yield! block "begin" "end"
             [
-                for (parent, mdef) in members do // TODO: How to handle method overloads?
+                for (parent: TypeRef, mdef) in members do // TODO: How to handle method overloads?
                     // TODO: Add extra indentation when printing out members.
 
                     //let f =
@@ -37,7 +37,10 @@ let fromMembers mname members =
                     //            iprop.Name
                     //        |> f
                     //| UnknownMember name ->
-                    Member.fsname mdef |> sprintf "// Unkown member %s"
+                    sprintf
+                        "// Unkown member %s in type %s"
+                        (Member.fsname mdef)
+                        (TypeRef.fsname parent)
             ]
             |> indented
     ]

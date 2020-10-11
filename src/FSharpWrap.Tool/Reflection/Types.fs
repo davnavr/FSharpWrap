@@ -5,17 +5,25 @@ open System
 type TypeParam =
     { Name: string }
 
+    override this.ToString() = this.Name
+
 [<CustomComparison; CustomEquality>]
 type TypeRef =
     { Name: string
       Namespace: Namespace
-      TypeArgs: unit list }
+      TypeArgs: TypeArg list }
 
     member this.FullName =
-        match this.Namespace with
-        | Namespace [] -> id
-        | ns -> sprintf "%O.%s" ns
-        <| this.Name
+        let ns =
+            match this.Namespace with
+            | Namespace [] -> ""
+            | ns -> sprintf "%O." ns
+        let targs =
+            match this.TypeArgs with
+            | [] -> ""
+            | _ ->
+                sprintf "`%i" (List.length this.TypeArgs)
+        sprintf "%s%s%s" ns this.Name targs
 
     member private this.Info = this.Name, this.Namespace, List.length this.TypeArgs
 
@@ -26,9 +34,13 @@ type TypeRef =
 
     interface IComparable with
         member this.CompareTo obj = compare this.Info (obj :?> TypeRef).Info
+and [<StructuralComparison; StructuralEquality>]
+    TypeArg =
+    | TypeArg of TypeRef
+    | TypeParam of TypeParam
 
 type Field =
-    { Name: string 
+    { Name: string
       FieldType: TypeRef }
 
 type Method =
