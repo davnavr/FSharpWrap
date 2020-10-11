@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.401
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: '5.x'
+    - name: Install Dependencies
+      run: |
+        dotnet restore ./FSharpWrap.sln
+        dotnet tool restore
+    - name: Build
+      run: dotnet fake run build.fsx
+    - name: Upload Packages
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v2
+      with:
+        name: FSharpWrap
+        path: ./out/FSharpWrap.*.nupkg
+  #publish:
+  #  runs-on: ubuntu-latest
