@@ -71,7 +71,9 @@ Target.create "Test Tool" <| fun _ ->
     ()
 
 Target.create "Build Examples" <| fun _ ->
-    rootDir </> "FSharpWrap.Examples.sln" |> buildProj
+    let path = rootDir </> "FSharpWrap.Examples.sln"
+    DotNetCli.restore id path
+    buildProj path
 
 let pushpkg todir ver _ =
     NuGetCli.NuGetPackDirectly

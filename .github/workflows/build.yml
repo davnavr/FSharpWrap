@@ -21,7 +21,7 @@ jobs:
         dotnet-version: 3.1.401
     - name: Install Dependencies
       run: |
-        dotnet restore
+        dotnet restore ./FSharpWrap.sln
         dotnet tool restore
     - name: Build
       run: dotnet fake run build.fsx
