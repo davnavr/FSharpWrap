@@ -3,7 +3,13 @@ module FSharpWrap.Tool.Generate
 
 open FSharpWrap.Tool.Reflection
 
-let block lines = Seq.map (sprintf "    %s") lines
+let indented lines = Seq.map (sprintf "    %s") lines
+let block start stop lines =
+    seq {
+        yield start
+        yield! indented lines
+        yield stop
+    }
 
 let inline private attr name args =
     sprintf "[<%s(%s)>]" name args
@@ -14,9 +20,11 @@ let fromMembers mname members =
             "global.Microsoft.FSharp.Core.CompilationRepresentation"
             "global.Microsoft.FSharp.Core.CompilationRepresentationFlags.ModuleSuffix"
         sprintf "module ``%s`` =" mname
-        yield! block
+        yield! block "begin" "end"
             [
                 for (parent, mdef) in members do // TODO: How to handle method overloads?
+                    // TODO: Add extra indentation when printing out members.
+
                     //let f =
                     //    Member.fsname mdef |> sprintf "let inline ``%s`` %s"
                     //match mdef with
@@ -31,11 +39,11 @@ let fromMembers mname members =
                     //| UnknownMember name ->
                     Member.fsname mdef |> sprintf "// Unkown member %s"
             ]
+            |> indented
     ]
 
 let fromNamespace (name: Namespace) types =
     [
-        ""
         sprintf "namespace %O" name
         yield!
             types
@@ -56,7 +64,7 @@ let fromNamespace (name: Namespace) types =
                             members)
                     tdefs
                 |> fromMembers mname)
-            |> block
+            |> indented
     ]
 
 let fromAssemblies (assms: AssemblyInfo list) =
@@ -87,5 +95,4 @@ let fromAssemblies (assms: AssemblyInfo list) =
             types
             |> Map.toSeq
             |> Seq.collect (fun (ns, tdefs) -> fromNamespace ns tdefs)
-        ""
     ]
