@@ -2,7 +2,7 @@
 [<RequireQualifiedAccess>]
 module FSharpWrap.Tool.Reflection.TypeRef
 
-let fsname (t: TypeRef) =
+let fsname (t: TypeRef) = // TODO: Include parent type if type is nested.
     match t.TypeArgs with
     | [] -> ""
     | targs ->

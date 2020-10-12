@@ -40,7 +40,7 @@ let fromMembers mname members =
                     sprintf
                         "// Unkown member %s in type %s"
                         (Member.fsname mdef)
-                        (TypeRef.fsname parent)
+                        parent.FullName
             ]
             |> indented
     ]

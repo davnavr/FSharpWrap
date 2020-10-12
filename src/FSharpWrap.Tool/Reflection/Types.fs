@@ -15,20 +15,29 @@ type TypeRef =
       TypeArgs: TypeArg list }
 
     member this.FullName =
+        let targs { TypeArgs = args } =
+            match args with
+            | [] -> ""
+            | _ -> List.length args |> sprintf "`%i"
         let ns =
             match this.Namespace with
             | Namespace [] -> ""
             | ns -> sprintf "%O." ns
-        let parent = // TODO: Include type arguments of parent?
-            this.Parent
-            |> Option.map (fun parent -> sprintf "%O+" parent.Name)
+        let parent =
+            Option.map
+                (fun parent ->
+                    sprintf
+                        "%O%s+"
+                        parent.Name
+                        (targs parent))
+                this.Parent
             |> Option.defaultValue ""
-        let targs =
-            match this.TypeArgs with
-            | [] -> ""
-            | _ ->
-                sprintf "`%i" (List.length this.TypeArgs)
-        sprintf "%s%s%O%s" ns parent this.Name targs
+        sprintf
+            "%s%s%O%s"
+            ns
+            parent
+            this.Name
+            (targs this)
 
     member private this.Info =
         this.Name, this.Namespace, this.Parent, List.length this.TypeArgs
