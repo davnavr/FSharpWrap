@@ -7,5 +7,6 @@ let ofType (t: System.Type) =
       Members =
         t.GetMembers()
         |> Seq.ofArray
+        |> Seq.where (fun m -> m.DeclaringType = t)
         |> Seq.map Member.ofInfo
         |> List.ofSeq }
