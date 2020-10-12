@@ -14,16 +14,19 @@ let fsname (t: TypeRef) =
         (Namespace.identifier t.Namespace)
         t.Name
 
-let rec ofType (t: System.Type) =
+let rec ofType (GenericArgs gargs as t) =
+    let parent = Option.ofObj t.DeclaringType
     { Name = SimpleName.ofType t
       Namespace = Namespace.ofStr t.Namespace
-      Parent =
-        t.DeclaringType
-        |> Option.ofObj
-        |> Option.map ofType
+      Parent = Option.map ofType parent
       TypeArgs =
-        t.GetGenericArguments() // TODO: Fix, nested types inside generic types will get the generic arguments of the parent.
+        let inherited =
+            parent
+            |> Option.map (|GenericArgs|)
+            |> Option.defaultValue Array.empty
+        gargs
         |> List.ofArray
+        |> List.except inherited
         |> List.map
             (function
             | GenericParam as tparam ->

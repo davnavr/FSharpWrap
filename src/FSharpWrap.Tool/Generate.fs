@@ -66,7 +66,7 @@ let fromNamespace (name: Namespace) types =
                             (fun mdef -> info, mdef)
                             members)
                     tdefs
-                |> fromMembers mname)
+                |> fromMembers (string mname))
             |> indented
     ]
 
