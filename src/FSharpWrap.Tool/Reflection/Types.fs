@@ -9,7 +9,7 @@ type TypeParam =
 
 [<CustomComparison; CustomEquality>]
 type TypeRef =
-    { Name: string
+    { Name: SimpleName
       Namespace: Namespace
       Parent: TypeRef option
       TypeArgs: TypeArg list }
@@ -21,14 +21,14 @@ type TypeRef =
             | ns -> sprintf "%O." ns
         let parent = // TODO: Include type arguments of parent?
             this.Parent
-            |> Option.map (fun parent -> sprintf "%s+" parent.Name)
+            |> Option.map (fun parent -> sprintf "%O+" parent.Name)
             |> Option.defaultValue ""
         let targs =
             match this.TypeArgs with
             | [] -> ""
             | _ ->
                 sprintf "`%i" (List.length this.TypeArgs)
-        sprintf "%s%s%s%s" ns parent this.Name targs
+        sprintf "%s%s%O%s" ns parent this.Name targs
 
     member private this.Info =
         this.Name, this.Namespace, this.Parent, List.length this.TypeArgs

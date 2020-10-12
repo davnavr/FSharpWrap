@@ -10,17 +10,12 @@ let fsname (t: TypeRef) =
         |> String.concat ", "
         |> sprintf "<%s>"
     |> sprintf
-        "%s.%s%s"
+        "%s.%O%s"
         (Namespace.identifier t.Namespace)
         t.Name
 
 let rec ofType (t: System.Type) =
-    { Name =
-        match t.DeclaringType with
-        | null when t.IsGenericType ->
-            t.Name.LastIndexOf '`' |> t.Name.Remove
-        | _ ->
-            t.Name
+    { Name = SimpleName.ofType t
       Namespace = Namespace.ofStr t.Namespace
       Parent =
         t.DeclaringType
