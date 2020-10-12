@@ -11,6 +11,7 @@ type TypeParam =
 type TypeRef =
     { Name: string
       Namespace: Namespace
+      Parent: TypeRef option
       TypeArgs: TypeArg list }
 
     member this.FullName =
@@ -18,14 +19,19 @@ type TypeRef =
             match this.Namespace with
             | Namespace [] -> ""
             | ns -> sprintf "%O." ns
+        let parent = // TODO: Include type arguments of parent?
+            this.Parent
+            |> Option.map (fun parent -> sprintf "%s+" parent.Name)
+            |> Option.defaultValue ""
         let targs =
             match this.TypeArgs with
             | [] -> ""
             | _ ->
                 sprintf "`%i" (List.length this.TypeArgs)
-        sprintf "%s%s%s" ns this.Name targs
+        sprintf "%s%s%s%s" ns parent this.Name targs
 
-    member private this.Info = this.Name, this.Namespace, List.length this.TypeArgs
+    member private this.Info =
+        this.Name, this.Namespace, this.Parent, List.length this.TypeArgs
 
     override this.Equals obj =
         let other = obj :?> TypeRef in this.Info = other.Info

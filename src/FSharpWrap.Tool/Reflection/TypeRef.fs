@@ -15,10 +15,19 @@ let fsname (t: TypeRef) =
         t.Name
 
 let rec ofType (t: System.Type) =
-    { Name = t.Name // TODO: How to handle names of generic types or nested types inside of generic types?
+    { Name =
+        match t.DeclaringType with
+        | null when t.IsGenericType ->
+            t.Name.LastIndexOf '`' |> t.Name.Remove
+        | _ ->
+            t.Name
       Namespace = Namespace.ofStr t.Namespace
+      Parent =
+        t.DeclaringType
+        |> Option.ofObj
+        |> Option.map ofType
       TypeArgs =
-        t.GetGenericArguments()
+        t.GetGenericArguments() // TODO: Fix, nested types inside generic types will get the generic arguments of the parent.
         |> List.ofArray
         |> List.map
             (function
