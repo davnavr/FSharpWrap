@@ -20,7 +20,9 @@
     <Compile Include="Reflection\TypeInfo.fs" />
     <Compile Include="Reflection\AssemblyInfo.fs" />
     <Compile Include="Reflection\Reflect.fs" />
-    <Compile Include="Generate.fs" />
+    <Compile Include="Generation\Helpers.fs" />
+    <Compile Include="Generation\ParamList.fs" />
+    <Compile Include="Generation\Generate.fs" />
     <Compile Include="Arguments.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

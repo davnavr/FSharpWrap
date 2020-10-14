@@ -3,6 +3,9 @@ module FSharpWrap.Tool.Program
 
 open System.IO
 
+open FSharpWrap.Tool.Reflection
+open FSharpWrap.Tool.Generation
+
 let private help =
     [
         let args =
@@ -45,7 +48,7 @@ let main argv =
         // TODO: Handle errors raised during reading and writing of files
         let content =
             args.Assemblies
-            |> Reflection.Reflect.paths
+            |> Reflect.paths
             |> Generate.fromAssemblies
         File.WriteAllLines(string args.OutputFile, content)
         0

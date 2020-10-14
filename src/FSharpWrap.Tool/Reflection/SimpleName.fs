@@ -1,6 +1,6 @@
 ﻿namespace FSharpWrap.Tool.Reflection
 
-[<StructuralComparison; StructuralEquality>]
+[<Struct; StructuralComparison; StructuralEquality>]
 type SimpleName =
     | SimpleName of string
 

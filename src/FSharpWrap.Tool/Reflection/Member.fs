@@ -6,27 +6,36 @@ open System
 open System.Reflection
 
 let fsname (m: Member) =
-    let name =
-        String.mapi
+    let bname =
+        match m with
+        | Constructor ctor ->
+            "create" // TODO: Have special name for constructor depending on and number of type of arguments (ex: ofString for .ctor(System.String))
+        | InstanceField field
+        | StaticField field -> field.FieldName
+        | InstanceMethod mthd
+        | StaticMethod mthd -> mthd.MethodName
+        | InstanceProperty prop
+        | StaticProperty prop -> prop.PropName
+        | UnknownMember name -> name
+        |> String.mapi
             (function
             | 0 -> Char.ToLowerInvariant
             | _ -> id)
-            m.Name
-    name
+    bname
 
 let ofInfo (info: MemberInfo) =
     let membert cond inst stat =
-        if cond then stat >> StaticMember else inst >> InstanceMember
+        if cond then stat else inst
     match info with
     | :? FieldInfo as field ->
-        { Name = field.Name
+        { FieldName = field.Name
           FieldType = TypeRef.ofType field.FieldType }
         |> membert
             (field.Attributes.HasFlag FieldAttributes.Static)
             InstanceField
             StaticField
     | :? PropertyInfo as prop ->
-        { Name = prop.Name
+        { PropName = prop.Name
           Setter = prop.CanRead
           PropType = TypeRef.ofType prop.PropertyType }
         |> membert
@@ -34,10 +43,16 @@ let ofInfo (info: MemberInfo) =
              InstanceProperty
              StaticProperty
     | :? MethodInfo as mthd ->
-        { Name = mthd.Name
-          Parameters =
+        { MethodName = mthd.Name
+          Params =
             mthd.GetParameters()
-            |> Seq.map (fun pinfo -> TypeRef.ofType pinfo.ParameterType)
+            |> Seq.map (fun pinfo ->
+                { ArgType = TypeRef.ofType pinfo.ParameterType |> TypeArg
+                  ParamName =
+                    match pinfo.Name with // TODO: Move this name validation to a separate name type.
+                    | null
+                    | "" -> "arg"
+                    | name -> name })
             |> List.ofSeq
           RetType = TypeRef.ofType mthd.ReturnType
           TypeParams = [] } // TODO: Type parameters.

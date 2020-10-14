@@ -5,8 +5,6 @@ open System
 type TypeParam =
     { Name: string }
 
-    override this.ToString() = this.Name
-
 [<CustomComparison; CustomEquality>]
 type TypeRef =
     { Name: SimpleName
@@ -49,63 +47,51 @@ type TypeRef =
 
     interface IComparable with
         member this.CompareTo obj = compare this.Info (obj :?> TypeRef).Info
+
 and [<StructuralComparison; StructuralEquality>]
     TypeArg =
     | TypeArg of TypeRef
     | TypeParam of TypeParam
 
+[<CustomComparison; CustomEquality>]
+type Param =
+    { ArgType: TypeArg
+      ParamName: string } // TODO: Use separate type for ParamName.
+
+    override this.GetHashCode() = this.ParamName.GetHashCode()
+
+    override this.Equals obj =
+        this.ParamName = (obj :?> Param).ParamName
+
+    interface IComparable with
+        member this.CompareTo obj =
+            compare this.ParamName (obj :?> Param).ParamName
+
 type Field =
-    { Name: string
+    { FieldName: string
       FieldType: TypeRef }
 
 type Method =
-    { Name: string
-      Parameters: TypeRef list
+    { MethodName: string
+      Params: Param list
       RetType: TypeRef
       TypeParams: TypeParam list }
 
 // TODO: How to handle properties with parameters?
 type Property =
-    { Name: string
-      Setter: bool
-      PropType: TypeRef }
+    { PropName: string
+      PropType: TypeRef
+      Setter: bool }
 
-type InstanceMember =
+type Member =
     | Constructor of param: TypeRef list
     | InstanceField of Field
     | InstanceMethod of Method
     | InstanceProperty of Property
-
-    member this.Name =
-        match this with
-        | Constructor _ -> ".ctor"
-        | InstanceField { Name = name }
-        | InstanceMethod { Name = name }
-        | InstanceProperty { Name = name } ->
-            name
-
-type StaticMember =
     | StaticField of Field
     | StaticMethod of Method
     | StaticProperty of Property
-
-    member this.Name =
-        match this with
-        | StaticField { Name = name }
-        | StaticMethod { Name = name }
-        | StaticProperty { Name = name } ->
-            name
-
-type Member =
-    | InstanceMember of InstanceMember
-    | StaticMember of StaticMember
     | UnknownMember of name: string
-
-    member this.Name =
-        match this with
-        | InstanceMember i -> i.Name
-        | StaticMember s -> s.Name
-        | UnknownMember name -> name
 
 [<CustomComparison; CustomEquality>]
 type TypeDef =
