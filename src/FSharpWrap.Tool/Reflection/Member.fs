@@ -48,11 +48,7 @@ let ofInfo (info: MemberInfo) =
             mthd.GetParameters()
             |> Seq.map (fun pinfo ->
                 { ArgType = TypeRef.ofType pinfo.ParameterType |> TypeArg
-                  ParamName =
-                    match pinfo.Name with // TODO: Move this name validation to a separate name type.
-                    | null
-                    | "" -> "arg"
-                    | name -> name })
+                  ParamName = SimpleName.ofParameter pinfo })
             |> List.ofSeq
           RetType = TypeRef.ofType mthd.ReturnType
           TypeParams = [] } // TODO: Type parameters.

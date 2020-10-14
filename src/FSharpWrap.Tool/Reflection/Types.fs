@@ -56,7 +56,7 @@ and [<StructuralComparison; StructuralEquality>]
 [<CustomComparison; CustomEquality>]
 type Param =
     { ArgType: TypeArg
-      ParamName: string } // TODO: Use separate type for ParamName.
+      ParamName: SimpleName } // TODO: Use separate type for ParamName.
 
     override this.GetHashCode() = this.ParamName.GetHashCode()
 

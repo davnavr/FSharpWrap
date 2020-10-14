@@ -28,7 +28,9 @@ let fromMembers mname (members: seq<TypeRef * Member>) =
                             let plist =
                                 mthd.Params
                                 |> ParamList.ofList
-                                |> ParamList.append { ArgType = TypeArg parent; ParamName = "this" }
+                                |> ParamList.append
+                                    { ArgType = TypeArg parent
+                                      ParamName = SimpleName "this" }
                             let self, rest =
                                 let rec inner rest =
                                     function
@@ -40,11 +42,11 @@ let fromMembers mname (members: seq<TypeRef * Member>) =
                                 |> inner []
                             [
                                 rest
-                                |> List.map (fun { ParamName = name } -> sprintf "``%s``" name)
+                                |> List.map (fun { ParamName = name } -> SimpleName.fsname name)
                                 |> String.concat ", "
                                 |> sprintf
-                                    "``%s``.``%s``(%s)"
-                                    self.ParamName
+                                    "%s.``%s``(%s)"
+                                    (SimpleName.fsname self.ParamName)
                                     mthd.MethodName
                             ]
                             |> gen plist
