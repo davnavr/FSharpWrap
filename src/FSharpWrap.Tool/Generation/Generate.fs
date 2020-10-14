@@ -27,6 +27,19 @@ let fromMembers mname (members: seq<TypeRef * Member>) =
                             { ArgType = TypeArg parent
                               ParamName = SimpleName "this" }
                         match mber with
+                        | Constructor cparams ->
+                            let cparams' = ParamList.ofList cparams
+                            [
+                                cparams'
+                                |> ParamList.toList
+                                // TODO: Factor out duplicate code for params
+                                |> List.map (fun { ParamName = name } -> SimpleName.fsname name)
+                                |> String.concat ", "
+                                |> sprintf
+                                    "new %s(%s)"
+                                    (TypeRef.fsname parent)
+                            ]
+                            |> gen cparams'
                         | InstanceField (ReadOnlyField field) ->
                             [
                                 sprintf
@@ -70,7 +83,7 @@ let fromMembers mname (members: seq<TypeRef * Member>) =
                         | UnknownMember _ ->
                             [ sprintf "// Unknown member %s in %s" name parent.FullName ]
                         | _ -> [ "// TODO: Generate other types of members" ]
-                    , map)
+                    , Map.add name mber map)
                 Map.empty
             |> fst
             |> Seq.collect id

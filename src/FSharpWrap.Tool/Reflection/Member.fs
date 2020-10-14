@@ -26,7 +26,15 @@ let fsname (m: Member) =
 let ofInfo (info: MemberInfo) =
     let membert cond inst stat =
         if cond then stat else inst
+    let mparams (m: #MethodBase) =
+        m.GetParameters()
+        |> Seq.map (fun pinfo ->
+            { ArgType = TypeRef.ofType pinfo.ParameterType |> TypeArg
+              ParamName = SimpleName.ofParameter pinfo })
+        |> List.ofSeq
     match info with
+    | :? ConstructorInfo as ctor ->
+        mparams ctor |> Constructor
     | :? FieldInfo as field ->
         { FieldName = field.Name
           FieldType = TypeRef.ofType field.FieldType
@@ -48,12 +56,7 @@ let ofInfo (info: MemberInfo) =
              StaticProperty
     | :? MethodInfo as mthd ->
         { MethodName = mthd.Name
-          Params =
-            mthd.GetParameters()
-            |> Seq.map (fun pinfo ->
-                { ArgType = TypeRef.ofType pinfo.ParameterType |> TypeArg
-                  ParamName = SimpleName.ofParameter pinfo })
-            |> List.ofSeq
+          Params = mparams mthd
           RetType = TypeRef.ofType mthd.ReturnType
           TypeParams = [] } // TODO: Type parameters.
         |> membert

@@ -87,7 +87,7 @@ type Property =
       Setter: bool }
 
 type Member =
-    | Constructor of param: TypeRef list
+    | Constructor of Param list
     | InstanceField of Field
     | InstanceMethod of Method
     | InstanceProperty of Property
