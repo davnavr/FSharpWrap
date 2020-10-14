@@ -10,9 +10,9 @@ let fsname (t: TypeRef) = // TODO: Include parent type if type is nested.
         |> String.concat ", "
         |> sprintf "<%s>"
     |> sprintf
-        "%s.%O%s"
+        "%s.%s%s"
         (Namespace.identifier t.Namespace)
-        t.Name
+        (SimpleName.fsname t.Name)
 
 let rec ofType (GenericArgs gargs as t) =
     let parent = Option.ofObj t.DeclaringType

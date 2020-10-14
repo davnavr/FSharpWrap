@@ -29,7 +29,11 @@ let ofInfo (info: MemberInfo) =
     match info with
     | :? FieldInfo as field ->
         { FieldName = field.Name
-          FieldType = TypeRef.ofType field.FieldType }
+          FieldType = TypeRef.ofType field.FieldType
+          IsReadOnly =
+            if field.Attributes.HasFlag FieldAttributes.InitOnly
+            then ReadOnly
+            else Mutable }
         |> membert
             (field.Attributes.HasFlag FieldAttributes.Static)
             InstanceField

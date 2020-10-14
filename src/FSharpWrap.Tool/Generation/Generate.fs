@@ -23,19 +23,36 @@ let fromMembers mname (members: seq<TypeRef * Member>) =
                                 ParamList.print mparams |> sprintf "let inline ``%s`` %s =" name
                                 yield! block body |> indented
                             ]
+                        let self =
+                            { ArgType = TypeArg parent
+                              ParamName = SimpleName "this" }
                         match mber with
+                        | InstanceField (ReadOnlyField field) ->
+                            [
+                                sprintf
+                                    "%s.``%s``"
+                                    (SimpleName.fsname self.ParamName)
+                                    field.FieldName
+                            ]
+                            |> gen (ParamList.singleton self)
+                        | StaticField (ReadOnlyField field) ->
+                            [
+                                sprintf
+                                    "%s.``%s``"
+                                    (TypeRef.fsname field.FieldType)
+                                    field.FieldName
+                            ]
+                            |> gen ParamList.empty
                         | InstanceMethod mthd ->
                             let plist =
                                 mthd.Params
                                 |> ParamList.ofList
-                                |> ParamList.append
-                                    { ArgType = TypeArg parent
-                                      ParamName = SimpleName "this" }
-                            let self, rest =
+                                |> ParamList.append self
+                            let rest =
                                 let rec inner rest =
                                     function
-                                    | [] -> invalidOp "Parameter list was unexpectedly empty"
-                                    | [ self ] -> self, List.rev rest
+                                    | []
+                                    | [ _ ] -> List.rev rest
                                     | h :: tail -> inner (h :: rest) tail
                                 plist
                                 |> ParamList.toList
@@ -50,7 +67,7 @@ let fromMembers mname (members: seq<TypeRef * Member>) =
                                     mthd.MethodName
                             ]
                             |> gen plist
-                        | UnknownMember name' ->
+                        | UnknownMember _ ->
                             [ sprintf "// Unknown member %s in %s" name parent.FullName ]
                         | _ -> [ "// TODO: Generate other types of members" ]
                     , map)

@@ -19,6 +19,11 @@ module ParamList =
             <| name
         { param with ParamName = SimpleName name' }, Set.add name set
 
+    let empty = ParamList([], Set.empty)
+
+    let singleton param =
+        ParamList([ param ], Set.singleton param.ParamName)
+
     let append param (ParamList (list, set)) =
         let param', set' = safeName set param
         ParamList(list @ [ param' ], set')

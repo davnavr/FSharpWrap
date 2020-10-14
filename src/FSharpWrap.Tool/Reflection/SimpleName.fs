@@ -15,8 +15,7 @@ module SimpleName =
 
     let ofStr =
         function
-        | null
-        | "" -> None
+        | null | "" -> None
         | str -> SimpleName str |> Some
 
     let ofType (t: System.Type) =

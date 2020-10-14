@@ -67,9 +67,12 @@ type Param =
         member this.CompareTo obj =
             compare this.ParamName (obj :?> Param).ParamName
 
+type ReadOnly = ReadOnly | Mutable
+
 type Field =
     { FieldName: string
-      FieldType: TypeRef }
+      FieldType: TypeRef
+      IsReadOnly: ReadOnly }
 
 type Method =
     { MethodName: string
