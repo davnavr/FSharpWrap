@@ -8,5 +8,10 @@ let ofType (t: System.Type) =
         t.GetMembers()
         |> Seq.ofArray
         |> Seq.where (fun m -> m.DeclaringType = t)
+        |> Seq.choose
+            (function
+            | IsSpecialName
+            | PropAccessor -> None
+            | mber -> Some mber)
         |> Seq.map Member.ofInfo
         |> List.ofSeq }
