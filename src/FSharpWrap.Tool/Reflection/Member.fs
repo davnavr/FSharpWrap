@@ -55,7 +55,7 @@ let ofInfo (info: MemberInfo) =
             (field.Attributes.HasFlag FieldAttributes.Static)
             InstanceField
             StaticField
-    | :? PropertyInfo as prop ->
+    | :? PropertyInfo as prop when prop.GetIndexParameters() |> Array.isEmpty ->
         { PropName = prop.Name
           Setter = prop.CanRead
           PropType = TypeRef.ofType prop.PropertyType }

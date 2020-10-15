@@ -6,6 +6,7 @@ open System.Reflection
 let (|IsSpecialName|_|): MemberInfo -> _ =
     function
     | :? MethodBase as mthd when mthd.IsSpecialName -> Some()
+    | :? FieldInfo as field when field.IsSpecialName -> Some()
     | _ -> None
 
 let (|PropAccessor|_|): MemberInfo -> _ =

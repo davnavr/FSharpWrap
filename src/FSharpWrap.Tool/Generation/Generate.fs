@@ -56,6 +56,18 @@ let fromMembers mname (members: seq<TypeRef * Member>) =
                                     field.FieldName
                             ]
                             |> gen ParamList.empty
+                        | InstanceField field ->
+                            [
+                                let name = (SimpleName.fsname self.ParamName)
+                                let fname = field.FieldName
+                                sprintf
+                                    "(fun() -> %s.``%s``), (fun value -> %s.``%s`` <- value)"
+                                    name
+                                    fname
+                                    name
+                                    fname
+                            ]
+                            |> gen (ParamList.singleton self)
                         | InstanceMethod mthd ->
                             let plist =
                                 mthd.Params
@@ -89,29 +101,6 @@ let fromMembers mname (members: seq<TypeRef * Member>) =
             |> Seq.collect id
             |> block
             |> indented
-        //yield! block
-        //    [
-        //        for (parent: TypeRef, mdef) in members do // TODO: How to handle method overloads?
-        //            // TODO: Add extra indentation when printing out members.
-
-        //            //let f =
-        //            //    Member.fsname mdef |> sprintf "let inline ``%s`` %s"
-        //            //match mdef with
-        //            //| InstanceMember inst ->
-        //            //    match inst with
-        //            //    | InstanceProperty iprop when iprop.Setter ->
-        //            //        sprintf
-        //            //            "(this: %s) = this.``%s``"
-        //            //            (TypeRef.fsname parent)
-        //            //            iprop.Name
-        //            //        |> f
-        //            //| UnknownMember name ->
-        //            sprintf
-        //                "// Unkown member %s in type %s"
-        //                (Member.fsname mdef)
-        //                parent.FullName
-        //    ]
-        //    |> indented
     ]
 
 let fromNamespace (name: Namespace) types =
