@@ -3,6 +3,7 @@
 module FSharpWrap.Tool.Reflection.TypeRef
 
 let fsname (t: TypeRef) = // TODO: Include parent type if type is nested.
+    // TODO: Fix, array types are not printed properly.
     match t.TypeArgs with
     | [] -> ""
     | targs ->
