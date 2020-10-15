@@ -2,6 +2,6 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
-    <FSharpWrapToolPath>$(RootDirectory)/src/FSharpWrap.Tool/bin/Release/netcoreapp3.1/FSharpWrap.Tool.dll</FSharpWrapToolPath>
+    <_FSharpWrapToolPath>$(RootDirectory)/src/FSharpWrap.Tool/bin/Release/netcoreapp3.1/FSharpWrap.Tool.dll</_FSharpWrapToolPath>
   </PropertyGroup>
 </Project>
