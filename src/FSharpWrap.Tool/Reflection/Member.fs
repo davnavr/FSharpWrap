@@ -8,8 +8,17 @@ open System.Reflection
 let fsname (m: Member) =
     let bname =
         match m with
-        | Constructor ctor ->
-            "create" // TODO: Have special name for constructor depending on and number of type of arguments (ex: ofString for .ctor(System.String))
+        | Constructor cparams ->
+            let ptypes =
+                List.map
+                    (fun pt ->
+                        match pt.ArgType with
+                        | TypeArg { Name = name } -> Some name
+                        | _ -> None)
+                    cparams
+            match ptypes with
+            | [ Some pname ] -> sprintf "of%O" pname
+            | _ -> "create"
         | InstanceField field
         | StaticField field -> field.FieldName
         | InstanceMethod mthd

@@ -40,15 +40,18 @@ module ParamList =
                 inner set' list' tail
         inner Set.empty []
 
-    let print (ParamList (list, _)) =
-        List.map
-            (fun { ArgType = argt; ParamName = name; } ->
-                let name' = SimpleName.fsname name
-                match argt with
-                | TypeParam _ -> "_"
-                | TypeArg t -> TypeRef.fsname t
-                |> sprintf "(%s: %s)" name')
-            list
-        |> String.concat " "
+    let print =
+        function
+        | ParamList([], _) -> "()"
+        | ParamList(list, _) ->
+            List.map
+                (fun { ArgType = argt; ParamName = name; } ->
+                    let name' = SimpleName.fsname name
+                    match argt with
+                    | TypeParam _ -> "_"
+                    | TypeArg t -> TypeRef.fsname t
+                    |> sprintf "(%s: %s)" name')
+                list
+            |> String.concat " "
 
 type ParamList = ParamList.ParamList
