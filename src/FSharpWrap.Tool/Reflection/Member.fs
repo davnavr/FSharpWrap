@@ -13,7 +13,7 @@ let fsname (m: Member) =
                 List.map
                     (fun pt ->
                         match pt.ArgType with
-                        | TypeArg { Name = name } -> Some name
+                        | TypeArg (TypeName { Name = name }) -> Some name
                         | _ -> None)
                     cparams
             match ptypes with

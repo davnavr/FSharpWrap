@@ -3,7 +3,9 @@
 module FSharpWrap.Tool.Reflection.TypeInfo
 
 let ofType (t: System.Type) =
-    { Info = TypeRef.ofType t
+    { Info =
+        // TODO: Factor out common code for calling TypeName.ofType
+        TypeName.ofType (TypeRef.targs (TypeRef.ofType >> TypeArg)) t
       Members =
         t.GetMembers()
         |> Seq.ofArray

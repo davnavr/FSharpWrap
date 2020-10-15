@@ -35,7 +35,8 @@ let handleErr msg: ProcessResult -> _ =
 
 Target.create "Clean" <| fun _ ->
     Shell.cleanDir outDir
-    // TODO: Clean examples.
+
+    !!(rootDir </> "examples/**/*.autogen.fs") |> File.deleteAll
     
     slnFile
     |> DotNetCli.exec id "clean"

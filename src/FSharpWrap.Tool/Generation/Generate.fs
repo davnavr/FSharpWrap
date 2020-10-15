@@ -3,7 +3,7 @@ module FSharpWrap.Tool.Generation.Generate
 
 open FSharpWrap.Tool.Reflection
 
-let fromMembers mname (members: seq<TypeRef * Member>) =
+let fromMembers mname (members: seq<TypeName * Member>) =
     [
         attr
             "global.Microsoft.FSharp.Core.CompilationRepresentation"
@@ -24,7 +24,7 @@ let fromMembers mname (members: seq<TypeRef * Member>) =
                                 yield! block body |> indented
                             ]
                         let self =
-                            { ArgType = TypeArg parent
+                            { ArgType = TypeName parent |> TypeArg
                               ParamName = SimpleName "this" }
                         match mber with
                         | Constructor cparams ->
@@ -37,7 +37,7 @@ let fromMembers mname (members: seq<TypeRef * Member>) =
                                 |> String.concat ", "
                                 |> sprintf
                                     "new %s(%s)"
-                                    (TypeRef.fsname parent)
+                                    (TypeName.fsname parent)
                             ]
                             |> gen cparams'
                         | InstanceField (ReadOnlyField field) ->

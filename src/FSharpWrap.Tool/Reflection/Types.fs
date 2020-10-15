@@ -6,10 +6,10 @@ type TypeParam =
     { Name: string }
 
 [<CustomComparison; CustomEquality>]
-type TypeRef =
+type TypeName =
     { Name: SimpleName
       Namespace: Namespace
-      Parent: TypeRef option
+      Parent: TypeName option
       TypeArgs: TypeArg list }
 
     member this.FullName =
@@ -41,12 +41,18 @@ type TypeRef =
         this.Name, this.Namespace, this.Parent, List.length this.TypeArgs
 
     override this.Equals obj =
-        let other = obj :?> TypeRef in this.Info = other.Info
+        let other = obj :?> TypeName in this.Info = other.Info
 
     override this.GetHashCode() = hash this.Info
 
     interface IComparable with
-        member this.CompareTo obj = compare this.Info (obj :?> TypeRef).Info
+        member this.CompareTo obj = compare this.Info (obj :?> TypeName).Info
+
+and [<StructuralComparison; StructuralEquality>] TypeRef =
+    | TypeName of TypeName
+    | ArrayType of
+        {| ElementType: TypeArg
+           Rank: uint |}
 
 and [<StructuralComparison; StructuralEquality>]
     TypeArg =
@@ -98,7 +104,7 @@ type Member =
 
 [<CustomComparison; CustomEquality>]
 type TypeDef =
-    { Info: TypeRef
+    { Info: TypeName
       Members: Member list }
 
     member this.FullName = this.Info.FullName

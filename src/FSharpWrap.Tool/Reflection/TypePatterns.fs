@@ -7,3 +7,6 @@ let (|GenericParam|GenericArg|) (t: Type) =
     if t.IsGenericParameter then Choice1Of2() else Choice2Of2()
 
 let (|GenericArgs|) (t: Type) = t.GetGenericArguments()
+
+let (|IsArray|_|) (t: Type) =
+    if t.IsArray then t.GetElementType() |> Some else None
