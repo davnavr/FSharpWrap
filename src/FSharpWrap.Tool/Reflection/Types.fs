@@ -2,51 +2,14 @@
 
 open System
 
-type TypeParam =
-    { Name: string }
-
-[<CustomComparison; CustomEquality>]
+[<StructuralComparison; StructuralEquality>]
 type TypeName =
-    { Name: SimpleName
+    { Name: FsName
       Namespace: Namespace
       Parent: TypeName option
-      TypeArgs: TypeArg list }
+      TypeArgs: TypeArgList }
 
-    member this.FullName =
-        let targs { TypeArgs = args } =
-            match args with
-            | [] -> ""
-            | _ -> List.length args |> sprintf "`%i"
-        let ns =
-            match this.Namespace with
-            | Namespace [] -> ""
-            | ns -> sprintf "%O." ns
-        let parent =
-            Option.map
-                (fun parent ->
-                    sprintf
-                        "%O%s+"
-                        parent.Name
-                        (targs parent))
-                this.Parent
-            |> Option.defaultValue ""
-        sprintf
-            "%s%s%O%s"
-            ns
-            parent
-            this.Name
-            (targs this)
-
-    member private this.Info =
-        this.Name, this.Namespace, this.Parent, List.length this.TypeArgs
-
-    override this.Equals obj =
-        let other = obj :?> TypeName in this.Info = other.Info
-
-    override this.GetHashCode() = hash this.Info
-
-    interface IComparable with
-        member this.CompareTo obj = compare this.Info (obj :?> TypeName).Info
+and TypeArgList = TypeArgList.TypeArgList<TypeArg>
 
 and [<StructuralComparison; StructuralEquality>] TypeRef =
     | TypeName of TypeName
@@ -57,21 +20,11 @@ and [<StructuralComparison; StructuralEquality>] TypeRef =
 and [<StructuralComparison; StructuralEquality>]
     TypeArg =
     | TypeArg of TypeRef
-    | TypeParam of TypeParam
+    | TypeParam
 
-[<CustomComparison; CustomEquality>]
 type Param =
     { ArgType: TypeArg
-      ParamName: SimpleName } // TODO: Use separate type for ParamName.
-
-    override this.GetHashCode() = this.ParamName.GetHashCode()
-
-    override this.Equals obj =
-        this.ParamName = (obj :?> Param).ParamName
-
-    interface IComparable with
-        member this.CompareTo obj =
-            compare this.ParamName (obj :?> Param).ParamName
+      ParamName: FsName }
 
 type ReadOnly = ReadOnly | Mutable
 
@@ -81,12 +34,11 @@ type Field =
       IsReadOnly: ReadOnly }
 
 type Method =
-    { MethodName: string
+    { MethodName: string * uint
       Params: Param list
-      RetType: TypeRef
-      TypeParams: TypeParam list }
+      RetType: TypeRef }
 
-// TODO: How to handle properties with parameters?
+// TODO: How to handle properties with parameters, maybe handle them as methods instead?
 type Property =
     { PropName: string
       PropType: TypeRef
@@ -104,19 +56,16 @@ type Member =
 
 [<CustomComparison; CustomEquality>]
 type TypeDef =
-    { Info: TypeName
-      Members: Member list }
+    { Members: Member list
+      TypeName: TypeName }
 
-    member this.FullName = this.Info.FullName
-    member this.Name = this.Info.Name
-    member this.Namespace = this.Info.Namespace
+    override this.Equals obj = this.TypeName = (obj :?> TypeDef).TypeName
 
-    override this.Equals obj = this.Info = (obj :?> TypeDef).Info
-
-    override this.GetHashCode() = this.Info.GetHashCode()
+    override this.GetHashCode() = this.TypeName.GetHashCode()
 
     interface IComparable with
-        member this.CompareTo obj = compare this.Info (obj :?> TypeDef).Info
+        member this.CompareTo obj =
+            compare this.TypeName (obj :?> TypeDef).TypeName
 
 [<CustomComparison; CustomEquality>]
 type AssemblyInfo =
@@ -129,4 +78,5 @@ type AssemblyInfo =
     override this.GetHashCode() = this.FullName.GetHashCode()
 
     interface IComparable with
-        member this.CompareTo obj = compare this.FullName (obj :?> AssemblyInfo).FullName
+        member this.CompareTo obj =
+            compare this.FullName (obj :?> AssemblyInfo).FullName

@@ -39,7 +39,7 @@ let ofInfo (info: MemberInfo) =
         m.GetParameters()
         |> Seq.map (fun pinfo ->
             { ArgType = TypeRef.ofType pinfo.ParameterType |> TypeArg
-              ParamName = SimpleName.ofParameter pinfo })
+              ParamName = FsName.ofParameter pinfo })
         |> List.ofSeq
     match info with
     | :? ConstructorInfo as ctor ->

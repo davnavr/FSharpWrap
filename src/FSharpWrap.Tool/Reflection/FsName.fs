@@ -3,29 +3,30 @@
 open System.Reflection
 
 [<Struct; StructuralComparison; StructuralEquality>]
-type SimpleName =
-    | SimpleName of string
+type FsName =
+    internal
+    | FsName of string
 
     override this.ToString() =
-        let (SimpleName name) = this in name
+        let (FsName name) = this in name
 
 [<RequireQualifiedAccess>]
-module SimpleName =
-    let fsname (SimpleName str) = sprintf "``%s``" str
+module FsName =
+    let print (FsName name) = sprintf "``%s``" name
 
     let ofStr =
         function
         | null | "" -> None
-        | str -> SimpleName str |> Some
+        | str -> FsName str |> Some
 
-    let ofType (t: System.Type) =
+    let ofType (t: System.Type) = // TODO: Return option instead of throwing exception?
         match t.DeclaringType, t.Name with
         | (_, "")
         | (_, null) -> invalidArg "t" "The name of the type was null or empty"
         | (null, name) when t.IsGenericType ->
             name.LastIndexOf '`' |> name.Remove
         | _ -> t.Name
-        |> SimpleName
+        |> FsName
 
     let ofParameter (param: ParameterInfo) =
-        ofStr param.Name |> Option.defaultValue (SimpleName "arg")
+        ofStr param.Name |> Option.defaultValue (sprintf "_arg%i" param.Position |> FsName)

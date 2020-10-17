@@ -1,7 +1,16 @@
 ﻿[<AutoOpen>]
-module internal FSharpWrap.Tool.Reflection.MemberPatterns
+module internal FSharpWrap.Tool.Reflection.TypePatterns
 
+open System
 open System.Reflection
+
+let (|GenericParam|GenericArg|) (t: Type) =
+    if t.IsGenericParameter then Choice1Of2() else Choice2Of2()
+
+let (|GenericArgs|) (t: Type) = t.GetGenericArguments()
+
+let (|IsArray|_|) (t: Type) =
+    if t.IsArray then t.GetElementType() |> Some else None
 
 let (|IsSpecialName|_|): MemberInfo -> _ =
     function
@@ -16,9 +25,4 @@ let (|PropAccessor|_|): MemberInfo -> _ =
         |> Seq.contains mthd
     function
     | :? MethodInfo as mthd when check mthd -> Some()
-    | _ -> None
-
-let (|ReadOnlyField|_|) =
-    function
-    | { Field.IsReadOnly = ReadOnly } as field -> Some field
     | _ -> None

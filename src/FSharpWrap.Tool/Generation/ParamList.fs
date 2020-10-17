@@ -9,7 +9,7 @@ module ParamList =
     [<EditorBrowsable(EditorBrowsableState.Never)>]
     type ParamList =
         private
-        | ParamList of Param list * Set<SimpleName>
+        | ParamList of Param list * Set<FsName>
 
     let private safeName set ({ ParamName = name } as param) =
         let name' =
@@ -17,7 +17,7 @@ module ParamList =
             then sprintf "%O'"
             else string
             <| name
-        { param with ParamName = SimpleName name' }, Set.add name set
+        { param with ParamName = FsName name' }, Set.add name set
 
     let empty = ParamList([], Set.empty)
 
@@ -46,7 +46,7 @@ module ParamList =
         | ParamList(list, _) ->
             List.map
                 (fun { ArgType = argt; ParamName = name; } ->
-                    let name' = SimpleName.fsname name
+                    let name' = FsName.print name
                     match argt with
                     | TypeParam _ -> "_"
                     | TypeArg t -> TypeRef.fsname t

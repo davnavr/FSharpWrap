@@ -25,7 +25,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                             ]
                         let self =
                             { ArgType = TypeName parent |> TypeArg
-                              ParamName = SimpleName "this" }
+                              ParamName = FsName "this" }
                         match mber with
                         | Constructor cparams ->
                             let cparams' = ParamList.ofList cparams
@@ -33,7 +33,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                 cparams'
                                 |> ParamList.toList
                                 // TODO: Factor out duplicate code for params
-                                |> List.map (fun { ParamName = name } -> SimpleName.fsname name)
+                                |> List.map (fun { ParamName = name } -> FsName.print name)
                                 |> String.concat ", "
                                 |> sprintf
                                     "new %s(%s)"
@@ -44,7 +44,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                             [
                                 sprintf
                                     "%s.``%s``"
-                                    (SimpleName.fsname self.ParamName)
+                                    (FsName.print self.ParamName)
                                     field.FieldName
                             ]
                             |> gen (ParamList.singleton self)
@@ -58,7 +58,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                             |> gen ParamList.empty
                         | InstanceField field ->
                             [
-                                let name = (SimpleName.fsname self.ParamName)
+                                let name = (FsName.print self.ParamName)
                                 let fname = field.FieldName
                                 sprintf
                                     "(fun() -> %s.``%s``), (fun value -> %s.``%s`` <- value)"
@@ -84,11 +84,11 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                 |> inner []
                             [
                                 rest
-                                |> List.map (fun { ParamName = name } -> SimpleName.fsname name)
+                                |> List.map (fun { ParamName = name } -> FsName.print name)
                                 |> String.concat ", "
                                 |> sprintf
                                     "%s.``%s``(%s)"
-                                    (SimpleName.fsname self.ParamName)
+                                    (FsName.print self.ParamName)
                                     mthd.MethodName
                             ]
                             |> gen plist
@@ -111,10 +111,10 @@ let fromNamespace (name: Namespace) types =
             |> Set.fold
                 (fun map (tdef: TypeDef) ->
                     let tset =
-                        Map.tryFind tdef.Name map
+                        Map.tryFind tdef.TypeName map
                         |> Option.defaultValue Set.empty
                         |> Set.add tdef
-                    Map.add tdef.Name tset map)
+                    Map.add tdef.TypeName tset map)
                 Map.empty
             |> Map.toSeq
             |> Seq.collect (fun (mname, tdefs) ->
