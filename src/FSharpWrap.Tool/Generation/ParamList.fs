@@ -46,10 +46,10 @@ module ParamList =
         | ParamList(list, _) ->
             List.map
                 (fun { ArgType = argt; ParamName = name; } ->
-                    let name' = FsName.print name
+                    let name' = Print.fsname name
                     match argt with
                     | TypeParam _ -> "_"
-                    | TypeArg t -> TypeRef.fsname t
+                    | TypeArg t -> Print.typeRef t
                     |> sprintf "(%s: %s)" name')
                 list
             |> String.concat " "

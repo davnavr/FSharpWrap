@@ -12,8 +12,6 @@ type FsName =
 
 [<RequireQualifiedAccess>]
 module FsName =
-    let print (FsName name) = sprintf "``%s``" name
-
     let ofStr =
         function
         | null | "" -> None

@@ -15,13 +15,12 @@
     <Compile Include="Reflection\Namespace.fs" />
     <Compile Include="Reflection\TypeArgList.fs" />
     <Compile Include="Reflection\Types.fs" />
-    <Compile Include="Reflection\TypeName.fs" />
-    <Compile Include="Reflection\TypeRef.fs" />
-    <Compile Include="Reflection\Member.fs" />
+    <Compile Include="Reflection\Modules.fs" />
     <Compile Include="Reflection\TypeInfo.fs" />
     <Compile Include="Reflection\AssemblyInfo.fs" />
     <Compile Include="Reflection\Reflect.fs" />
     <Compile Include="Generation\Helpers.fs" />
+    <Compile Include="Generation\Print.fs" />
     <Compile Include="Generation\ParamList.fs" />
     <Compile Include="Generation\Generate.fs" />
     <Compile Include="Arguments.fs" />

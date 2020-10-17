@@ -1,0 +1,85 @@
+﻿namespace rec FSharpWrap.Tool.Reflection
+
+open System.Reflection
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module TypeName =
+    let rec ofType (GenericArgs gargs as t) =
+        let parent = Option.ofObj t.DeclaringType
+        { Name = FsName.ofType t
+          Namespace = Namespace.ofStr t.Namespace
+          Parent = Option.map ofType parent
+          TypeArgs =
+            let inherited =
+                parent
+                |> Option.map (|GenericArgs|)
+                |> Option.defaultValue Array.empty
+            gargs
+            |> List.ofArray
+            |> List.except inherited
+            |> List.map
+                (function
+                | GenericParam -> TypeParam
+                | GenericArg as targ -> TypeRef.ofType targ |> TypeArg)
+            |> TypeArgList.ofList }
+
+    let full (name: TypeName) = ""
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module TypeRef =
+    let rec ofType t =
+        match t with
+        | IsArray elem ->
+            {| ElementType = ofType elem |> TypeArg
+               Rank = t.GetArrayRank() |> uint |}
+            |> ArrayType
+        | _ ->
+            TypeName.ofType t |> TypeName
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module Member =
+    let ofInfo (info: MemberInfo) =
+        let membert cond inst stat =
+            if cond then stat else inst
+        let mparams (m: #MethodBase) =
+            m.GetParameters()
+            |> Seq.map (fun pinfo ->
+                { ArgType = TypeRef.ofType pinfo.ParameterType |> TypeArg
+                  ParamName = FsName.ofParameter pinfo })
+            |> List.ofSeq
+        match info with
+        | :? ConstructorInfo as ctor ->
+            mparams ctor |> Constructor
+        | :? FieldInfo as field ->
+            { FieldName = field.Name
+              FieldType = TypeRef.ofType field.FieldType
+              IsReadOnly =
+                if field.Attributes.HasFlag FieldAttributes.InitOnly
+                then ReadOnly
+                else Mutable }
+            |> membert
+                (field.Attributes.HasFlag FieldAttributes.Static)
+                InstanceField
+                StaticField
+        | :? PropertyInfo as prop when prop.GetIndexParameters() |> Array.isEmpty ->
+            { PropName = prop.Name
+              Setter = prop.CanRead
+              PropType = TypeRef.ofType prop.PropertyType }
+            |> membert
+                 ((prop.GetAccessors() |> Array.head).Attributes.HasFlag MethodAttributes.Static)
+                 InstanceProperty
+                 StaticProperty
+        | :? MethodInfo as mthd ->
+            { MethodName = mthd.Name, 0u // TODO: Type parameters.
+              Params = mparams mthd
+              RetType = TypeRef.ofType mthd.ReturnType }
+            |> membert
+                (mthd.Attributes.HasFlag MethodAttributes.Static)
+                InstanceMethod
+                StaticMethod
+        | _ -> UnknownMember info.Name
+
+// TODO: Move TypeInfo and AssemblyInfo modules here.

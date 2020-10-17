@@ -1,7 +1,5 @@
 ﻿namespace FSharpWrap.Tool.Reflection
 
-open System
-
 [<StructuralComparison; StructuralEquality>]
 type TypeName =
     { Name: FsName
@@ -54,29 +52,10 @@ type Member =
     | StaticProperty of Property
     | UnknownMember of name: string
 
-[<CustomComparison; CustomEquality>]
 type TypeDef =
     { Members: Member list
       TypeName: TypeName }
 
-    override this.Equals obj = this.TypeName = (obj :?> TypeDef).TypeName
-
-    override this.GetHashCode() = this.TypeName.GetHashCode()
-
-    interface IComparable with
-        member this.CompareTo obj =
-            compare this.TypeName (obj :?> TypeDef).TypeName
-
-[<CustomComparison; CustomEquality>]
 type AssemblyInfo =
     { FullName: string
       Types: TypeDef list }
-
-    override this.Equals obj =
-        this.FullName.Equals (obj :?> AssemblyInfo).FullName
-
-    override this.GetHashCode() = this.FullName.GetHashCode()
-
-    interface IComparable with
-        member this.CompareTo obj =
-            compare this.FullName (obj :?> AssemblyInfo).FullName

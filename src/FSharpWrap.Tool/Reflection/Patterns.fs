@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module internal FSharpWrap.Tool.Reflection.TypePatterns
+module private FSharpWrap.Tool.Reflection.TypePatterns
 
 open System
 open System.Reflection

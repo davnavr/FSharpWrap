@@ -5,15 +5,6 @@ type Namespace = Namespace of FsName list
 
 [<RequireQualifiedAccess>]
 module Namespace =
-    let print (Namespace strs) =
-        match strs with
-        | [] -> "global"
-        | _ ->
-            List.map
-                FsName.print
-                strs
-            |> String.concat "."
-
     let ofStr =
         function
         | "" -> []

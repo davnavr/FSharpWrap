@@ -8,12 +8,12 @@ let fromMembers mname (members: seq<TypeName * Member>) =
         attr
             "global.Microsoft.FSharp.Core.CompilationRepresentation"
             "global.Microsoft.FSharp.Core.CompilationRepresentationFlags.ModuleSuffix"
-        sprintf "module ``%s`` =" mname
+        Print.fsname mname |> sprintf "module %s ="
         yield!
             members
             |> Seq.mapFold
                 (fun map (parent, mber) ->
-                    let name = Member.fsname mber
+                    let name = Print.memberName mber
                     match Map.tryFind name map with
                     | Some _ ->
                         [ sprintf "// Duplicate generated member %s" name ]
@@ -33,18 +33,18 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                 cparams'
                                 |> ParamList.toList
                                 // TODO: Factor out duplicate code for params
-                                |> List.map (fun { ParamName = name } -> FsName.print name)
+                                |> List.map (fun { ParamName = name } -> Print.fsname name)
                                 |> String.concat ", "
                                 |> sprintf
                                     "new %s(%s)"
-                                    (TypeName.fsname parent)
+                                    (Print.typeName parent)
                             ]
                             |> gen cparams'
                         | InstanceField (ReadOnlyField field) ->
                             [
                                 sprintf
                                     "%s.``%s``"
-                                    (FsName.print self.ParamName)
+                                    (Print.fsname self.ParamName)
                                     field.FieldName
                             ]
                             |> gen (ParamList.singleton self)
@@ -52,13 +52,13 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                             [
                                 sprintf
                                     "%s.``%s``"
-                                    (TypeRef.fsname field.FieldType)
+                                    (Print.typeRef field.FieldType)
                                     field.FieldName
                             ]
                             |> gen ParamList.empty
                         | InstanceField field ->
                             [
-                                let name = (FsName.print self.ParamName)
+                                let name = (Print.fsname self.ParamName)
                                 let fname = field.FieldName
                                 sprintf
                                     "(fun() -> %s.``%s``), (fun value -> %s.``%s`` <- value)"
@@ -84,16 +84,20 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                 |> inner []
                             [
                                 rest
-                                |> List.map (fun { ParamName = name } -> FsName.print name)
+                                |> List.map (fun { ParamName = name } -> Print.fsname name)
                                 |> String.concat ", "
                                 |> sprintf
                                     "%s.``%s``(%s)"
-                                    (FsName.print self.ParamName)
-                                    mthd.MethodName
+                                    (Print.fsname self.ParamName)
+                                    (fst mthd.MethodName)
                             ]
                             |> gen plist
                         | UnknownMember _ ->
-                            [ sprintf "// Unknown member %s in %s" name parent.FullName ]
+                            TypeName.full parent
+                            |> sprintf
+                                "// Unknown member %s in %s"
+                                name
+                            |> List.singleton
                         | _ -> [ "// TODO: Generate other types of members" ]
                     , Map.add name mber map)
                 Map.empty
@@ -105,7 +109,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
 
 let fromNamespace (name: Namespace) types =
     [
-        sprintf "namespace %O" name
+        Print.ns name |> sprintf "namespace %s"
         yield!
             types
             |> Set.fold
@@ -119,12 +123,12 @@ let fromNamespace (name: Namespace) types =
             |> Map.toSeq
             |> Seq.collect (fun (mname, tdefs) ->
                 Seq.collect
-                    (fun { Info = info; Members = members } ->
+                    (fun { TypeName = tname; Members = members } ->
                         Seq.map
-                            (fun mdef -> info, mdef)
+                            (fun mdef -> tname, mdef)
                             members)
                     tdefs
-                |> fromMembers (string mname))
+                |> fromMembers mname.Name)
             |> indented
     ]
 
@@ -135,11 +139,11 @@ let fromAssemblies (assms: AssemblyInfo list) =
         |> Seq.fold
             (fun (types', dups', dupcnt') tdef ->
                 let tset =
-                    Map.tryFind tdef.Namespace types'
+                    Map.tryFind tdef.TypeName.Namespace types'
                     |> Option.defaultValue Set.empty
                 if Set.contains tdef tset
                 then types', tdef :: dups', dupcnt' + 1
-                else Map.add tdef.Namespace (Set.add tdef tset) types', dups', dupcnt')
+                else Map.add tdef.TypeName.Namespace (Set.add tdef tset) types', dups', dupcnt')
             (Map.empty, [], 0)
     [
         "// This code was automatically generated by FSharpWrap"
@@ -149,7 +153,9 @@ let fromAssemblies (assms: AssemblyInfo list) =
             sprintf "// - %s" assm.FullName
         sprintf "// Found %i duplicate types" dupcnt
         for dup in dups do
-            sprintf "// - %s" dup.FullName
+            dup.TypeName
+            |> TypeName.full
+            |> sprintf "// - %s"
         yield!
             types
             |> Map.toSeq

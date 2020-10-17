@@ -3,10 +3,7 @@
 module FSharpWrap.Tool.Reflection.TypeInfo
 
 let ofType (t: System.Type) =
-    { Info =
-        // TODO: Factor out common code for calling TypeName.ofType
-        TypeName.ofType (TypeRef.targs (TypeRef.ofType >> TypeArg)) t
-      Members =
+    { Members =
         t.GetMembers()
         |> Seq.ofArray
         |> Seq.where (fun m -> m.DeclaringType = t)
@@ -16,4 +13,5 @@ let ofType (t: System.Type) =
             | PropAccessor -> None
             | mber -> Some mber)
         |> Seq.map Member.ofInfo
-        |> List.ofSeq }
+        |> List.ofSeq
+      TypeName = TypeName.ofType t }
