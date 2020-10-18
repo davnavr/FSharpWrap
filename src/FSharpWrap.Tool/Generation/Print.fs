@@ -17,7 +17,7 @@ let ns (Namespace strs) =
 
 let typeArg =
     function
-    | TypeParam -> "_"
+    | Inferred -> "_"
     | TypeArg targ -> typeRef targ
 
 let typeRef =

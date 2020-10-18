@@ -13,6 +13,12 @@ module private Patterns =
     let (|IsArray|_|) (t: Type) =
         if t.IsArray then t.GetElementType() |> Some else None
 
+    let (|IsByRef|_|) (t: Type) =
+        if t.IsByRef then t.GetElementType() |> Some else None
+
+    let (|IsPointer|_|) (t: Type) =
+        if t.IsPointer then t.GetElementType() |> Some else None
+
     let (|IsSpecialName|_|): MemberInfo -> _ =
         function
         | :? MethodBase as mthd when mthd.IsSpecialName -> Some()

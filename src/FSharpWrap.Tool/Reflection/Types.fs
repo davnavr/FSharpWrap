@@ -18,7 +18,7 @@ and [<StructuralComparison; StructuralEquality>] TypeRef =
 and [<StructuralComparison; StructuralEquality>]
     TypeArg =
     | TypeArg of TypeRef
-    | TypeParam
+    | Inferred
 
 type Param =
     { ArgType: TypeArg

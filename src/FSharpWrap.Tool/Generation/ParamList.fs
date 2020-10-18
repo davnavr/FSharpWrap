@@ -48,7 +48,7 @@ module ParamList =
                 (fun { ArgType = argt; ParamName = name; } ->
                     let name' = Print.fsname name
                     match argt with
-                    | TypeParam _ -> "_"
+                    | Inferred _ -> "_"
                     | TypeArg t -> Print.typeRef t
                     |> sprintf "(%s: %s)" name')
                 list
