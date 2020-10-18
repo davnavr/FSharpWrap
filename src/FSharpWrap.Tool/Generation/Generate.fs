@@ -93,7 +93,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                             ]
                             |> gen plist
                         | UnknownMember _ ->
-                            TypeName.full parent
+                            Print.typeName parent
                             |> sprintf
                                 "// Unknown member %s in %s"
                                 name
@@ -154,7 +154,7 @@ let fromAssemblies (assms: AssemblyInfo list) =
         sprintf "// Found %i duplicate types" dupcnt
         for dup in dups do
             dup.TypeName
-            |> TypeName.full
+            |> Print.typeName
             |> sprintf "// - %s"
         yield!
             types

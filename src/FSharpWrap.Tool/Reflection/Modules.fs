@@ -24,8 +24,6 @@ module TypeName =
                 | GenericArg as targ -> TypeRef.ofType targ |> TypeArg)
             |> TypeArgList.ofList }
 
-    let full (name: TypeName) = ""
-
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module TypeRef =
@@ -40,6 +38,14 @@ module TypeRef =
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
+module TypeArg =
+    let ofType =
+        function
+        | GenericParam -> TypeParam
+        | t -> TypeRef.ofType t |> TypeArg
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
 module Member =
     let ofInfo (info: MemberInfo) =
         let membert cond inst stat =
@@ -47,7 +53,7 @@ module Member =
         let mparams (m: #MethodBase) =
             m.GetParameters()
             |> Seq.map (fun pinfo ->
-                { ArgType = TypeRef.ofType pinfo.ParameterType |> TypeArg
+                { ArgType = TypeArg.ofType pinfo.ParameterType
                   ParamName = FsName.ofParameter pinfo })
             |> List.ofSeq
         match info with
