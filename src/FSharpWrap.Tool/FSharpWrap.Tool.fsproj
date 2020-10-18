@@ -10,8 +10,8 @@
   <!-- Source files -->
   <ItemGroup>
     <Compile Include="Path.fs" />
+    <Compile Include="Reflection\Utils.fs" />
     <Compile Include="Reflection\FsName.fs" />
-    <Compile Include="Reflection\Patterns.fs" />
     <Compile Include="Reflection\Namespace.fs" />
     <Compile Include="Reflection\TypeArgList.fs" />
     <Compile Include="Reflection\Types.fs" />

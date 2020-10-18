@@ -18,12 +18,12 @@ module FsName =
         | str -> FsName str |> Some
 
     let ofType (t: System.Type) = // TODO: Return option instead of throwing exception?
-        match t.DeclaringType, t.Name with
-        | (_, "")
-        | (_, null) -> invalidArg "t" "The name of the type was null or empty"
-        | (null, name) when t.IsGenericType ->
+        match t.DeclaringType, MemberInfo.compiledName t with
+        | _, ""
+        | _, null -> invalidArg "t" "The name of the type was null or empty"
+        | null, name when t.IsGenericType ->
             name.LastIndexOf '`' |> name.Remove
-        | _ -> t.Name
+        | _, name -> name
         |> FsName
 
     let ofParameter (param: ParameterInfo) =
