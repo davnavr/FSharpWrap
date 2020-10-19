@@ -114,11 +114,12 @@ let fromNamespace (name: Namespace) types =
             types
             |> Set.fold
                 (fun map (tdef: TypeDef) ->
+                    let tname = tdef.TypeName.Name
                     let tset =
-                        Map.tryFind tdef.TypeName map
+                        Map.tryFind tname map
                         |> Option.defaultValue Set.empty
                         |> Set.add tdef
-                    Map.add tdef.TypeName tset map)
+                    Map.add tname tset map)
                 Map.empty
             |> Map.toSeq
             |> Seq.collect (fun (mname, tdefs) ->
@@ -128,7 +129,7 @@ let fromNamespace (name: Namespace) types =
                             (fun mdef -> tname, mdef)
                             members)
                     tdefs
-                |> fromMembers mname.Name)
+                |> fromMembers mname)
             |> indented
     ]
 

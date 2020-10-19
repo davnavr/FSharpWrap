@@ -9,6 +9,7 @@ let ofType (t: System.Type) =
         |> Seq.where (fun m -> m.DeclaringType = t)
         |> Seq.choose
             (function
+            | IsCompilerGenerated
             | IsSpecialName
             | PropAccessor -> None
             | mber -> Some mber)

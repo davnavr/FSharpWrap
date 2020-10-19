@@ -3,37 +3,6 @@
 open System
 open System.Reflection
 
-[<AutoOpen>]
-module private Patterns =
-    let (|GenericParam|GenericArg|) (t: Type) =
-        if t.IsGenericParameter then Choice1Of2() else Choice2Of2()
-
-    let (|GenericArgs|) (t: Type) = t.GetGenericArguments()
-
-    let (|IsArray|_|) (t: Type) =
-        if t.IsArray then t.GetElementType() |> Some else None
-
-    let (|IsByRef|_|) (t: Type) =
-        if t.IsByRef then t.GetElementType() |> Some else None
-
-    let (|IsPointer|_|) (t: Type) =
-        if t.IsPointer then t.GetElementType() |> Some else None
-
-    let (|IsSpecialName|_|): MemberInfo -> _ =
-        function
-        | :? MethodBase as mthd when mthd.IsSpecialName -> Some()
-        | :? FieldInfo as field when field.IsSpecialName -> Some()
-        | _ -> None
-
-    let (|PropAccessor|_|): MemberInfo -> _ =
-        let check (mthd: MethodInfo) =
-            mthd.DeclaringType.GetProperties()
-            |> Seq.collect (fun prop -> prop.GetAccessors())
-            |> Seq.contains mthd
-        function
-        | :? MethodInfo as mthd when check mthd -> Some()
-        | _ -> None
-
 [<RequireQualifiedAccess>]
 module internal MemberInfo =
     let findAttr ns name chooser (m: MemberInfo) =
@@ -65,3 +34,40 @@ module internal MemberInfo =
                     | _ -> None))
             mber
         |> Option.defaultValue mber.Name
+
+[<AutoOpen>]
+module private Patterns =
+    let (|GenericParam|GenericArg|) (t: Type) =
+        if t.IsGenericParameter then Choice1Of2() else Choice2Of2()
+
+    let (|GenericArgs|) (t: Type) = t.GetGenericArguments()
+
+    let (|IsArray|_|) (t: Type) =
+        if t.IsArray then t.GetElementType() |> Some else None
+
+    let (|IsByRef|_|) (t: Type) =
+        if t.IsByRef then t.GetElementType() |> Some else None
+
+    let (|IsPointer|_|) (t: Type) =
+        if t.IsPointer then t.GetElementType() |> Some else None
+
+    let (|IsSpecialName|_|): MemberInfo -> _ =
+        function
+        | :? MethodBase as mthd when mthd.IsSpecialName -> Some()
+        | :? FieldInfo as field when field.IsSpecialName -> Some()
+        | _ -> None
+
+    let (|IsCompilerGenerated|_|): MemberInfo -> _ =
+        MemberInfo.findAttr
+            "System.Runtime.CompilerServices"
+            "CompilerGeneratedAttribute"
+            (fun _ -> Some ())
+
+    let (|PropAccessor|_|): MemberInfo -> _ =
+        let check (mthd: MethodInfo) =
+            mthd.DeclaringType.GetProperties()
+            |> Seq.collect (fun prop -> prop.GetAccessors())
+            |> Seq.contains mthd
+        function
+        | :? MethodInfo as mthd when check mthd -> Some()
+        | _ -> None
