@@ -61,7 +61,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                 let name = (Print.fsname self.ParamName)
                                 let fname = field.FieldName
                                 sprintf
-                                    "(fun() -> %s.``%s``),(fun value -> %s.``%s`` <- value)"
+                                    "(fun()->%s.``%s``),(fun value->%s.``%s``=value)"
                                     name
                                     fname
                                     name

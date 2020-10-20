@@ -81,6 +81,8 @@ module private Patterns =
                 | _ -> None)
         >> Option.defaultWith Choice1Of2
 
+    let (|IsNested|_|) (t: Type) = if t.IsNested then Some() else None
+
     let (|IsPointer|_|) (t: Type) =
         if t.IsPointer then t.GetElementType() |> Some else None
 

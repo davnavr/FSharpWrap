@@ -11,7 +11,8 @@ let ofAssembly (assm: Assembly) =
         |> Seq.choose
             (function
             | Derives "System" "Delegate" _
-            | AssignableTo "Microsoft.FSharp.Core" "FSharpFunc`2" _ -> None
+            | AssignableTo "Microsoft.FSharp.Core" "FSharpFunc`2" _ 
+            | IsNested -> None
             | t -> Some t)
         |> Seq.map TypeInfo.ofType
         |> List.ofSeq }
