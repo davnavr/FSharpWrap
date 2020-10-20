@@ -11,6 +11,7 @@ let ofType (t: System.Type) =
             (function
             | IsCompilerGenerated
             | IsSpecialName
+            | NeverDebuggerBrowsable
             | PropAccessor -> None
             | mber -> Some mber)
         |> Seq.map Member.ofInfo

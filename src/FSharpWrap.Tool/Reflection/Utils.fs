@@ -9,6 +9,17 @@ module internal Type =
         t.Name = name && t.Namespace = ns
 
 [<RequireQualifiedAccess>]
+module internal Attribute =
+    let ctorArgs<'arg> (data: CustomAttributeData) =
+        data.ConstructorArguments
+        |> Seq.map
+            (fun arg ->
+                match arg.Value with
+                | :? 'arg as arg' -> Some arg'
+                | _ -> None)
+        |> List.ofSeq
+
+[<RequireQualifiedAccess>]
 module internal MemberInfo =
     let findAttr ns name chooser (m: MemberInfo) =
        m.GetCustomAttributesData()
@@ -51,6 +62,22 @@ module private Patterns =
     let (|IsByRef|_|) (t: Type) =
         if t.IsByRef then t.GetElementType() |> Some else None
 
+    let (|IsCompilerGenerated|_|): MemberInfo -> _ =
+        MemberInfo.findAttr
+            "System.Runtime.CompilerServices"
+            "CompilerGeneratedAttribute"
+            (fun _ -> Some ())
+
+    let (|DebuggerBrowsable|NeverDebuggerBrowsable|): MemberInfo -> _ =
+        MemberInfo.findAttr
+            "System.Diagnostics"
+            "DebuggerBrowsableAttribute"
+            (fun data ->
+                match Attribute.ctorArgs data with
+                | [ Some 0 ] -> Choice2Of2() |> Some // Never
+                | _ -> None)
+        >> Option.defaultWith Choice1Of2
+
     let (|IsPointer|_|) (t: Type) =
         if t.IsPointer then t.GetElementType() |> Some else None
 
@@ -59,12 +86,6 @@ module private Patterns =
         | :? MethodBase as mthd when mthd.IsSpecialName -> Some()
         | :? FieldInfo as field when field.IsSpecialName -> Some()
         | _ -> None
-
-    let (|IsCompilerGenerated|_|): MemberInfo -> _ =
-        MemberInfo.findAttr
-            "System.Runtime.CompilerServices"
-            "CompilerGeneratedAttribute"
-            (fun _ -> Some ())
 
     let (|PropAccessor|_|): MemberInfo -> _ =
         let check (mthd: MethodInfo) =
