@@ -71,3 +71,13 @@ module private Patterns =
         function
         | :? MethodInfo as mthd when check mthd -> Some()
         | _ -> None
+
+    let rec (|Derives|_|) ns name (t: Type) =
+        t.BaseType
+        |> Option.ofObj
+        |> Option.bind
+            (function
+            | super when super.Name = name && super.Namespace = ns ->
+                Some super
+            | Derives ns name indirect -> Some indirect
+            | _ -> None)

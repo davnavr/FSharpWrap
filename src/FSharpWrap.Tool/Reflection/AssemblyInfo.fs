@@ -7,7 +7,10 @@ open System.Reflection
 let ofAssembly (assm: Assembly) =
     { FullName = assm.FullName
       Types =
-        Seq.map
-            TypeInfo.ofType
-            assm.ExportedTypes
+        assm.ExportedTypes
+        |> Seq.choose
+            (function
+            | Derives "System" "Delegate" _ -> None
+            | t -> Some t)
+        |> Seq.map TypeInfo.ofType
         |> List.ofSeq }
