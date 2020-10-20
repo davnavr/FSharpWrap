@@ -52,7 +52,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                             [
                                 sprintf
                                     "%s.``%s``"
-                                    (Print.typeRef field.FieldType)
+                                    (Print.typeName parent)
                                     field.FieldName
                             ]
                             |> gen ParamList.empty
