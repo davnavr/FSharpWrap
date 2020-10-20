@@ -56,6 +56,16 @@ module Member =
             m.GetParameters()
             |> Seq.map (fun pinfo ->
                 { ArgType = TypeArg.ofType pinfo.ParameterType
+                  IsOptional =
+                    if pinfo.IsOptional
+                    then OptionalParam
+                    else
+                        pinfo.GetCustomAttributesData()
+                        |> Attribute.find
+                            "Microsoft.FSharp.Core"
+                            "OptionalArgumentAttribute"
+                            (fun _ -> Some FsOptionalParam)
+                        |> Option.defaultValue RequiredParam
                   ParamName = FsName.ofParameter pinfo })
             |> List.ofSeq
         match info with

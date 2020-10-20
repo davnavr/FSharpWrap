@@ -20,8 +20,14 @@ and [<StructuralComparison; StructuralEquality>]
     | TypeArg of TypeRef
     | Inferred
 
+type ParamOptional =
+    | FsOptionalParam
+    | OptionalParam
+    | RequiredParam
+
 type Param =
     { ArgType: TypeArg
+      IsOptional: ParamOptional
       ParamName: FsName }
 
 type ReadOnly = ReadOnly | Mutable

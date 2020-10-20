@@ -10,6 +10,12 @@ module internal Type =
 
 [<RequireQualifiedAccess>]
 module internal Attribute =
+    let find ns name chooser (source: seq<CustomAttributeData>) =
+        source
+        |> Seq.where
+            (fun attr -> Type.equal ns name attr.AttributeType)
+        |> Seq.tryPick chooser
+
     let ctorArgs<'arg> (data: CustomAttributeData) =
         data.ConstructorArguments
         |> Seq.map
@@ -22,10 +28,7 @@ module internal Attribute =
 [<RequireQualifiedAccess>]
 module internal MemberInfo =
     let findAttr ns name chooser (m: MemberInfo) =
-       m.GetCustomAttributesData()
-       |> Seq.where
-           (fun attr -> Type.equal ns name attr.AttributeType)
-       |> Seq.tryPick chooser
+         m.GetCustomAttributesData() |> Attribute.find ns name chooser
 
     let compiledName (mber: MemberInfo) =
         findAttr

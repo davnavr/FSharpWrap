@@ -78,3 +78,16 @@ let memberName =
         (function
         | 0 -> Char.ToLowerInvariant
         | _ -> id)
+
+let arguments parameters =
+    Seq.map
+        (fun param ->
+            let name = fsname param.ParamName
+            let f =
+                match param.IsOptional with
+                | FsOptionalParam -> sprintf "?%s=%s"
+                | OptionalParam -> sprintf "%s=%s"
+                | RequiredParam -> fun _ -> id
+            f name name)
+        parameters
+    |> String.concat ","

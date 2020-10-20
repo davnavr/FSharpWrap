@@ -25,6 +25,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                             ]
                         let self =
                             { ArgType = TypeName parent |> TypeArg
+                              IsOptional = RequiredParam
                               ParamName = FsName "this" }
                         match mber with
                         | Constructor cparams ->
@@ -33,8 +34,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                 cparams'
                                 |> ParamList.toList
                                 // TODO: Factor out duplicate code for params
-                                |> List.map (fun { ParamName = name } -> Print.fsname name)
-                                |> String.concat ", "
+                                |> Print.arguments
                                 |> sprintf
                                     "new %s(%s)"
                                     (Print.typeName parent)
@@ -61,7 +61,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                 let name = (Print.fsname self.ParamName)
                                 let fname = field.FieldName
                                 sprintf
-                                    "(fun() -> %s.``%s``), (fun value -> %s.``%s`` <- value)"
+                                    "(fun() -> %s.``%s``),(fun value -> %s.``%s`` <- value)"
                                     name
                                     fname
                                     name
@@ -84,8 +84,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                 |> inner []
                             [
                                 rest
-                                |> List.map (fun { ParamName = name } -> Print.fsname name) // TODO: Append ?paramName if param is optional
-                                |> String.concat ", "
+                                |> Print.arguments
                                 |> sprintf
                                     "%s.``%s``(%s)"
                                     (Print.fsname self.ParamName)
