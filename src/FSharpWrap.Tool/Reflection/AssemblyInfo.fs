@@ -10,7 +10,8 @@ let ofAssembly (assm: Assembly) =
         assm.ExportedTypes
         |> Seq.choose
             (function
-            | Derives "System" "Delegate" _ -> None
+            | Derives "System" "Delegate" _
+            | AssignableTo "Microsoft.FSharp.Core" "FSharpFunc`2" _ -> None
             | t -> Some t)
         |> Seq.map TypeInfo.ofType
         |> List.ofSeq }

@@ -4,13 +4,16 @@ open System
 open System.Reflection
 
 [<RequireQualifiedAccess>]
+module internal Type =
+    let inline equal ns name (t: Type) =
+        t.Name = name && t.Namespace = ns
+
+[<RequireQualifiedAccess>]
 module internal MemberInfo =
     let findAttr ns name chooser (m: MemberInfo) =
        m.GetCustomAttributesData()
        |> Seq.where
-           (fun attr ->
-               let t = attr.AttributeType
-               t.Name = name && t.Namespace = ns)
+           (fun attr -> Type.equal ns name attr.AttributeType)
        |> Seq.tryPick chooser
 
     let compiledName (mber: MemberInfo) =
@@ -77,7 +80,13 @@ module private Patterns =
         |> Option.ofObj
         |> Option.bind
             (function
-            | super when super.Name = name && super.Namespace = ns ->
+            | super when Type.equal ns name super ->
                 Some super
             | Derives ns name indirect -> Some indirect
             | _ -> None)
+
+    let (|AssignableTo|_|) ns name =
+        function
+        | Derives ns name derived -> Some derived
+        | t when Type.equal ns name t -> Some t
+        | _ -> None

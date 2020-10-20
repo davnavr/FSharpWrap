@@ -84,7 +84,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                 |> inner []
                             [
                                 rest
-                                |> List.map (fun { ParamName = name } -> Print.fsname name)
+                                |> List.map (fun { ParamName = name } -> Print.fsname name) // TODO: Append ?paramName if param is optional
                                 |> String.concat ", "
                                 |> sprintf
                                     "%s.``%s``(%s)"
