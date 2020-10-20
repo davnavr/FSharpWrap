@@ -30,7 +30,7 @@ module TypeRef =
     let rec ofType t =
         match t with
         | IsArray elem ->
-            {| ElementType = ofType elem |> TypeArg
+            {| ElementType = TypeArg.ofType elem
                Rank = t.GetArrayRank() |> uint |}
             |> ArrayType
         | _ ->
