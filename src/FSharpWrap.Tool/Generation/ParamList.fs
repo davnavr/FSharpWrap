@@ -47,10 +47,7 @@ module ParamList =
             List.map
                 (fun { ArgType = argt; ParamName = name; } ->
                     let name' = Print.fsname name
-                    match argt with
-                    | Inferred _ -> "_"
-                    | TypeArg t -> Print.typeRef t
-                    |> sprintf "(%s: %s)" name')
+                    Print.typeArg argt |> sprintf "(%s: %s)" name')
                 list
             |> String.concat " "
 

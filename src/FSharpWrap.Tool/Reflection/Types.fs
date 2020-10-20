@@ -1,5 +1,9 @@
 ﻿namespace FSharpWrap.Tool.Reflection
 
+[<RequireQualifiedAccess>]
+[<StructuralComparison; StructuralEquality>]
+type TypeParam = { Name: FsName }
+
 [<StructuralComparison; StructuralEquality>]
 type TypeName =
     { Name: FsName
@@ -17,8 +21,9 @@ and [<StructuralComparison; StructuralEquality>] TypeRef =
 
 and [<StructuralComparison; StructuralEquality>]
     TypeArg =
-    | TypeArg of TypeRef
     | Inferred
+    | TypeArg of TypeRef
+    | TypeParam of TypeParam
 
 type ParamOptional =
     | FsOptionalParam

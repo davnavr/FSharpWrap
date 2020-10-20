@@ -19,6 +19,7 @@ let typeArg =
     function
     | Inferred -> "_"
     | TypeArg targ -> typeRef targ
+    | TypeParam tparam -> fsname tparam.Name |> sprintf "'%s"
 
 let typeRef =
     function

@@ -18,10 +18,7 @@ module TypeName =
             gargs
             |> List.ofArray
             |> List.except inherited
-            |> List.map
-                (function
-                | GenericParam -> Inferred
-                | GenericArg as targ -> TypeRef.ofType targ |> TypeArg)
+            |> List.map TypeArg.ofType
             |> TypeArgList.ofList }
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
@@ -41,9 +38,9 @@ module TypeRef =
 module TypeArg =
     let ofType =
         function
-        | GenericParam
         | IsByRef _
         | IsPointer _ -> Inferred
+        | GenericParam as gen -> TypeParam { TypeParam.Name = FsName gen.Name }
         | t -> TypeRef.ofType t |> TypeArg
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]

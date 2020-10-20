@@ -48,14 +48,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                     field.FieldName
                             ]
                             |> gen (ParamList.singleton self)
-                        | StaticField (ReadOnlyField field) ->
-                            [
-                                sprintf
-                                    "%s.``%s``"
-                                    (Print.typeName parent)
-                                    field.FieldName
-                            ]
-                            |> gen ParamList.empty
+                        | StaticField _ -> List.empty
                         | InstanceField field ->
                             [
                                 let name = (Print.fsname self.ParamName)
