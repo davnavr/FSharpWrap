@@ -81,7 +81,7 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                 |> sprintf
                                     "%s.``%s``(%s)"
                                     (Print.fsname self.ParamName)
-                                    (fst mthd.MethodName)
+                                    mthd.MethodName
                             ]
                             |> gen plist
                         | UnknownMember _ ->

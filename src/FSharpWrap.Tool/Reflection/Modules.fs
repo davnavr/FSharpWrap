@@ -131,9 +131,35 @@ module AssemblyInfo =
 [<RequireQualifiedAccess>]
 module Member =
     let ofInfo (info: MemberInfo) =
-        let membert cond inst stat =
+        let membertype cond inst stat =
             if cond then stat else inst
+        let mthdparams (m: MethodBase) =
+            fun ctx ->
+                m.GetParameters()
+                |> List.ofArray
+                |> List.mapFold
+                    (fun ctx' pinfo ->
+                        ctx'
+                        |> context {
+                            let! argtype = Type.arg pinfo.ParameterType
+                            return
+                                { ArgType = argtype
+                                  IsOptional =
+                                    if pinfo.IsOptional
+                                    then OptionalParam
+                                    else
+                                        pinfo.GetCustomAttributesData()
+                                        |> Attribute.find
+                                            "Microsoft.FSharp.Core"
+                                            "OptionalArgumentAttribute"
+                                            (fun _ -> Some FsOptionalParam)
+                                        |> Option.defaultValue RequiredParam
+                                  ParamName = FsName.ofParameter pinfo }
+                        })
+                    ctx
         match info with
+        | :? ConstructorInfo as ctor ->
+            mthdparams ctor |> Context.map Constructor
         | :? FieldInfo as field ->
             context {
                 let! ftype = Type.arg field.FieldType
@@ -144,59 +170,34 @@ module Member =
                         if field.Attributes.HasFlag FieldAttributes.InitOnly
                         then ReadOnly
                         else Mutable }
-                    |> membert
+                    |> membertype
                         (field.Attributes.HasFlag FieldAttributes.Static)
                         InstanceField
                         StaticField
             }
+        | :? PropertyInfo as prop when prop.GetIndexParameters() |> Array.isEmpty ->
+            context {
+                let! ptype = Type.arg prop.PropertyType
+                return
+                    { PropName = prop.Name
+                      Setter = prop.CanRead
+                      PropType = ptype }
+                    |> membertype
+                            ((prop.GetAccessors() |> Array.head).Attributes.HasFlag MethodAttributes.Static)
+                            InstanceProperty
+                            StaticProperty
+            }
+        | :? MethodInfo as mthd ->
+            context {
+                let! paramts = mthdparams mthd
+                let! ret = Type.arg mthd.ReturnType
+                return
+                    { MethodName = mthd.Name
+                      Params = paramts
+                      RetType = ret }
+                    |> membertype
+                        (mthd.Attributes.HasFlag MethodAttributes.Static)
+                        InstanceMethod
+                        StaticMethod
+            }
         | _ -> UnknownMember info.Name |> Context.retn
-    //let ofInfo (info: MemberInfo) cache =
-    //    let membert cond inst stat =
-    //        if cond then stat else inst
-    //    let mparams (m: #MethodBase) =
-    //        m.GetParameters()
-    //        |> Seq.map (fun pinfo ->
-    //            { ArgType = TypeCache.typeArg pinfo.ParameterType cache |> fst // TODO: Make computation expression?
-    //              IsOptional =
-    //                if pinfo.IsOptional
-    //                then OptionalParam
-    //                else
-    //                    pinfo.GetCustomAttributesData()
-    //                    |> Attribute.find
-    //                        "Microsoft.FSharp.Core"
-    //                        "OptionalArgumentAttribute"
-    //                        (fun _ -> Some FsOptionalParam)
-    //                    |> Option.defaultValue RequiredParam
-    //              ParamName = FsName.ofParameter pinfo })
-    //        |> List.ofSeq
-    //    match info with
-    //    | :? ConstructorInfo as ctor ->
-    //        mparams ctor |> Constructor
-    //    | :? FieldInfo as field ->
-    //        { FieldName = field.Name
-    //          FieldType = TypeRef.ofType field.FieldType
-    //          IsReadOnly =
-    //            if field.Attributes.HasFlag FieldAttributes.InitOnly
-    //            then ReadOnly
-    //            else Mutable }
-    //        |> membert
-    //            (field.Attributes.HasFlag FieldAttributes.Static)
-    //            InstanceField
-    //            StaticField
-    //    | :? PropertyInfo as prop when prop.GetIndexParameters() |> Array.isEmpty ->
-    //        { PropName = prop.Name
-    //          Setter = prop.CanRead
-    //          PropType = TypeRef.ofType prop.PropertyType }
-    //        |> membert
-    //             ((prop.GetAccessors() |> Array.head).Attributes.HasFlag MethodAttributes.Static)
-    //             InstanceProperty
-    //             StaticProperty
-    //    | :? MethodInfo as mthd ->
-    //        { MethodName = mthd.Name, 0u // TODO: Type parameters.
-    //          Params = mparams mthd
-    //          RetType = TypeRef.ofType mthd.ReturnType }
-    //        |> membert
-    //            (mthd.Attributes.HasFlag MethodAttributes.Static)
-    //            InstanceMethod
-    //            StaticMethod
-    //    | _ -> UnknownMember info.Name

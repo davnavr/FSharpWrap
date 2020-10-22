@@ -43,7 +43,7 @@ type Field =
       IsReadOnly: ReadOnly }
 
 type Method =
-    { MethodName: string * uint
+    { MethodName: string
       Params: Param list
       RetType: TypeArg }
 

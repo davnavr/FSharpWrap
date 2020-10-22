@@ -73,7 +73,7 @@ let memberName =
     | InstanceField field
     | StaticField field -> field.FieldName
     | InstanceMethod mthd
-    | StaticMethod mthd -> fst mthd.MethodName
+    | StaticMethod mthd -> mthd.MethodName
     | InstanceProperty prop
     | StaticProperty prop -> prop.PropName
     | UnknownMember name -> name
