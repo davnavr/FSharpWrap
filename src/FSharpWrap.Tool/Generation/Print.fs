@@ -17,7 +17,6 @@ let ns (Namespace strs) =
 
 let typeArg =
     function
-    | Inferred -> "_"
     | TypeArg targ -> typeRef targ
     | TypeParam tparam -> fsname tparam.Name |> sprintf "'%s"
 
@@ -32,6 +31,9 @@ let typeRef =
             "%s[%s]"
             (typeArg arr.ElementType)
             rank
+    | ByRefType _ -> "_"
+    | PointerType pnt ->
+        typeArg pnt |> sprintf "nativeptr<%s>"
     | TypeName tname -> typeName tname
 
 let typeName { Name = name; Namespace = nspace; Parent = parent; TypeArgs = TypeArgs targs } =

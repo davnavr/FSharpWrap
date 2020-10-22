@@ -125,7 +125,7 @@ let fromNamespace (name: Namespace) types =
             |> indented
     ]
 
-let fromAssemblies (assms: AssemblyInfo list) =
+let fromAssemblies (assms: seq<AssemblyInfo>) =
     let types, dups, dupcnt =
         assms
         |> Seq.collect (fun assm -> assm.Types)

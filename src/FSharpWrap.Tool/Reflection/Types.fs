@@ -1,4 +1,4 @@
-﻿namespace FSharpWrap.Tool.Reflection
+﻿namespace rec FSharpWrap.Tool.Reflection
 
 [<RequireQualifiedAccess>]
 [<StructuralComparison; StructuralEquality>]
@@ -9,19 +9,19 @@ type TypeName =
     { Name: FsName
       Namespace: Namespace
       Parent: TypeName option
-      TypeArgs: TypeArgList }
+      TypeArgs: TypeArgList<TypeArg> }
 
-and TypeArgList = TypeArgList.TypeArgList<TypeArg>
-
-and [<StructuralComparison; StructuralEquality>] TypeRef =
-    | TypeName of TypeName
+[<StructuralComparison; StructuralEquality>]
+type TypeRef =
     | ArrayType of
         {| ElementType: TypeArg
            Rank: uint |}
+    | ByRefType of TypeArg
+    | PointerType of TypeArg
+    | TypeName of TypeName
 
-and [<StructuralComparison; StructuralEquality>]
-    TypeArg =
-    | Inferred
+[<StructuralComparison; StructuralEquality>]
+type TypeArg =
     | TypeArg of TypeRef
     | TypeParam of TypeParam
 
@@ -39,18 +39,18 @@ type ReadOnly = ReadOnly | Mutable
 
 type Field =
     { FieldName: string
-      FieldType: TypeRef
+      FieldType: TypeArg
       IsReadOnly: ReadOnly }
 
 type Method =
     { MethodName: string * uint
       Params: Param list
-      RetType: TypeRef }
+      RetType: TypeArg }
 
 // TODO: How to handle properties with parameters, maybe handle them as methods instead?
 type Property =
     { PropName: string
-      PropType: TypeRef
+      PropType: TypeArg
       Setter: bool }
 
 type Member =

@@ -25,6 +25,8 @@ module TypeArgList =
 
     let ofList targs = TypeArgs(targs, List.length targs)
 
+type TypeArgList<'TypeArg> = TypeArgList.TypeArgList<'TypeArg>
+
 [<AutoOpen>]
 module TypeArgListPatterns =
     let (|TypeArgs|) = TypeArgList.toList

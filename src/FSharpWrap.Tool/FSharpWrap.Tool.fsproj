@@ -15,9 +15,8 @@
     <Compile Include="Reflection\Namespace.fs" />
     <Compile Include="Reflection\TypeArgList.fs" />
     <Compile Include="Reflection\Types.fs" />
+    <Compile Include="Reflection\Context.fs" />
     <Compile Include="Reflection\Modules.fs" />
-    <Compile Include="Reflection\TypeInfo.fs" />
-    <Compile Include="Reflection\AssemblyInfo.fs" />
     <Compile Include="Reflection\Reflect.fs" />
     <Compile Include="Generation\Helpers.fs" />
     <Compile Include="Generation\Print.fs" />

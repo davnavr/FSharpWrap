@@ -4,7 +4,7 @@ open System
 open System.Reflection
 
 [<RequireQualifiedAccess>]
-module internal Type =
+module internal TypeInfo =
     let inline equal ns name (t: Type) =
         t.Name = name && t.Namespace = ns
 
@@ -13,7 +13,7 @@ module internal Attribute =
     let find ns name chooser (source: seq<CustomAttributeData>) =
         source
         |> Seq.where
-            (fun attr -> Type.equal ns name attr.AttributeType)
+            (fun attr -> TypeInfo.equal ns name attr.AttributeType)
         |> Seq.tryPick chooser
 
     let ctorArgs<'arg> (data: CustomAttributeData) =
@@ -106,7 +106,7 @@ module private Patterns =
         |> Option.ofObj
         |> Option.bind
             (function
-            | super when Type.equal ns name super ->
+            | super when TypeInfo.equal ns name super ->
                 Some super
             | Derives ns name indirect -> Some indirect
             | _ -> None)
@@ -114,5 +114,5 @@ module private Patterns =
     let (|AssignableTo|_|) ns name =
         function
         | Derives ns name derived -> Some derived
-        | t when Type.equal ns name t -> Some t
+        | t when TypeInfo.equal ns name t -> Some t
         | _ -> None
