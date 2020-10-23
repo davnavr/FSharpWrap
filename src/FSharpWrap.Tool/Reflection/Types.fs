@@ -1,8 +1,13 @@
 ﻿namespace rec FSharpWrap.Tool.Reflection
 
-[<RequireQualifiedAccess>]
 [<StructuralComparison; StructuralEquality>]
-type TypeParam = { Name: FsName }
+type GenericConstraint =
+    | TypeConstraint of TypeArg
+
+[<StructuralComparison; StructuralEquality>]
+type TypeParam =
+    { Constraints: Set<GenericConstraint>
+      ParamName: FsName }
 
 [<StructuralComparison; StructuralEquality>]
 type TypeName =

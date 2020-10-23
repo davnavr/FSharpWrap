@@ -5,7 +5,7 @@ open System.Collections.Immutable
 
 type Context =
     private
-        { Types: ImmutableDictionary<Type, TypeArg> }
+        { Types: ImmutableDictionary<Type, TypeArg> } // TODO: Add ImmutableDictionary<Type, TypeParam> with lazy evaluation somewhere.
 
 type ContextExpr<'T> = Context -> 'T * Context
 
@@ -24,9 +24,10 @@ module private Context =
 [<AutoOpen>]
 module private ContextBuilder =
     type ContextBuilder() =
-        // member _.Bind(exp: Expr<_>, body: _ -> Expr<_>): Expr<_>
         member _.Bind(expr: ContextExpr<_>, body: _ -> ContextExpr<_>) =
             fun ctx -> expr ctx ||> body
+        member _.Bind(update: Context -> Context, body: unit -> ContextExpr<_>) =
+            update >> body()
         member _.Return obj: ContextExpr<_> = fun ctx -> obj, ctx
         member _.ReturnFrom expr: ContextExpr<_> = expr
 

@@ -11,7 +11,7 @@ module ParamList =
         private
         | ParamList of Param list * Set<FsName>
 
-    let private safeName set ({ ParamName = name } as param) =
+    let private safeName set ({ Param.ParamName = name } as param) =
         let name' =
             if Set.contains name set
             then sprintf "%O'"

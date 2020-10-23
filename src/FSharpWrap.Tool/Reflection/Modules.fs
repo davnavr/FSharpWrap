@@ -70,15 +70,27 @@ module Type =
     let arg t =
         context {
             let! types = Context.types
+            // TODO: Use match! Context.types with | SomeActivePattern
             match types.TryGetValue t with
-            | (true, arg) ->
-                return arg
+            | (true, existing) -> return existing
             | (false, _) ->
                 match t with
-                | GenericParam as gen -> 
-                    return TypeParam { TypeParam.Name = FsName gen.Name }
+                | GenericParam constraints as gen -> 
+                    let! constraints' =
+                        fun ctx ->
+                            Seq.mapFold
+                                (fun ctx' t ->
+                                    let c, ctx'' = arg t ctx'
+                                    TypeConstraint c, ctx'')
+                                ctx
+                                constraints
+                    return
+                        { Constraints = Set.ofSeq constraints'
+                          ParamName = FsName gen.Name }
+                        |> TypeParam
                 | t ->
                     let! tref = typeRef t |> Context.map TypeArg
+                    // do! fun ctx -> { ctx with Types = ctx.Types.Add(t, tref) }
                     return! fun ctx -> tref, { ctx with Types = ctx.Types.Add(t, tref) }
         }
 
@@ -89,7 +101,10 @@ module Type =
                 fun ctx ->
                     t.GetMembers()
                     |> Seq.ofArray
-                    |> Seq.where (fun m -> m.DeclaringType = t)
+                    |> Seq.where (fun m ->
+                        if m.DeclaringType.Name = "MemoryExtensions" && m.Name.Contains "IndexOf" then
+                            System.Diagnostics.Debugger.Launch() |> ignore
+                        m.DeclaringType = t)
                     |> Seq.choose
                         (function
                         | IsCompilerGenerated

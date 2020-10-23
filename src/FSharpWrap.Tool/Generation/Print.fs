@@ -18,7 +18,7 @@ let ns (Namespace strs) =
 let typeArg =
     function
     | TypeArg targ -> typeRef targ
-    | TypeParam tparam -> fsname tparam.Name |> sprintf "'%s"
+    | TypeParam tparam -> fsname tparam.ParamName |> sprintf "'%s"
 
 let typeRef =
     function
