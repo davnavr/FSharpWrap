@@ -9,6 +9,7 @@
 
   <!-- Source files -->
   <ItemGroup>
+    <Compile Include="Utils.fs" />
     <Compile Include="Path.fs" />
     <Compile Include="Reflection\Utils.fs" />
     <Compile Include="Reflection\FsName.fs" />

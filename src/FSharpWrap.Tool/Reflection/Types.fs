@@ -6,7 +6,7 @@ type GenericConstraint =
 
 [<StructuralComparison; StructuralEquality>]
 type TypeParam =
-    { Constraints: Set<GenericConstraint>
+    { mutable Constraints: Set<GenericConstraint>
       ParamName: FsName }
 
 [<StructuralComparison; StructuralEquality>]

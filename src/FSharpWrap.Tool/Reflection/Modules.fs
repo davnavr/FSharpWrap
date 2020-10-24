@@ -69,29 +69,29 @@ module Type =
 
     let arg t =
         context {
-            let! types = Context.types
-            // TODO: Use match! Context.types with | SomeActivePattern
-            match types.TryGetValue t with
-            | (true, existing) -> return existing
-            | (false, _) ->
+            match! Context.current with
+            | HasType t existing -> return existing
+            | _ ->
                 match t with
-                | GenericParam constraints as gen -> 
+                | GenericParam constraints as gen ->
+                    let param =
+                        { Constraints = Set.empty // TODO: Use Unchecked.defaultof, Set.empty or None?
+                          ParamName = FsName gen.Name }
+                    do! fun ctx -> { ctx with TypeParams = ctx.TypeParams.Add(t, param) }
                     let! constraints' =
-                        fun ctx ->
+                        fun (ctx: Context) ->
                             Seq.mapFold
                                 (fun ctx' t ->
                                     let c, ctx'' = arg t ctx'
                                     TypeConstraint c, ctx'')
                                 ctx
                                 constraints
-                    return
-                        { Constraints = Set.ofSeq constraints'
-                          ParamName = FsName gen.Name }
-                        |> TypeParam
+                    param.Constraints <- Set.ofSeq constraints'
+                    return TypeParam param
                 | t ->
-                    let! tref = typeRef t |> Context.map TypeArg
-                    // do! fun ctx -> { ctx with Types = ctx.Types.Add(t, tref) }
-                    return! fun ctx -> tref, { ctx with Types = ctx.Types.Add(t, tref) }
+                    let! tref = typeRef t
+                    do! fun ctx -> { ctx with TypeRefs = ctx.TypeRefs.Add(t, tref) }
+                    return TypeArg tref
         }
 
     let def t =

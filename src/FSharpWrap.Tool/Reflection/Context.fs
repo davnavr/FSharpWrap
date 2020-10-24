@@ -3,23 +3,36 @@
 open System
 open System.Collections.Immutable
 
+open FSharpWrap.Tool
+
 type Context =
     private
-        { Types: ImmutableDictionary<Type, TypeArg> } // TODO: Add ImmutableDictionary<Type, TypeParam> with lazy evaluation somewhere.
+        { TypeParams: ImmutableDictionary<Type, TypeParam>
+          TypeRefs: ImmutableDictionary<Type, TypeRef> }
 
 type ContextExpr<'T> = Context -> 'T * Context
+
+[<AutoOpen>]
+module private ContextPatterns =
+    let (|HasType|_|) (t: Type) ctx =
+        match t, ctx with
+        | GenericParam _, { TypeParams = ContainsValue t tparam } ->
+            TypeParam tparam |> Some
+        | GenericArg, { TypeRefs = ContainsValue t tref } ->
+            TypeArg tref |> Some
+        | _ -> None
 
 [<RequireQualifiedAccess>]
 module private Context =
     let empty =
-        { Types = ImmutableDictionary.Empty }
+        { TypeParams = ImmutableDictionary.Empty
+          TypeRefs = ImmutableDictionary.Empty }
 
-    let map mapping (expr: ContextExpr<_>) =
-        fun ctx ->
-            let value, ctx' = expr ctx
-            mapping value, ctx'
+    let map mapping (expr: ContextExpr<_>) ctx =
+        let value, ctx' = expr ctx
+        mapping value, ctx'
     let retn value: ContextExpr<_> = fun ctx -> value, ctx
-    let types: ContextExpr<_> = fun ctx -> ctx.Types, ctx
+    let current (ctx: Context) = ctx, ctx
 
 [<AutoOpen>]
 module private ContextBuilder =
