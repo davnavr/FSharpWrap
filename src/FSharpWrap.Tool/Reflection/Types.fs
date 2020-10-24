@@ -4,9 +4,13 @@
 type GenericConstraint =
     | TypeConstraint of TypeArg
 
+[<RequireQualifiedAccess>]
+type GenericConstraints =
+    private { mutable Constraints: Set<GenericConstraint> }
+
 [<StructuralComparison; StructuralEquality>]
 type TypeParam =
-    { mutable Constraints: Set<GenericConstraint>
+    { Constraints: GenericConstraints
       ParamName: FsName }
 
 [<StructuralComparison; StructuralEquality>]

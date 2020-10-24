@@ -2,6 +2,13 @@
 
 open System.Reflection
 
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module private GenericConstraints =
+    let empty = { GenericConstraints.Constraints = Set.empty }
+    let toSeq { GenericConstraints.Constraints = constraints } = Set.toSeq constraints
+    let update (constraints: GenericConstraints) items = constraints.Constraints <- items
+
 [<RequireQualifiedAccess>]
 module Type =
     let private typeName (GenericArgs gargs as t) =
@@ -75,7 +82,7 @@ module Type =
                 match t with
                 | GenericParam constraints as gen ->
                     let param =
-                        { Constraints = Set.empty // TODO: Use Unchecked.defaultof, Set.empty or None?
+                        { Constraints = GenericConstraints.empty
                           ParamName = FsName gen.Name }
                     do! fun ctx -> { ctx with TypeParams = ctx.TypeParams.Add(t, param) }
                     let! constraints' =
@@ -86,7 +93,7 @@ module Type =
                                     TypeConstraint c, ctx'')
                                 ctx
                                 constraints
-                    param.Constraints <- Set.ofSeq constraints'
+                    Set.ofSeq constraints' |> GenericConstraints.update param.Constraints
                     return TypeParam param
                 | t ->
                     let! tref = typeRef t
@@ -101,10 +108,7 @@ module Type =
                 fun ctx ->
                     t.GetMembers()
                     |> Seq.ofArray
-                    |> Seq.where (fun m ->
-                        if m.DeclaringType.Name = "MemoryExtensions" && m.Name.Contains "IndexOf" then
-                            System.Diagnostics.Debugger.Launch() |> ignore
-                        m.DeclaringType = t)
+                    |> Seq.where (fun m -> m.DeclaringType = t)
                     |> Seq.choose
                         (function
                         | IsCompilerGenerated
