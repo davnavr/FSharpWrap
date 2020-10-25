@@ -20,6 +20,24 @@ let typeArg =
     | TypeArg targ -> typeRef targ
     | TypeParam tparam -> fsname tparam.ParamName |> sprintf "'%s"
 
+let param { ArgType = argt; ParamName = name } =
+    match argt with
+    | TypeArg targ -> typeRef targ
+    | TypeParam tparam ->
+        let tname = fsname tparam.ParamName |> sprintf "'%s"
+        match tparam with
+        | HasGenericConstraints constraints ->
+            Seq.map
+                (fun constr ->
+                    let (TypeConstraint derives) = constr
+                    typeArg derives |> sprintf "%s:>%s" tname)
+                constraints
+            |> String.concat " and "
+            |> sprintf " when %s"
+        | _ -> ""
+        |> sprintf "%s%s" tname
+    |> sprintf "(%s:%s)" (fsname name)
+
 let typeRef =
     function
     | ArrayType arr ->

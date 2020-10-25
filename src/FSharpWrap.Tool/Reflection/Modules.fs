@@ -2,12 +2,20 @@
 
 open System.Reflection
 
+open FSharpWrap.Tool
+
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module private GenericConstraints =
     let empty = { GenericConstraints.Constraints = Set.empty }
-    let toSeq { GenericConstraints.Constraints = constraints } = Set.toSeq constraints
     let update (constraints: GenericConstraints) items = constraints.Constraints <- items
+
+[<AutoOpen>]
+module Patterns =
+    let (|HasGenericConstraints|_|) (tparam: TypeParam) =
+        match tparam.Constraints with
+        | { Constraints = Empty } -> None
+        | _ -> Some tparam.Constraints
 
 [<RequireQualifiedAccess>]
 module Type =
@@ -82,7 +90,7 @@ module Type =
                 match t with
                 | GenericParam constraints as gen ->
                     let param =
-                        { Constraints = GenericConstraints.empty
+                        { Constraints = GenericConstraints.empty // TODO: Figure out why all of the constraints suddenly become :> System.ValueType
                           ParamName = FsName gen.Name }
                     do! fun ctx -> { ctx with TypeParams = ctx.TypeParams.Add(t, param) }
                     let! constraints' =

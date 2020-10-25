@@ -45,9 +45,7 @@ module ParamList =
         | ParamList([], _) -> "()"
         | ParamList(list, _) ->
             List.map
-                (fun { ArgType = argt; ParamName = name; } ->
-                    let name' = Print.fsname name
-                    Print.typeArg argt |> sprintf "(%s: %s)" name')
+                Print.param
                 list
             |> String.concat " "
 

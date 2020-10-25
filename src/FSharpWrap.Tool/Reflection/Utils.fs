@@ -53,13 +53,10 @@ module internal MemberInfo =
         |> Option.defaultValue mber.Name
 
 [<AutoOpen>]
-module private Patterns =
+module private MemberPatterns =
     let (|GenericParam|GenericArg|) (t: Type) =
-        if t.IsGenericParameter then
-            //if t.DeclaringType.Name = "MemoryExtensions" then
-            //    printfn "- %s" t.Name
-            // TODO: Find why calling GetGenericParameterConstraints() results in StackOverflow?
-            t.GetGenericParameterConstraints() |> Choice1Of2
+        if t.IsGenericParameter
+        then t.GetGenericParameterConstraints() |> Choice1Of2
         else Choice2Of2()
 
     let (|GenericArgs|) (t: Type) = t.GetGenericArguments()

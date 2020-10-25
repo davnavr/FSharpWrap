@@ -1,5 +1,8 @@
 ﻿namespace rec FSharpWrap.Tool.Reflection
 
+open System.Collections
+open System.Collections.Generic
+
 [<StructuralComparison; StructuralEquality>]
 type GenericConstraint =
     | TypeConstraint of TypeArg
@@ -7,6 +10,11 @@ type GenericConstraint =
 [<RequireQualifiedAccess>]
 type GenericConstraints =
     private { mutable Constraints: Set<GenericConstraint> }
+
+    interface IEnumerable<GenericConstraint> with
+        member this.GetEnumerator() = (this.Constraints :> IEnumerable<_>).GetEnumerator()
+    interface IEnumerable with
+        member this.GetEnumerator() = (this.Constraints :> IEnumerable).GetEnumerator()
 
 [<StructuralComparison; StructuralEquality>]
 type TypeParam =
