@@ -11,7 +11,7 @@ module ParamList =
         private
         | ParamList of Param list * Set<FsName>
 
-    let private safeName set ({ ParamName = name } as param) =
+    let private safeName set ({ Param.ParamName = name } as param) =
         let name' =
             if Set.contains name set
             then sprintf "%O'"
@@ -45,9 +45,7 @@ module ParamList =
         | ParamList([], _) -> "()"
         | ParamList(list, _) ->
             List.map
-                (fun { ArgType = argt; ParamName = name; } ->
-                    let name' = Print.fsname name
-                    Print.typeArg argt |> sprintf "(%s: %s)" name')
+                Print.param
                 list
             |> String.concat " "
 

@@ -2,6 +2,21 @@
 
 open System.Reflection
 
+open FSharpWrap.Tool
+
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module private GenericConstraints =
+    let empty() = { GenericConstraints.Constraints = Set.empty }
+    let update (constraints: GenericConstraints) items = constraints.Constraints <- items
+
+[<AutoOpen>]
+module Patterns =
+    let (|HasGenericConstraints|_|) (tparam: TypeParam) =
+        match tparam.Constraints with
+        | { Constraints = Empty } -> None
+        | _ -> Some tparam.Constraints
+
 [<RequireQualifiedAccess>]
 module Type =
     let private typeName (GenericArgs gargs as t) =
@@ -69,17 +84,29 @@ module Type =
 
     let arg t =
         context {
-            let! types = Context.types
-            match types.TryGetValue t with
-            | (true, arg) ->
-                return arg
-            | (false, _) ->
+            match! Context.current with
+            | HasType t existing -> return existing
+            | _ ->
                 match t with
-                | GenericParam as gen -> 
-                    return TypeParam { TypeParam.Name = FsName gen.Name }
+                | GenericParam constraints as gen ->
+                    let param =
+                        { Constraints = GenericConstraints.empty()
+                          ParamName = FsName gen.Name }
+                    do! fun ctx -> { ctx with TypeParams = ctx.TypeParams.Add(t, param) }
+                    let! constraints' =
+                        fun (ctx: Context) ->
+                            Seq.mapFold
+                                (fun ctx' tc ->
+                                    let c, ctx'' = arg tc ctx'
+                                    TypeConstraint c, ctx'')
+                                ctx
+                                constraints
+                    Set.ofSeq constraints' |> GenericConstraints.update param.Constraints
+                    return TypeParam param
                 | t ->
-                    let! tref = typeRef t |> Context.map TypeArg
-                    return! fun ctx -> tref, { ctx with Types = ctx.Types.Add(t, tref) }
+                    let! tref = typeRef t
+                    do! fun ctx -> { ctx with TypeRefs = ctx.TypeRefs.Add(t, tref) }
+                    return TypeArg tref
         }
 
     let def t =

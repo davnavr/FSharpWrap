@@ -99,4 +99,4 @@ Target.create "Pack" (pushpkg outDir version)
 ==> "Build Examples"
 ==> "Pack"
 
-Target.runOrDefault "Pack"
+Target.runOrDefault "Test Tool" // "Pack" // NOTE: Should be Pack once examples start compiling correctly.
