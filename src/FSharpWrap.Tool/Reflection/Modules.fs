@@ -143,8 +143,9 @@ module AssemblyInfo =
                     |> Seq.choose
                         (function
                         | Derives "System" "Delegate" _
-                        | AssignableTo "Microsoft.FSharp.Core" "FSharpFunc`2" _ 
-                        | IsNested -> None
+                        | AssignableTo "Microsoft.FSharp.Core" "FSharpFunc`2" _
+                        | IsNested
+                        | IsTuple _ -> None
                         | t -> Some t)
                     |> Seq.mapFold
                         (fun ctx' t -> Type.def t ctx')

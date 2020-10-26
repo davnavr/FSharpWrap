@@ -104,17 +104,33 @@ module private MemberPatterns =
         | _ -> None
 
     let rec (|Derives|_|) ns name (t: Type) =
-        t.BaseType
-        |> Option.ofObj
-        |> Option.bind
-            (function
-            | super when TypeInfo.equal ns name super ->
-                Some super
-            | Derives ns name indirect -> Some indirect
-            | _ -> None)
+        let isBase = TypeInfo.equal ns name
+        let tbase =
+            t.BaseType
+            |> Option.ofObj
+            |> Option.bind
+                (function
+                | super when isBase super ->
+                    Some super
+                | Derives ns name indirect -> Some indirect
+                | _ -> None)
+        let intf = t.GetInterfaces() |> Array.tryFind isBase
+        match tbase with
+        | None -> intf
+        | _ -> tbase
 
     let (|AssignableTo|_|) ns name =
         function
         | Derives ns name derived -> Some derived
         | t when TypeInfo.equal ns name t -> Some t
+        | _ -> None
+
+    let (|IsTuple|_|) =
+        let (|IsTupleType|_|) (t: Type) =
+            if t.Namespace = "System" && (t.Name.StartsWith "Tuple" || t.Name.StartsWith "ValueTuple")
+            then Some t
+            else None
+        function
+        | Derives "System.Runtime.CompilerServices" "ITuple" tuple
+        | IsTupleType tuple -> Some tuple
         | _ -> None
