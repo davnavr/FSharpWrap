@@ -21,12 +21,14 @@ type TypeParam =
     { Constraints: GenericConstraints
       ParamName: FsName }
 
+type TypeArgList = TypeArgList<TypeArg>
+
 [<StructuralComparison; StructuralEquality>]
 type TypeName =
     { Name: FsName
       Namespace: Namespace
       Parent: TypeName option
-      TypeArgs: TypeArgList<TypeArg> }
+      TypeArgs: TypeArgList }
 
 [<StructuralComparison; StructuralEquality>]
 type TypeRef =
@@ -62,7 +64,8 @@ type Field =
 type Method =
     { MethodName: string
       Params: Param list
-      RetType: TypeArg }
+      RetType: TypeArg
+      TypeArgs: TypeArgList }
 
 // TODO: How to handle properties with parameters, maybe handle them as methods instead?
 type Property =

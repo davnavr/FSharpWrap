@@ -82,7 +82,7 @@ module Type =
                 | _ -> None))
             (ref t)
 
-    let arg t =
+    let arg t = // TODO: Figure out why some generic parameters occasionally disappear.
         context {
             match! Context.current with
             | HasType t existing -> return existing
@@ -218,10 +218,18 @@ module Member =
             context {
                 let! paramts = mthdparams mthd
                 let! ret = Type.arg mthd.ReturnType
+                let! targs = // TODO: Factor out common code for retrieving generic argument information.
+                    fun ctx ->
+                        mthd.GetGenericArguments()
+                        |> List.ofArray
+                        |> List.mapFold
+                            (fun ctx' garg -> Type.arg garg ctx')
+                            ctx
                 return
                     { MethodName = mthd.Name
                       Params = paramts
-                      RetType = ret }
+                      RetType = ret
+                      TypeArgs = TypeArgList.ofList targs }
                     |> membertype
                         (mthd.Attributes.HasFlag MethodAttributes.Static)
                         InstanceMethod

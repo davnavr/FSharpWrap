@@ -75,13 +75,23 @@ let fromMembers mname (members: seq<TypeName * Member>) =
                                 plist
                                 |> ParamList.toList
                                 |> inner []
+                            let targs =
+                                match mthd.TypeArgs with
+                                | TypeArgs(_ :: _ as targs) ->
+                                    List.map
+                                        Print.typeArg
+                                        targs
+                                    |> String.concat ","
+                                    |> sprintf "<%s>"
+                                | _ -> ""
                             [
                                 rest
                                 |> Print.arguments
                                 |> sprintf
-                                    "%s.``%s``(%s)"
+                                    "%s.``%s``%s(%s)"
                                     (Print.fsname self.ParamName)
                                     mthd.MethodName
+                                    targs
                             ]
                             |> gen plist
                         | UnknownMember _ ->
