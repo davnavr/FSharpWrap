@@ -1,5 +1,9 @@
-﻿namespace Collections
+﻿module Collections.Library
 
-module Say =
-    let hello name =
-        printfn "Hello %s" name
+open System
+open System.Collections.Immutable
+
+let hello() =
+    let greet = Action<string>(printfn "Hello %s!")
+    let names = ImmutableList.CreateRange [ "Bob"; "Alice"; "AbstractItemFactoryProxyFactoryManager" ]
+    ImmutableList.forEach greet names

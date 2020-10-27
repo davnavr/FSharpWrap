@@ -1,7 +1,3 @@
 <Project>
   <Import Project="$(RootDirectory)/src/FSharpWrap/FSharpWrap.targets" />
-
-  <ItemGroup>
-    <Compile Include="$(MSBuildProjectDirectory)/output.autogen.fs" />
-  </ItemGroup>
 </Project>
