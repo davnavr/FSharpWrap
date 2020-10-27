@@ -27,13 +27,15 @@ module Type =
                 |> Option.map name
                 |> Option.defaultValue (Context.retn None)
             let! gargs' =
-                let inherited =
-                    parent
-                    |> Option.map (|GenericArgs|)
-                    |> Option.defaultValue Array.empty
+                let notInherited =
+                    match parent with
+                    | None -> fun _ -> true
+                    | Some (GenericArgs inherited) ->
+                        fun garg -> Array.contains garg inherited |> not
                 fun ctx ->
-                    gargs
-                    |> Seq.except inherited
+                    Seq.where
+                        notInherited
+                        gargs
                     |> Seq.mapFold
                         (fun ctx' garg -> arg garg ctx')
                         ctx
@@ -41,10 +43,7 @@ module Type =
                 { Name = FsName.ofType t
                   Namespace = Namespace.ofStr t.Namespace
                   Parent = parent'
-                  TypeArgs =
-                    gargs'
-                    |> Seq.toList
-                    |> TypeArgList.ofList }
+                  TypeArgs = TypeArgList.ofSeq gargs' }
         }
 
     let private typeRef t =
@@ -222,15 +221,14 @@ module Member =
                 let! targs = // TODO: Factor out common code for retrieving generic argument information.
                     fun ctx ->
                         mthd.GetGenericArguments()
-                        |> List.ofArray
-                        |> List.mapFold
+                        |> Array.mapFold
                             (fun ctx' garg -> Type.arg garg ctx')
                             ctx
                 return
                     { MethodName = mthd.Name
                       Params = paramts
                       RetType = ret
-                      TypeArgs = TypeArgList.ofList targs }
+                      TypeArgs = TypeArgList.ofArray targs }
                     |> membertype
                         (mthd.Attributes.HasFlag MethodAttributes.Static)
                         InstanceMethod
