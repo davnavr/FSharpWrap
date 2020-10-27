@@ -4,13 +4,13 @@
   <PropertyGroup>
     <FSharpWrapOutputFileName Condition="'$(FSharpWrapOutputFileName)'==''">output.autogen.fs</FSharpWrapOutputFileName>
     <FSharpWrapOutputFilePath Condition="'$(FSharpWrapOutputFilePath)'==''">$(MSBuildProjectDirectory)/$(FSharpWrapOutputFileName)</FSharpWrapOutputFilePath>
-    <FSharpWrapToolPath Condition="'$(FSharpWrapToolPath)'==''">$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll</FSharpWrapToolPath>
+    <_FSharpWrapToolPath Condition="'$(_FSharpWrapToolPath)'==''">$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll</_FSharpWrapToolPath>
   </PropertyGroup>
 
-  <Target Name="FSharpWrap" BeforeTargets="Compile">
+  <Target Name="FSharpWrap" BeforeTargets="CoreCompile">
     <!-- TODO: How to check that 'dotnet' exists? -->
     <Exec
-      Command="dotnet exec &quot;$(FSharpWrapToolPath)&quot; --assembly-paths &quot;@(Reference, '&quot; &quot;')&quot; --output-file &quot;$(FSharpWrapOutputFilePath)&quot;"
+      Command="dotnet exec &quot;$(_FSharpWrapToolPath)&quot; --assembly-paths &quot;@(Reference, '&quot; &quot;')&quot; --output-file &quot;$(FSharpWrapOutputFilePath)&quot;"
       ConsoleToMsBuild="true"
       LogStandardErrorAsError="true" />
   </Target>

@@ -5,16 +5,21 @@ open System.Reflection
 
 open FSharpWrap.Tool
 
-let private context r ldf =
+let private context r ldf: seq<AssemblyInfo> =
     using
         (new MetadataLoadContext(r))
-        (ldf >> List.map AssemblyInfo.ofAssembly)
+        (fun data ->
+            ldf data
+            |> Seq.mapFold
+                (fun ctx assm -> AssemblyInfo.ofAssembly assm ctx)
+                Context.empty
+            |> fst)
 
-let paths (assms: Path list) =
-    let paths = List.map string assms
+let paths (assms: seq<Path>) =
+    let paths = Seq.map string assms
     context
-        (List.toSeq paths |> PathAssemblyResolver)
+        (PathAssemblyResolver paths)
         (fun ctx ->
-            List.map
+            Seq.map
                 ctx.LoadFromAssemblyPath
                 paths)

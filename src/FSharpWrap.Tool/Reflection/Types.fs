@@ -1,110 +1,92 @@
-﻿namespace FSharpWrap.Tool.Reflection
+﻿namespace rec FSharpWrap.Tool.Reflection
 
-open System
+open System.Collections
+open System.Collections.Generic
 
+[<StructuralComparison; StructuralEquality>]
+type GenericConstraint =
+    | TypeConstraint of TypeArg
+
+[<RequireQualifiedAccess>]
+type GenericConstraints =
+    private { mutable Constraints: Set<GenericConstraint> }
+
+    interface IEnumerable<GenericConstraint> with
+        member this.GetEnumerator() = (this.Constraints :> IEnumerable<_>).GetEnumerator()
+    interface IEnumerable with
+        member this.GetEnumerator() = (this.Constraints :> IEnumerable).GetEnumerator()
+
+[<StructuralComparison; StructuralEquality>]
 type TypeParam =
-    { Name: string }
+    { Constraints: GenericConstraints
+      ParamName: FsName }
 
-[<CustomComparison; CustomEquality>]
-type TypeRef =
-    { Name: string
+type TypeArgList = TypeArgList<TypeArg>
+
+[<StructuralComparison; StructuralEquality>]
+type TypeName =
+    { Name: FsName
       Namespace: Namespace
-      TypeArgs: unit list }
+      Parent: TypeName option
+      TypeArgs: TypeArgList }
 
-    member this.FullName =
-        match this.Namespace with
-        | Namespace [] -> id
-        | ns -> sprintf "%O.%s" ns
-        <| this.Name
+[<StructuralComparison; StructuralEquality>]
+type TypeRef =
+    | ArrayType of
+        {| ElementType: TypeArg
+           Rank: uint |}
+    | ByRefType of TypeArg
+    | PointerType of TypeArg
+    | TypeName of TypeName
 
-    member private this.Info = this.Name, this.Namespace, List.length this.TypeArgs
+[<StructuralComparison; StructuralEquality>]
+type TypeArg =
+    | TypeArg of TypeRef
+    | TypeParam of TypeParam
 
-    override this.Equals obj =
-        let other = obj :?> TypeRef in this.Info = other.Info
+type ParamOptional =
+    | FsOptionalParam
+    | OptionalParam
+    | RequiredParam
 
-    override this.GetHashCode() = hash this.Info
+type Param =
+    { ArgType: TypeArg
+      IsOptional: ParamOptional
+      ParamName: FsName }
 
-    interface IComparable with
-        member this.CompareTo obj = compare this.Info (obj :?> TypeRef).Info
+type ReadOnly = ReadOnly | Mutable
 
 type Field =
-    { Name: string 
-      FieldType: TypeRef }
+    { FieldName: string
+      FieldType: TypeArg
+      IsReadOnly: ReadOnly }
 
 type Method =
-    { Name: string
-      Parameters: TypeRef list
-      RetType: TypeRef
-      TypeParams: TypeParam list }
+    { MethodName: string
+      Params: Param list
+      RetType: TypeArg
+      TypeArgs: TypeArgList }
 
-// TODO: How to handle properties with parameters?
+// TODO: How to handle properties with parameters, maybe handle them as methods instead?
 type Property =
-    { Name: string
-      Setter: bool
-      PropType: TypeRef }
+    { PropName: string
+      PropType: TypeArg
+      Setter: bool }
 
-type InstanceMember =
-    | Constructor of param: TypeRef list
+type Member =
+    | Constructor of Param list
     | InstanceField of Field
     | InstanceMethod of Method
     | InstanceProperty of Property
-
-    member this.Name =
-        match this with
-        | Constructor _ -> ".ctor"
-        | InstanceField { Name = name }
-        | InstanceMethod { Name = name }
-        | InstanceProperty { Name = name } ->
-            name
-
-type StaticMember =
     | StaticField of Field
     | StaticMethod of Method
     | StaticProperty of Property
-
-    member this.Name =
-        match this with
-        | StaticField { Name = name }
-        | StaticMethod { Name = name }
-        | StaticProperty { Name = name } ->
-            name
-
-type Member =
-    | InstanceMember of InstanceMember
-    | StaticMember of StaticMember
     | UnknownMember of name: string
 
-    member this.Name =
-        match this with
-        | InstanceMember i -> i.Name
-        | StaticMember s -> s.Name
-        | UnknownMember name -> name
-
-[<CustomComparison; CustomEquality>]
 type TypeDef =
-    { Info: TypeRef
-      Members: Member list }
+    { Members: Member list
+      TypeName: TypeName }
 
-    member this.FullName = this.Info.FullName
-    member this.Name = this.Info.Name
-    member this.Namespace = this.Info.Namespace
-
-    override this.Equals obj = this.Info = (obj :?> TypeDef).Info
-
-    override this.GetHashCode() = this.Info.GetHashCode()
-
-    interface IComparable with
-        member this.CompareTo obj = compare this.Info (obj :?> TypeDef).Info
-
-[<CustomComparison; CustomEquality>]
 type AssemblyInfo =
     { FullName: string
       Types: TypeDef list }
-
-    override this.Equals obj =
-        this.FullName.Equals (obj :?> AssemblyInfo).FullName
-
-    override this.GetHashCode() = this.FullName.GetHashCode()
-
-    interface IComparable with
-        member this.CompareTo obj = compare this.FullName (obj :?> AssemblyInfo).FullName

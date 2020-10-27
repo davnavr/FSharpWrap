@@ -1,11 +1,7 @@
 ﻿namespace FSharpWrap.Tool.Reflection
 
 [<StructuralComparison; StructuralEquality>]
-type Namespace =
-    | Namespace of string list
-
-    override this.ToString() =
-        let (Namespace strs) = this in String.concat "." strs
+type Namespace = Namespace of FsName list
 
 [<RequireQualifiedAccess>]
 module Namespace =
@@ -15,13 +11,5 @@ module Namespace =
         | str ->
             str.Split '.'
             |> List.ofArray
+            |> List.choose FsName.ofStr
         >> Namespace
-
-    let identifier (Namespace strs) =
-        match strs with
-        | [] -> "global"
-        | _ ->
-            List.map
-                (sprintf "``%s``")
-                strs
-            |> String.concat "."

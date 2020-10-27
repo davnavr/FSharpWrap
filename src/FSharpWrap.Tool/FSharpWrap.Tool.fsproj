@@ -9,15 +9,20 @@
 
   <!-- Source files -->
   <ItemGroup>
+    <Compile Include="Utils.fs" />
     <Compile Include="Path.fs" />
+    <Compile Include="Reflection\Utils.fs" />
+    <Compile Include="Reflection\FsName.fs" />
     <Compile Include="Reflection\Namespace.fs" />
+    <Compile Include="Reflection\TypeArgList.fs" />
     <Compile Include="Reflection\Types.fs" />
-    <Compile Include="Reflection\TypeRef.fs" />
-    <Compile Include="Reflection\Member.fs" />
-    <Compile Include="Reflection\TypeInfo.fs" />
-    <Compile Include="Reflection\AssemblyInfo.fs" />
+    <Compile Include="Reflection\Context.fs" />
+    <Compile Include="Reflection\Modules.fs" />
     <Compile Include="Reflection\Reflect.fs" />
-    <Compile Include="Generate.fs" />
+    <Compile Include="Generation\Helpers.fs" />
+    <Compile Include="Generation\Print.fs" />
+    <Compile Include="Generation\ParamList.fs" />
+    <Compile Include="Generation\Generate.fs" />
     <Compile Include="Arguments.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

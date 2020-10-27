@@ -1,9 +1,3 @@
 <Project>
-
-  <PropertyGroup>
-    <FSharpWrapToolPath>$(RootDirectory)/src/FSharpWrap.Tool/bin/Release/netcoreapp3.1/FSharpWrap.Tool.dll</FSharpWrapToolPath>
-  </PropertyGroup>
-
   <Import Project="$(RootDirectory)/src/FSharpWrap/FSharpWrap.targets" />
-
 </Project>
