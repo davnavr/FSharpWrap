@@ -83,6 +83,7 @@ let pushpkg todir ver _ =
                 OutputPath = todir
                 Properties =
                     [
+                        "Name", "FSharpWrap"
                         "PackageVersion", ver
                         "PackageReleaseNotes", notes
                         "RootDir", rootDir
