@@ -34,6 +34,14 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: FSharpWrap
-        path: ./out/FSharpWrap.*.nupkg
-  #publish:
-  #  runs-on: ubuntu-latest
+        path: |
+          ./out/FSharpWrap.*.nupkg
+          ./CHANGELOG.md
+  publish:
+    if: startsWith(searchString, "refs/tags/v")
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: FSharpWrap
