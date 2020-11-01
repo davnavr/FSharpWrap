@@ -10,7 +10,9 @@ on:
 jobs:
   build:
     outputs:
-      release_notes: ${{ steps.release_notes }}
+      release_notes_changes: ${{ steps.release_notes.outputs.changes }}
+      release_notes_version: ${{ steps.release_notes.outputs.version }}
+      release_notes_status: ${{ steps.release_notes.outputs.status }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -65,6 +67,10 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: '5.x'
     - name: Download Packages
       uses: actions/download-artifact@v2
       with:
@@ -74,6 +80,9 @@ jobs:
       with:
         allowUpdates: true
         artifacts: ./out/*.nupkg
-        body: ${{ needs.build.outputs.release_notes.outputs.changes }}
-        prerelease: ${{ needs.build.outputs.release_notes.outputs.status == 'prereleased' }}
+        body: ${{ needs.build.outputs.release_notes_changes }}
+        prerelease: ${{ needs.build.outputs.release_notes_status == 'prereleased' }}
         token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Publish NuGet
+      run: |
+        nuget push ./out/FSharpWrap.${{ needs.build.outputs.release_notes_version }}.nupkg -ApiKey ${{ secrets.NUGET_API_KEY } -Source https://api.nuget.org/v3/index.json
