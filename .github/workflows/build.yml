@@ -9,6 +9,8 @@ on:
 
 jobs:
   build:
+    outputs:
+      release_notes: ${{ steps.release_notes.outputs }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -71,7 +73,7 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         allowUpdates: true
-        artifacts: ./*.nupkg
-        body: ${{ steps.changelog.outputs.changes }}
-        prerelease: ${{ steps.changelog.outputs.status == 'prereleased' }}
+        artifacts: ./out/*.nupkg
+        body: ${{ needs.build.outputs.release_notes.changes }}
+        prerelease: ${{ needs.build.outputs.release_notes.status == 'prereleased' }}
         token: ${{ secrets.GITHUB_TOKEN }}
