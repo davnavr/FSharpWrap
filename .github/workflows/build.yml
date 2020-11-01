@@ -85,4 +85,4 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Publish NuGet
       run: |
-        nuget push ./out/FSharpWrap.${{ needs.build.outputs.release_notes_version }}.nupkg -ApiKey ${{ secrets.NUGET_API_KEY } -Source https://api.nuget.org/v3/index.json
+        nuget push ./out/FSharpWrap.${{ needs.build.outputs.release_notes_version }}.nupkg -ApiKey ${{ secrets.NUGET_API_KEY }} -Source https://api.nuget.org/v3/index.json
