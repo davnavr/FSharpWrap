@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     outputs:
-      release_notes: ${{ steps.release_notes.outputs }}
+      release_notes: ${{ steps.release_notes }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -74,6 +74,6 @@ jobs:
       with:
         allowUpdates: true
         artifacts: ./out/*.nupkg
-        body: ${{ needs.build.outputs.release_notes.changes }}
-        prerelease: ${{ needs.build.outputs.release_notes.status == 'prereleased' }}
+        body: ${{ needs.build.outputs.release_notes.outputs.changes }}
+        prerelease: ${{ needs.build.outputs.release_notes.outputs.status == 'prereleased' }}
         token: ${{ secrets.GITHUB_TOKEN }}
