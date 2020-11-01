@@ -32,6 +32,12 @@ jobs:
       with:
         version: ${{ steps.release_version.outputs.current_version }}
         path: ./CHANGELOG.md
+    - name: Update Release Notes
+      if: startsWith(github.ref, "refs/tags/v") && matrix.os == 'ubuntu-latest'
+      run: |
+        echo "PACKAGE_RELEASE_NOTES=${{ steps.release_notes.outputs.changes }}" >> $GITHUB_ENV
+        echo "PACKAGE_VERSION=${{ steps.release_notes.outputs.version }}" >> $GITHUB_ENV
+      shell: bash
     - name: Setup NuGet
       uses: nuget/setup-nuget@v1
       with:
@@ -41,9 +47,6 @@ jobs:
         dotnet restore ./FSharpWrap.sln
         dotnet tool restore
     - name: Build
-      env:
-        PACKAGE_RELEASE_NOTES: ${{ steps.release_notes.outputs.changes }}
-        PACKAGE_VERSION: ${{ steps.release_notes.outputs.version }}
       run: dotnet fake run build.fsx
     - name: Upload Packages
       if: matrix.os == 'ubuntu-latest'
