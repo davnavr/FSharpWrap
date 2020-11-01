@@ -2,14 +2,17 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <authors>davnavr</authors>
-    <description>
-      Generates F# modules and functions from non-F# dependencies.
-    </description>
-    <id>FSharpWrap</id>
+    <description>Generates F# modules and functions from non-F# dependencies.</description>
+    <developmentDependency>true</developmentDependency>
+    <id>$Name$</id>
+    <license type="expression">Apache-2.0</license>
     <releaseNotes>$PackageReleaseNotes$</releaseNotes>
     <repository type="git" url="https://github.com/davnavr/FSharpWrap" />
+    <tags>f# fsharp codegen utils helpers</tags>
+    <title>$Name$</title>
     <version>$PackageVersion$</version>
   </metadata>
+
   <files>
     <file src="tool\*.*" target="build" />
     <file src="FSharpWrap.*" exclude="*.nuspec" target="build" />

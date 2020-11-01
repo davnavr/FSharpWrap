@@ -19,6 +19,25 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.401
+    - name: Get Tag Version
+      id: release_version
+      if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'ubuntu-latest'
+      run: |
+        echo ::set-output name=current_version::${GITHUB_REF#refs/tags/v}
+      shell: bash
+    - name: Read Changelog
+      id: release_notes
+      if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'ubuntu-latest'
+      uses: mindsers/changelog-reader-action@v2
+      with:
+        version: ${{ steps.release_version.outputs.current_version }}
+        path: ./CHANGELOG.md
+    - name: Update Release Notes
+      if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'ubuntu-latest'
+      run: |
+        echo "PACKAGE_RELEASE_NOTES=${{ steps.release_notes.outputs.changes }}" >> $GITHUB_ENV
+        echo "PACKAGE_VERSION=${{ steps.release_notes.outputs.version }}" >> $GITHUB_ENV
+      shell: bash
     - name: Setup NuGet
       uses: nuget/setup-nuget@v1
       with:
@@ -34,6 +53,23 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: FSharpWrap
-        path: ./out/FSharpWrap.*.nupkg
-  #publish:
-  #  runs-on: ubuntu-latest
+        path: |
+          ./out/*.nupkg
+          ./CHANGELOG.md
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Packages
+      uses: actions/download-artifact@v2
+      with:
+        name: FSharpWrap
+    - name: Publish GitHub
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true
+        artifacts: ./*.nupkg
+        body: ${{ steps.changelog.outputs.changes }}
+        prerelease: ${{ steps.changelog.outputs.status == 'prereleased' }}
+        token: ${{ secrets.GITHUB_TOKEN }}
