@@ -1,19 +1,28 @@
 # FSharpWrap
 [![Build Status](https://github.com/davnavr/FSharpWrap/workflows/Build/badge.svg)](https://github.com/davnavr/FSharpWrap/actions?query=workflow%3ABuild)
-![Nuget](https://img.shields.io/nuget/v/FSharpWrap)
+[![Nuget](https://img.shields.io/nuget/v/FSharpWrap)](https://www.nuget.org/packages/FSharpWrap/)
 ![GitHub top language](https://img.shields.io/github/languages/top/davnavr/fsharpwrap)
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
 Utility that automatically generates F# modules and functions based on your F# project file's references.
 
 ## Usage
-Add the following to your `.fsproj` project file.
+Add the following under an `<ItemGroup>` to your `.fsproj` project file.
 
 ```xml
 <PackageReference Include="FSharpWrap" Version="0.1.0">
   <PrivateAssets>all</PrivateAssets>
   <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 </PackageReference>
+
+<!-- Make sure this comes before any of your *.fs files -->
+<Compile Include="output.autogen.fs" />
+```
+
+Depending on your needs, you may also want to add the following to your `.gitignore` file
+
+```text
+*.autogen.fs
 ```
 
 ## Example
