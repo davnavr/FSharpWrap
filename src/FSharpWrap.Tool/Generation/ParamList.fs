@@ -2,6 +2,7 @@
 
 open System.ComponentModel
 
+open FSharpWrap.Tool
 open FSharpWrap.Tool.Reflection
 
 [<RequireQualifiedAccess>]

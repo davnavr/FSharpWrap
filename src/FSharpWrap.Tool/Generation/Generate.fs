@@ -1,6 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module FSharpWrap.Tool.Generation.Generate
 
+open FSharpWrap.Tool
 open FSharpWrap.Tool.Reflection
 
 let fromMembers mname (members: seq<TypeName * Member>) =

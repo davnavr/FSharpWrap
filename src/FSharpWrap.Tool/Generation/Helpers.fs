@@ -9,6 +9,7 @@ let (|ReadOnlyField|_|) =
     | _ -> None
 
 let indented lines = Seq.map (sprintf "    %s") lines
+[<System.Obsolete>]
 let block lines =
     seq {
         yield "begin"
@@ -16,5 +17,6 @@ let block lines =
         yield "end"
     }
 
+[<System.Obsolete>]
 let attr name args =
     sprintf "[<%s(%s)>]" name args

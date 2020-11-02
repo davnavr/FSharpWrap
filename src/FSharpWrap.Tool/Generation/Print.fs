@@ -3,6 +3,7 @@ module internal rec FSharpWrap.Tool.Generation.Print
 
 open System
 
+open FSharpWrap.Tool
 open FSharpWrap.Tool.Reflection
 
 let fsname (FsName name) = sprintf "``%s``" name
@@ -112,3 +113,51 @@ let arguments parameters =
             f name name)
         parameters
     |> String.concat ","
+
+let attributes (attrs: seq<GenAttribute>) =
+    Seq.map
+        (fun attr ->
+            let name = typeName attr.AttributeType
+            let args = String.concat "," attr.Arguments
+            sprintf "[<%s(%s)>]" name args)
+        attrs
+
+let genBinding =
+    function
+    | GenFunction func ->
+        let args =
+            List.map
+                (fun (argn, argt) ->
+                    sprintf
+                        "%s:%s"
+                        (fsname argn)
+                        (typeArg argt))
+                func.Arguments
+            |> String.concat ","
+        sprintf
+            "let inline %s (%s) = %s"
+            (fsname func.Name)
+            args
+            func.Body
+
+let genModule (mdle: GenModule) =
+    seq {
+        yield! attributes mdle.Attributes
+        fsname mdle.ModuleName |> sprintf "module %s ="
+        yield!
+            mdle.Bindings
+            |> Seq.map genBinding
+            |> indented
+    }
+
+let genNamespace (gen: GenNamespace) =
+    seq {
+        ns gen.Namespace |> sprintf "namespace %s"
+        for mdle in gen.Modules do
+            yield! genModule mdle
+    }
+
+let genFile (file: GenFile) =
+    let header = Seq.map (sprintf "// %s") file.Header
+    let contents = Seq.collect genNamespace file.Namespaces
+    Seq.append header contents

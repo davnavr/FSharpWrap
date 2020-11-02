@@ -81,7 +81,7 @@ module Type =
                 | _ -> None))
             (ref t)
 
-    let arg t = // TODO: Figure out why some generic parameters occasionally disappear.
+    let arg t =
         context {
             match! Context.current with
             | HasType t existing -> return existing

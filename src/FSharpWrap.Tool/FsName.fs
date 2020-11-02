@@ -1,4 +1,4 @@
-﻿namespace FSharpWrap.Tool.Reflection
+﻿namespace FSharpWrap.Tool
 
 open System.Reflection
 

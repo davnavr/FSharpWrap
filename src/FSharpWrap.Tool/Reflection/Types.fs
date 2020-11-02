@@ -3,6 +3,8 @@
 open System.Collections
 open System.Collections.Generic
 
+open FSharpWrap.Tool
+
 [<StructuralComparison; StructuralEquality>]
 type GenericConstraint =
     | TypeConstraint of TypeArg
