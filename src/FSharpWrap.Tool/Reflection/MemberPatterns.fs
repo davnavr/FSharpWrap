@@ -91,15 +91,3 @@ let (|IsTuple|_|) =
     | Derives "System.Runtime.CompilerServices" "ITuple" tuple
     | IsTupleType tuple -> Some tuple
     | _ -> None
-
-let (|IsFSharpModule|_|) (t: Type) =
-    MemberInfo.findAttr
-        "Microsoft.FSharp.Core"
-        "CompilationMappingAttribute"
-        (fun attr ->
-            let arg = Seq.tryHead attr.ConstructorArguments
-            match t, arg with
-            | IsStatic _, Some arg' when arg'.Value = (int SourceConstructFlags.Module |> box) ->
-                Some t
-            | _ -> None)
-        t

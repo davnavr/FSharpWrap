@@ -127,16 +127,20 @@ let genBinding =
     | GenFunction func ->
         // TODO: See if printing logic of parameters can be moved out of 'param' function to here.
         let args =
-            List.map
-                (fun (argn, argt) -> 
-                    { ArgType = argt
-                      IsOptional = RequiredParam
-                      ParamName = argn }
-                      |> param)
-                func.Parameters
-            |> String.concat ","
+            match func.Parameters with
+            | [] -> "()"
+            | _ ->
+                List.map
+                    (fun (argn, argt) -> 
+                        { ArgType = argt
+                          IsOptional = RequiredParam
+                          ParamName = argn }
+                        |> param
+                        |> sprintf "(%s)")
+                    func.Parameters
+                |> String.Concat
         sprintf
-            "let inline %s (%s) = %s"
+            "let inline %s%s= %s"
             (fsname func.Name)
             args
             func.Body

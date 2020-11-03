@@ -143,7 +143,7 @@ module AssemblyInfo =
                         (function // TODO: Move type filtering logic outside of the reflection module.
                         | Derives "System" "Delegate" _
                         | AssignableTo "Microsoft.FSharp.Core" "FSharpFunc`2" _
-                        | IsFSharpModule _
+                        | IsStatic _
                         | IsNested
                         | IsTuple _ -> None
                         | t -> Some t)
