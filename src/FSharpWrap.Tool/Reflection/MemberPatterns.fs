@@ -46,6 +46,11 @@ let (|IsSpecialName|_|): MemberInfo -> _ =
     | :? FieldInfo as field when field.IsSpecialName -> Some()
     | _ -> None
 
+let (|IsStatic|_|) =
+    function
+    | (t: Type) when t.IsSealed && t.IsAbstract -> Some t
+    | _ -> None
+
 let (|PropAccessor|_|): MemberInfo -> _ =
     let check (mthd: MethodInfo) =
         mthd.DeclaringType.GetProperties()
@@ -86,3 +91,15 @@ let (|IsTuple|_|) =
     | Derives "System.Runtime.CompilerServices" "ITuple" tuple
     | IsTupleType tuple -> Some tuple
     | _ -> None
+
+let (|IsFSharpModule|_|) (t: Type) =
+    MemberInfo.findAttr
+        "Microsoft.FSharp.Core"
+        "CompilationMappingAttribute"
+        (fun attr ->
+            let arg = Seq.tryHead attr.ConstructorArguments
+            match t, arg with
+            | IsStatic _, Some arg' when arg'.Value = (int SourceConstructFlags.Module |> box) ->
+                Some t
+            | _ -> None)
+        t
