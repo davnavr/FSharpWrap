@@ -78,22 +78,25 @@ let private addType mdles tdef =
         mdles
         |> Map.tryFind ns
         |> Option.defaultValue Map.empty
-    let types' =
-        let mlde =
-            let init = fromType tdef
-            match Map.tryFind name types with
-            | Some existing ->
-                let bindings =
-                     Set.union
-                        existing.Bindings
-                        init.Bindings
-                { existing with Bindings = bindings }
-            | None -> init
-        Map.add
-            name
-            mlde
-            types
-    Map.add ns types' mdles
+    let mdle =
+        let init = fromType tdef
+        match Map.tryFind name types with
+        | Some existing ->
+            let bindings =
+                 Set.union
+                    existing.Bindings
+                    init.Bindings
+            { existing with Bindings = bindings }
+        | None -> init
+    match mdle.Bindings with
+    | Empty -> mdles
+    | _ ->
+        let types' =
+            Map.add
+                name
+                mdle
+                types
+        Map.add ns types' mdles
 
 let fromAssemblies (assms: seq<AssemblyInfo>) =
     { Header =

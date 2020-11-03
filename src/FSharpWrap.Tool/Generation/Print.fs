@@ -135,8 +135,7 @@ let genBinding =
                         { ArgType = argt
                           IsOptional = RequiredParam
                           ParamName = argn }
-                        |> param
-                        |> sprintf "(%s)")
+                        |> param)
                     func.Parameters
                 |> String.Concat
         sprintf
