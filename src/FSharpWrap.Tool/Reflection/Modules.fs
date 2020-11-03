@@ -17,6 +17,12 @@ module Patterns =
         | { Constraints = Empty } -> None
         | _ -> Some tparam.Constraints
 
+    let (|IsNamedType|_|) ns name =
+        function
+        | TypeName t when t.Name = FsName name && t.Namespace = Namespace.ofStr ns ->
+            Some t
+        | _ -> None
+
 [<RequireQualifiedAccess>]
 module Type =
     let private typeName (GenericArgs gargs as t) =

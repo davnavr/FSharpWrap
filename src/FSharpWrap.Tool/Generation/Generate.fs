@@ -15,15 +15,26 @@ let private moduleAttr =
 
 let binding parent mber =
     let name = Print.memberName mber |> FsName
+    let this =
+        { ArgType = TypeName parent.TypeName |> TypeArg
+          IsOptional = RequiredParam
+          ParamName = FsName "this" }
     match mber with
+    | InstanceProperty ({ PropType = TypeArg(IsNamedType "System" "Boolean" _) } as prop) ->
+        {| Body =
+            sprintf
+                "if %s.``%s`` then Some() else None"
+                (Print.fsname this.ParamName)
+                prop.PropName
+           Parameters = [ this.ParamName, this.ArgType ]
+           PatternName = FsName prop.PropName |}
+        |> GenActivePattern
+        |> Some
     | InstanceMethod mthd ->
         let mparams =
             mthd.Params
             |> ParamList.ofList
-            |> ParamList.append
-                { ArgType = TypeName parent.TypeName |> TypeArg
-                  IsOptional = RequiredParam
-                  ParamName = FsName "this" }
+            |> ParamList.append this
         let targs =
             match mthd.TypeArgs with
             | TypeArgs(_ :: _ as targs) ->
@@ -33,11 +44,11 @@ let binding parent mber =
                 |> String.concat ","
                 |> sprintf "<%s>"
             | _ -> ""
-        let rest, this =
+        let rest, this' =
             let rec inner rest =
                 function
                 | [] -> invalidOp "The parameter list was unexpectedly empty"
-                | [ this ] -> List.rev rest, this
+                | [ this' ] -> List.rev rest, this'
                 | h :: tail -> inner (h :: rest) tail
             mparams
             |> ParamList.toList
@@ -45,7 +56,7 @@ let binding parent mber =
         {| Body =
             sprintf
                 "%s.``%s``%s(%s)"
-                (Print.fsname this.ParamName)
+                (Print.fsname this'.ParamName)
                 mthd.MethodName
                 targs
                 (Print.arguments rest)

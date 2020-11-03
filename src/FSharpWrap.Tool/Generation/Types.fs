@@ -11,18 +11,37 @@ type GenAttribute =
 
 [<CustomComparison; CustomEquality>]
 type GenBinding =
+    | GenActivePattern of
+        {| Body: string
+           Parameters: (FsName * TypeArg) list
+           PatternName: FsName |}
     | GenFunction of
         {| Body: string
            Name: FsName
            Parameters: (FsName * TypeArg) list |}
 
-    member private this.Name = let (GenFunction func) = this in func.Name
-
-    override this.Equals obj = this.Name = (obj :?> GenBinding).Name
-    override this.GetHashCode() = this.Name.GetHashCode()
+    override this.Equals obj =
+        match this, obj :?> GenBinding with
+        | GenFunction this, GenFunction other ->
+            this.Name = other.Name
+        | GenActivePattern this, GenActivePattern other ->
+            this.PatternName = other.PatternName
+        | _ -> false
+    override this.GetHashCode() =
+        match this with
+        | GenActivePattern pattern -> Choice1Of2 pattern.PatternName
+        | GenFunction func -> Choice2Of2 func.Name
+        |> hash
 
     interface IComparable with
-        member this.CompareTo obj = compare this.Name (obj :?> GenBinding).Name
+        member this.CompareTo obj =
+            match this, obj :?> GenBinding with
+            | GenFunction this, GenFunction other ->
+                compare this.Name other.Name
+            | GenActivePattern this, GenActivePattern other ->
+                compare this.PatternName other.PatternName
+            | GenActivePattern _, _ -> -1
+            | _, GenActivePattern _ -> 1
 
 [<CustomComparison; CustomEquality>]
 type GenModule =

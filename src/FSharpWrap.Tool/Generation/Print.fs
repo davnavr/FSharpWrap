@@ -122,26 +122,32 @@ let attributes (attrs: seq<GenAttribute>) =
             sprintf "[<%s(%s)>]" name args)
         attrs
 
+let argsThing =
+    function
+    | [] -> "()"
+    | args ->
+        List.map
+            (fun (argn, argt) -> 
+                { ArgType = argt
+                  IsOptional = RequiredParam
+                  ParamName = argn }
+                |> param)
+            args
+        |> String.Concat
+
 let genBinding =
     function
+    | GenActivePattern pattern ->
+        sprintf
+            "let inline (|%s|_|)%s= %s"
+            (fsname pattern.PatternName)
+            (argsThing pattern.Parameters)
+            pattern.Body
     | GenFunction func ->
-        // TODO: See if printing logic of parameters can be moved out of 'param' function to here.
-        let args =
-            match func.Parameters with
-            | [] -> "()"
-            | _ ->
-                List.map
-                    (fun (argn, argt) -> 
-                        { ArgType = argt
-                          IsOptional = RequiredParam
-                          ParamName = argn }
-                        |> param)
-                    func.Parameters
-                |> String.Concat
         sprintf
             "let inline %s%s= %s"
             (fsname func.Name)
-            args
+            (argsThing func.Parameters)
             func.Body
 
 let genModule (mdle: GenModule) =
