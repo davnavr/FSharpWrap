@@ -20,11 +20,11 @@ module TypeArgList =
             member this.CompareTo obj =
                 this.Length - (obj :?> TypeArgList<'TypeArg>).Length
 
+    let empty = TypeArgs Array.empty
     let length (targs: TypeArgList<_>) = targs.Length
-    let toList (TypeArgs targs) = List.ofArray targs
-
     let ofArray = TypeArgs
     let ofSeq targs = Seq.toArray targs |> ofArray
+    let toList (TypeArgs targs) = List.ofArray targs
 
 type TypeArgList<'TypeArg> = TypeArgList.TypeArgList<'TypeArg>
 

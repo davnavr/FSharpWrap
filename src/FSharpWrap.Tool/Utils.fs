@@ -3,7 +3,7 @@
 open System.Reflection
 
 [<AutoOpen>]
-module Collections =
+module internal Collections =
     let inline (|Empty|_|) col =
         if (^T : (member IsEmpty : bool) col)
         then Some()

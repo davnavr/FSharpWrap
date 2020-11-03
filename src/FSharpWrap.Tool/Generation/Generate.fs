@@ -4,164 +4,114 @@ module FSharpWrap.Tool.Generation.Generate
 open FSharpWrap.Tool
 open FSharpWrap.Tool.Reflection
 
-let fromMembers mname (members: seq<TypeName * Member>) =
-    [
-        attr
-            "global.Microsoft.FSharp.Core.CompilationRepresentation"
-            "global.Microsoft.FSharp.Core.CompilationRepresentationFlags.ModuleSuffix"
-        Print.fsname mname |> sprintf "module %s ="
-        yield!
-            members
-            |> Seq.mapFold
-                (fun map (parent, mber) ->
-                    let name = Print.memberName mber
-                    match Map.tryFind name map with
-                    | Some _ ->
-                        [ sprintf "// Duplicate generated member %s" name ]
-                    | None ->
-                        let gen mparams body =
-                            [
-                                ParamList.print mparams |> sprintf "let inline ``%s`` %s =" name
-                                yield! block body |> indented
-                            ]
-                        let self =
-                            { ArgType = TypeName parent |> TypeArg
-                              IsOptional = RequiredParam
-                              ParamName = FsName "this" }
-                        match mber with
-                        | Constructor cparams ->
-                            let cparams' = ParamList.ofList cparams
-                            [
-                                cparams'
-                                |> ParamList.toList
-                                // TODO: Factor out duplicate code for params
-                                |> Print.arguments
-                                |> sprintf
-                                    "new %s(%s)"
-                                    (Print.typeName parent)
-                            ]
-                            |> gen cparams'
-                        | InstanceField (ReadOnlyField field) ->
-                            [
-                                sprintf
-                                    "%s.``%s``"
-                                    (Print.fsname self.ParamName)
-                                    field.FieldName
-                            ]
-                            |> gen (ParamList.singleton self)
-                        | StaticField _ -> List.empty
-                        | InstanceField field ->
-                            [
-                                let name = (Print.fsname self.ParamName)
-                                let fname = field.FieldName
-                                sprintf
-                                    "(fun()->%s.``%s``),(fun value->%s.``%s``=value)"
-                                    name
-                                    fname
-                                    name
-                                    fname
-                            ]
-                            |> gen (ParamList.singleton self)
-                        | InstanceMethod mthd ->
-                            let plist =
-                                mthd.Params
-                                |> ParamList.ofList
-                                |> ParamList.append self
-                            let rest =
-                                let rec inner rest =
-                                    function
-                                    | []
-                                    | [ _ ] -> List.rev rest
-                                    | h :: tail -> inner (h :: rest) tail
-                                plist
-                                |> ParamList.toList
-                                |> inner []
-                            let targs =
-                                match mthd.TypeArgs with
-                                | TypeArgs(_ :: _ as targs) ->
-                                    List.map
-                                        Print.typeArg
-                                        targs
-                                    |> String.concat ","
-                                    |> sprintf "<%s>"
-                                | _ -> ""
-                            [
-                                rest
-                                |> Print.arguments
-                                |> sprintf
-                                    "%s.``%s``%s(%s)"
-                                    (Print.fsname self.ParamName)
-                                    mthd.MethodName
-                                    targs
-                            ]
-                            |> gen plist
-                        | UnknownMember _ ->
-                            Print.typeName parent
-                            |> sprintf
-                                "// Unknown member %s in %s"
-                                name
-                            |> List.singleton
-                        | _ -> [ "// TODO: Generate other types of members" ]
-                    , Map.add name mber map)
-                Map.empty
-            |> fst
-            |> Seq.collect id
-            |> block
-            |> indented
-    ]
+let private moduleAttr =
+    let attrType =
+        { Name = FsName "CompilationRepresentationAttribute"
+          Namespace = Namespace.ofStr "Microsoft.FSharp.Core"
+          Parent = None
+          TypeArgs = TypeArgList.empty }
+    { Arguments = [ "global.Microsoft.FSharp.Core.CompilationRepresentationFlags.ModuleSuffix" ]
+      AttributeType = attrType }
 
-let fromNamespace (name: Namespace) types =
-    [
-        Print.ns name |> sprintf "namespace %s"
-        yield!
-            types
-            |> Set.fold
-                (fun map (tdef: TypeDef) ->
-                    let tname = tdef.TypeName.Name
-                    let tset =
-                        Map.tryFind tname map
-                        |> Option.defaultValue Set.empty
-                        |> Set.add tdef
-                    Map.add tname tset map)
-                Map.empty
-            |> Map.toSeq
-            |> Seq.collect (fun (mname, tdefs) ->
-                Seq.collect
-                    (fun { TypeName = tname; Members = members } ->
-                        Seq.map
-                            (fun mdef -> tname, mdef)
-                            members)
-                    tdefs
-                |> fromMembers mname)
-            |> indented
-    ]
+let binding parent mber =
+    let name = Print.memberName mber |> FsName
+    match mber with
+    | InstanceMethod mthd ->
+        let mparams =
+            mthd.Params
+            |> ParamList.ofList
+            |> ParamList.append
+                { ArgType = TypeName parent.TypeName |> TypeArg
+                  IsOptional = RequiredParam
+                  ParamName = FsName "this" }
+        let targs =
+            match mthd.TypeArgs with
+            | TypeArgs(_ :: _ as targs) ->
+                List.map
+                    Print.typeArg
+                    targs
+                |> String.concat ","
+                |> sprintf "<%s>"
+            | _ -> ""
+        let rest, this =
+            let rec inner rest =
+                function
+                | [] -> invalidOp "The parameter list was unexpectedly empty"
+                | [ this ] -> List.rev rest, this
+                | h :: tail -> inner (h :: rest) tail
+            mparams
+            |> ParamList.toList
+            |> inner []
+        {| Body =
+            sprintf
+                "%s.``%s``%s(%s)"
+                (Print.fsname this.ParamName)
+                mthd.MethodName
+                targs
+                (Print.arguments rest)
+           Name = name
+           Parameters =
+             mparams
+             |> ParamList.toList
+             |> List.map
+                (fun param -> param.ParamName, param.ArgType)  |}
+        |> GenFunction
+        |> Some
+    | _ -> None
+
+let fromType (t: TypeDef): GenModule =
+    { Attributes = List.singleton moduleAttr
+      Bindings =
+        List.fold
+            (fun bindings mber ->
+                match binding t mber with
+                | Some gen when Set.contains gen bindings |> not ->
+                    Set.add gen bindings
+                | _ -> bindings)
+            Set.empty
+            t.Members
+      ModuleName = t.TypeName.Name }
+
+let private addType (mdles, dups) tdef =
+    let { Name = name; Namespace = ns } = tdef.TypeName
+    let types =
+        mdles
+        |> Map.tryFind ns
+        |> Option.defaultValue Map.empty
+    match Map.tryFind name types with
+    | Some _ ->
+        mdles, tdef :: dups
+    | None ->
+        let types' =
+            Map.add
+                name
+                (fromType tdef)
+                types
+        let mdles' =
+            Map.add
+                ns
+                types'
+                mdles
+        mdles', dups
 
 let fromAssemblies (assms: seq<AssemblyInfo>) =
-    let types, dups, dupcnt =
+    let namespaces, dups =
         assms
         |> Seq.collect (fun assm -> assm.Types)
         |> Seq.fold
-            (fun (types', dups', dupcnt') tdef ->
-                let tset =
-                    Map.tryFind tdef.TypeName.Namespace types'
-                    |> Option.defaultValue Set.empty
-                if Set.contains tdef tset
-                then types', tdef :: dups', dupcnt' + 1
-                else Map.add tdef.TypeName.Namespace (Set.add tdef tset) types', dups', dupcnt')
-            (Map.empty, [], 0)
-    [
-        "// This code was automatically generated by FSharpWrap"
-        "// Changes made to this file will be lost when it is regenerated"
-        "// Generated code for assemblies"
-        for assm in assms do
-            sprintf "// - %s" assm.FullName
-        sprintf "// Found %i duplicate types" dupcnt
-        for dup in dups do
-            dup.TypeName
-            |> Print.typeName
-            |> sprintf "// - %s"
-        yield!
-            types
-            |> Map.toSeq
-            |> Seq.collect (fun (ns, tdefs) -> fromNamespace ns tdefs)
-    ]
+            addType
+            (Map.empty, List.empty)
+    { Header =
+        seq {
+            "This code was automatically generated by FSharpWrap"
+            "Changes made to this file will be lost when it is regenerated"
+            for assm in assms do
+                sprintf "- %s" assm.FullName
+            if not dups.IsEmpty then
+                "Duplicate types found:"
+                for dup in dups do
+                    dup.TypeName
+                    |> Print.typeName
+                    |> sprintf "- %s"
+        }
+      Namespaces = namespaces }

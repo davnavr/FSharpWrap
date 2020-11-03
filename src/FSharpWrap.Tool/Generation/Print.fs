@@ -125,14 +125,15 @@ let attributes (attrs: seq<GenAttribute>) =
 let genBinding =
     function
     | GenFunction func ->
+        // TODO: See if printing logic of parameters can be moved out of 'param' function to here.
         let args =
             List.map
-                (fun (argn, argt) ->
-                    sprintf
-                        "%s:%s"
-                        (fsname argn)
-                        (typeArg argt))
-                func.Arguments
+                (fun (argn, argt) -> 
+                    { ArgType = argt
+                      IsOptional = RequiredParam
+                      ParamName = argn }
+                      |> param)
+                func.Parameters
             |> String.concat ","
         sprintf
             "let inline %s (%s) = %s"
@@ -147,17 +148,26 @@ let genModule (mdle: GenModule) =
         yield!
             mdle.Bindings
             |> Seq.map genBinding
+            |> block
             |> indented
-    }
-
-let genNamespace (gen: GenNamespace) =
-    seq {
-        ns gen.Namespace |> sprintf "namespace %s"
-        for mdle in gen.Modules do
-            yield! genModule mdle
     }
 
 let genFile (file: GenFile) =
     let header = Seq.map (sprintf "// %s") file.Header
-    let contents = Seq.collect genNamespace file.Namespaces
+    let contents =
+        file.Namespaces
+        |> Map.toSeq
+        |> Seq.collect
+            (fun (ns, mdles) ->
+                let mdles' =
+                    mdles
+                    |> Map.toSeq
+                    |> Seq.map snd
+                seq {
+                    Print.ns ns |> sprintf "namespace %s"
+                    yield!
+                        mdles'
+                        |> Seq.collect genModule
+                        |> indented
+                })
     Seq.append header contents

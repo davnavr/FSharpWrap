@@ -9,16 +9,25 @@ type GenAttribute =
     { Arguments: string list
       AttributeType: TypeName }
 
+[<CustomComparison; CustomEquality>]
 type GenBinding =
     | GenFunction of
-        {| Arguments: (FsName * TypeArg) list
-           Body: string
-           Name: FsName |}
+        {| Body: string
+           Name: FsName
+           Parameters: (FsName * TypeArg) list |}
+
+    member private this.Name = let (GenFunction func) = this in func.Name
+
+    override this.Equals obj = this.Name = (obj :?> GenBinding).Name
+    override this.GetHashCode() = this.Name.GetHashCode()
+
+    interface IComparable with
+        member this.CompareTo obj = compare this.Name (obj :?> GenBinding).Name
 
 [<CustomComparison; CustomEquality>]
 type GenModule =
     { Attributes: GenAttribute list
-      Bindings: GenBinding list
+      Bindings: Set<GenBinding>
       ModuleName: FsName }
 
     override this.Equals obj = this.ModuleName = (obj :?> GenModule).ModuleName
@@ -27,17 +36,8 @@ type GenModule =
     interface IComparable with
         member this.CompareTo obj = compare this.ModuleName (obj :?> GenModule).ModuleName
 
-[<CustomComparison; CustomEquality>]
-type GenNamespace =
-    { Modules: Set<GenModule>
-      Namespace: Namespace }
-
-    override this.Equals obj = this.Namespace = (obj :?> GenNamespace).Namespace
-    override this.GetHashCode() = this.Namespace.GetHashCode()
-
-    interface IComparable with
-        member this.CompareTo obj = compare this.Namespace (obj :?> GenNamespace).Namespace
+type GenNamespace = Map<FsName, GenModule>
 
 type GenFile =
     { Header: seq<string>
-      Namespaces: Set<GenNamespace> }
+      Namespaces: Map<Namespace, GenNamespace> }

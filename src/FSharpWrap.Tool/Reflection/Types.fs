@@ -85,9 +85,17 @@ type Member =
     | StaticProperty of Property
     | UnknownMember of name: string
 
+[<CustomComparison; CustomEquality>]
 type TypeDef =
     { Members: Member list
       TypeName: TypeName }
+
+    override this.Equals obj = this.TypeName = (obj :?> TypeDef).TypeName
+    override this.GetHashCode() = this.TypeName.GetHashCode()
+
+    interface System.IComparable with
+        member this.CompareTo obj =
+            compare this.TypeName (obj :?> TypeDef).TypeName
 
 type AssemblyInfo =
     { FullName: string
