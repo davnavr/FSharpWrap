@@ -126,7 +126,6 @@ module Type =
                         (function
                         | IsCompilerGenerated
                         | IsSpecialName
-                        | NeverDebuggerBrowsable
                         | PropAccessor -> None
                         | mber -> Some mber)
                     |> Seq.mapFold

@@ -15,6 +15,6 @@ let hello() =
     names |> IEnumerable.getEnumerator |> printfn "%A"
 
     // Pattern matching on boolean properties
-    match names |> ImmutableStack.Create with
-    | ImmutableStack.IsEmpty -> printfn "Empty!"
+    match names with
+    | ImmutableList.IsEmpty -> printfn "Empty!"
     | notEmpty -> printfn "%O" notEmpty

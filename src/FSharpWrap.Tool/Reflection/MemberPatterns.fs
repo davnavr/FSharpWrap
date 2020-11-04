@@ -25,16 +25,6 @@ let (|IsCompilerGenerated|_|): MemberInfo -> _ =
         "CompilerGeneratedAttribute"
         (fun _ -> Some ())
 
-let (|DebuggerBrowsable|NeverDebuggerBrowsable|): MemberInfo -> _ =
-    MemberInfo.findAttr
-        "System.Diagnostics"
-        "DebuggerBrowsableAttribute"
-        (fun data ->
-            match Attribute.ctorArgs data with
-            | [ Some 0 ] -> Choice2Of2() |> Some // Never
-            | _ -> None)
-    >> Option.defaultWith Choice1Of2
-
 let (|IsNested|_|) (t: Type) = if t.IsNested then Some() else None
 
 let (|IsPointer|_|) (t: Type) =
