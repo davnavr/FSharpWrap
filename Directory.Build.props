@@ -6,6 +6,7 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <RootNamespace>$(AssemblyName)</RootNamespace>
     <RootDirectory>$(MSBuildThisFileDirectory)</RootDirectory>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
 </Project>

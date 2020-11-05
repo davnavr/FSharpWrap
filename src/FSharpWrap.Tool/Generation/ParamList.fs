@@ -1,5 +1,6 @@
 ﻿namespace FSharpWrap.Tool.Generation
 
+open System
 open System.ComponentModel
 
 open FSharpWrap.Tool
@@ -12,13 +13,20 @@ module ParamList =
         private
         | ParamList of Param list * Set<FsName>
 
-    let private safeName set ({ Param.ParamName = name } as param) =
-        let name' =
-            if Set.contains name set
-            then sprintf "%O'"
-            else string
-            <| name
-        { param with ParamName = FsName name' }, Set.add name set
+    let private safeName set ({ Param.ParamName = FsName name } as param) =
+        // TODO: Factor out common code for turning something into camelCase.
+        let lname =
+            String.mapi
+                (function
+                | 0 -> Char.ToLower
+                | _ -> id)
+                name
+            |> FsName
+        let sname =
+            if Set.contains lname set
+            then sprintf "%O'" lname |> FsName
+            else lname
+        { param with ParamName = sname }, Set.add sname set
 
     let empty = ParamList([], Set.empty)
 
