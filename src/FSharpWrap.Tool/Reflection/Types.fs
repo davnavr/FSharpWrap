@@ -5,6 +5,30 @@ open System.Collections.Generic
 
 open FSharpWrap.Tool
 
+[<RequireQualifiedAccess>]
+type AttributeArg =
+    | Array of (TypeRef * AttributeArg) list
+    | Bool of bool
+    | Char of char
+    | Double of System.Double
+    | Int8 of int8
+    | Int16 of int16
+    | Int32 of int32
+    | Int64 of int64
+    | Null
+    | Single of System.Single
+    | String of string
+    | Type of TypeRef
+    | UInt8 of uint8
+    | UInt16 of uint16
+    | UInt32 of uint32
+    | UInt64 of uint64
+
+type AttributeInfo =
+    { AttributeType: TypeName
+      ConstructorArgs: (TypeRef * AttributeArg) list
+      NamedArgs: Map<FsName, TypeRef * AttributeArg> }
+
 [<StructuralComparison; StructuralEquality>]
 type GenericConstraint =
     | TypeConstraint of TypeArg
@@ -75,7 +99,7 @@ type Property =
       PropType: TypeArg
       Setter: bool }
 
-type Member =
+type MemberType =
     | Constructor of Param list
     | InstanceField of Field
     | InstanceMethod of Method
@@ -85,9 +109,14 @@ type Member =
     | StaticProperty of Property
     | UnknownMember of name: string
 
+type Member =
+    { Attributes: AttributeInfo list
+      Type: MemberType }
+
 [<CustomComparison; CustomEquality>]
 type TypeDef =
-    { Members: Member list
+    { Attributes: AttributeInfo list
+      Members: Member list
       TypeName: TypeName }
 
     override this.Equals obj = this.TypeName = (obj :?> TypeDef).TypeName

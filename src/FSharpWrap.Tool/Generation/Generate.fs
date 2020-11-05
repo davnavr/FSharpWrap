@@ -19,7 +19,7 @@ let binding parent mber =
         { ArgType = TypeName parent.TypeName |> TypeArg
           IsOptional = RequiredParam
           ParamName = FsName "this" }
-    match mber with
+    match mber.Type with
     | InstanceProperty ({ PropType = TypeArg(IsNamedType "System" "Boolean" _) } as prop) ->
         {| Body =
             sprintf

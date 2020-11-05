@@ -76,8 +76,8 @@ let typeName { Name = name; Namespace = nspace; Parent = parent; TypeArgs = Type
     <| name'
 
 // TODO: How will generic methods and static fields of generic types be handled, maybe add [<GeneralizableValue>]?
-let memberName =
-    function
+let memberName mber =
+    match mber.Type with
     | Constructor cparams ->
         let ptypes =
             List.map
@@ -96,7 +96,7 @@ let memberName =
     | InstanceProperty prop
     | StaticProperty prop -> prop.PropName
     | UnknownMember name -> name
-    >> String.mapi
+    |> String.mapi
         (function
         | 0 -> Char.ToLowerInvariant
         | _ -> id)
@@ -116,7 +116,7 @@ let arguments parameters =
 
 let attributes (attrs: seq<GenAttribute>) =
     Seq.map
-        (fun attr ->
+        (fun (attr: GenAttribute) ->
             let name = typeName attr.AttributeType
             let args = String.concat "," attr.Arguments
             sprintf "[<%s(%s)>]" name args)
