@@ -4,16 +4,58 @@ module FSharpWrap.Tool.Generation.Generate
 open FSharpWrap.Tool
 open FSharpWrap.Tool.Reflection
 
-let private moduleAttr =
-    let attrType =
-        { Name = FsName "CompilationRepresentationAttribute"
-          Namespace = Namespace.ofStr "Microsoft.FSharp.Core"
-          Parent = None
-          TypeArgs = TypeArgList.empty }
-    { Arguments = [ "global.Microsoft.FSharp.Core.CompilationRepresentationFlags.ModuleSuffix" ]
-      AttributeType = attrType }
+let private attrType ns name =
+    { Name = FsName name
+      Namespace = Namespace.ofStr ns
+      Parent = None
+      TypeArgs = TypeArgList.empty }
 
-let binding parent mber =
+let private moduleAttr =
+    { Arguments = [ "global.Microsoft.FSharp.Core.CompilationRepresentationFlags.ModuleSuffix" ]
+      AttributeType = attrType "Microsoft.FSharp.Core" "CompilationRepresentationAttribute" }
+
+let attribute (attr: AttributeInfo) =
+    let rec arg (t, value) =
+        match value with
+        | AttributeArg.Array items ->
+            List.map arg items
+            |> String.concat ";"
+            |> sprintf "[|%s|]"
+        | AttributeArg.Bool b -> sprintf "%b" b
+        | AttributeArg.String str -> String.toLiteral str
+        | _ -> sprintf "/* Unknown argument %A */" value
+    { Arguments =
+        let namedArgs =
+            attr.NamedArgs
+            |> Map.toList
+            |> List.map
+                (fun (name, info) ->
+                    let name' = Print.fsname name
+                    arg info |> sprintf "%s=%s" name')
+        List.append
+            (List.map arg attr.ConstructorArgs)
+            namedArgs
+      AttributeType = attr.AttributeType }
+
+let private warnAttrs =
+    let warnings =
+        [
+            "System", "ObsoleteAttribute"
+            "Microsoft.FSharp.Core", "ExperimentalAttribute"
+        ]
+        |> List.map (fun name -> name ||> attrType)
+        |> Set.ofList
+    fun (attrs: AttributeInfo list) ->
+        List.filter
+            (fun attr ->
+                Set.contains
+                    attr.AttributeType
+                    warnings)
+            attrs
+        |> List.map attribute
+
+let binding parent (mber: Member) =
+    let temp = {| Attributes = warnAttrs mber.Attributes |}
     let name = Print.memberName mber |> FsName
     let this =
         { ArgType = TypeName parent.TypeName |> TypeArg
@@ -21,13 +63,14 @@ let binding parent mber =
           ParamName = FsName "this" }
     match mber.Type with
     | InstanceProperty ({ PropType = TypeArg(IsNamedType "System" "Boolean" _) } as prop) ->
-        {| Body =
-            sprintf
-                "if %s.``%s`` then Some() else None"
-                (Print.fsname this.ParamName)
-                prop.PropName
-           Parameters = [ this.ParamName, this.ArgType ]
-           PatternName = FsName prop.PropName |}
+        {| temp with
+             Body =
+               sprintf
+                   "if %s.``%s`` then Some() else None"
+                   (Print.fsname this.ParamName)
+                   prop.PropName
+             Parameters = [ this.ParamName, this.ArgType ]
+             PatternName = FsName prop.PropName |}
         |> GenActivePattern
         |> Some
     | InstanceMethod mthd ->
@@ -53,25 +96,26 @@ let binding parent mber =
             mparams
             |> ParamList.toList
             |> inner []
-        {| Body =
-            sprintf
-                "%s.``%s``%s(%s)"
-                (Print.fsname this'.ParamName)
-                mthd.MethodName
-                targs
-                (Print.arguments rest)
-           Name = name
-           Parameters =
-             mparams
-             |> ParamList.toList
-             |> List.map
-                (fun param -> param.ParamName, param.ArgType)  |}
+        {| temp with
+             Body =
+               sprintf
+                   "%s.``%s``%s(%s)"
+                   (Print.fsname this'.ParamName)
+                   mthd.MethodName
+                   targs
+                   (Print.arguments rest)
+             Name = name
+             Parameters =
+               mparams
+               |> ParamList.toList
+               |> List.map
+                  (fun param -> param.ParamName, param.ArgType)  |}
         |> GenFunction
         |> Some
     | _ -> None
 
 let fromType (t: TypeDef): GenModule =
-    { Attributes = List.singleton moduleAttr
+    { Attributes = moduleAttr :: (warnAttrs t.Attributes)
       Bindings =
         List.fold
             (fun bindings mber ->

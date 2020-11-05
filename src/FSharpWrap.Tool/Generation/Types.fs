@@ -5,20 +5,28 @@ open System
 open FSharpWrap.Tool
 open FSharpWrap.Tool.Reflection
 
+// "TODO: Should AttributeInfo be used instead?"
 type GenAttribute =
     { Arguments: string list
       AttributeType: TypeName }
 
-[<CustomComparison; CustomEquality>]
+[<CustomComparison; CustomEquality>] // TODO: Allow bindings to have attribute information.
 type GenBinding =
     | GenActivePattern of
-        {| Body: string
+        {| Attributes: GenAttribute list
+           Body: string
            Parameters: (FsName * TypeArg) list
            PatternName: FsName |}
     | GenFunction of
-        {| Body: string
+        {| Attributes: GenAttribute list
+           Body: string
            Name: FsName
            Parameters: (FsName * TypeArg) list |}
+
+    member this.Attributes =
+        match this with
+        | GenActivePattern pattern -> pattern.Attributes
+        | GenFunction func -> func.Attributes
 
     override this.Equals obj =
         match this, obj :?> GenBinding with

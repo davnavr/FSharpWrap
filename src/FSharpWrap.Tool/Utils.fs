@@ -1,5 +1,6 @@
 ﻿namespace FSharpWrap.Tool
 
+open System
 open System.Reflection
 
 [<AutoOpen>]
@@ -14,6 +15,17 @@ module internal Collections =
         if (^T : (member TryGetValue : 'Key * byref<'Value> -> bool) (col, key, &value))
         then Some value
         else None
+
+[<RequireQualifiedAccess>]
+module String =
+    let toCamelCase =
+        String.mapi
+            (function
+            | 0 -> Char.ToLower
+            | _ -> id)
+
+    let toLiteral (str: string) =
+        str.Replace("\"", "\"\"") |> sprintf "@\"%s\""
 
 [<RequireQualifiedAccess>]
 module internal TypeInfo =

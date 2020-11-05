@@ -96,10 +96,7 @@ let memberName mber =
     | InstanceProperty prop
     | StaticProperty prop -> prop.PropName
     | UnknownMember name -> name
-    |> String.mapi
-        (function
-        | 0 -> Char.ToLowerInvariant
-        | _ -> id)
+    |> String.toCamelCase
 
 let arguments parameters =
     Seq.map
@@ -135,20 +132,25 @@ let argsThing =
             args
         |> String.Concat
 
-let genBinding =
-    function
-    | GenActivePattern pattern ->
-        sprintf
-            "let inline (|%s|_|)%s= %s"
-            (fsname pattern.PatternName)
-            (argsThing pattern.Parameters)
-            pattern.Body
-    | GenFunction func ->
-        sprintf
-            "let inline %s%s= %s"
-            (fsname func.Name)
-            (argsThing func.Parameters)
-            func.Body
+let genBinding binding =
+    let binding' =
+        match binding with
+        | GenActivePattern pattern ->
+            sprintf
+                "let inline (|%s|_|)%s= %s"
+                (fsname pattern.PatternName)
+                (argsThing pattern.Parameters)
+                pattern.Body
+        | GenFunction func ->
+            sprintf
+                "let inline %s%s= %s"
+                (fsname func.Name)
+                (argsThing func.Parameters)
+                func.Body
+    seq {
+        yield! attributes binding.Attributes
+        yield binding'
+    }
 
 let genModule (mdle: GenModule) =
     seq {
@@ -156,7 +158,7 @@ let genModule (mdle: GenModule) =
         fsname mdle.ModuleName |> sprintf "module %s ="
         yield!
             mdle.Bindings
-            |> Seq.map genBinding
+            |> Seq.collect genBinding
             |> block
             |> indented
     }
