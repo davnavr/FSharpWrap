@@ -67,4 +67,5 @@ type GenNamespace = Map<FsName, GenModule>
 
 type GenFile =
     { Header: seq<string>
+      IgnoredWarnings: uint list
       Namespaces: Map<Namespace, GenNamespace> }

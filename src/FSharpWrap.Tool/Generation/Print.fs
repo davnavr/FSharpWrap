@@ -149,7 +149,7 @@ let genBinding binding =
                 func.Body
     seq {
         yield! attributes binding.Attributes
-        yield binding'
+        binding'
     }
 
 let genModule (mdle: GenModule) =
@@ -165,11 +165,20 @@ let genModule (mdle: GenModule) =
 
 let genFile (file: GenFile) =
     let header = Seq.map (sprintf "// %s") file.Header
+    let warnings =
+        match file.IgnoredWarnings with
+        | [] -> ""
+        | _ ->
+            file.IgnoredWarnings
+            |> List.map (sprintf "\"%i\"")
+            |> String.concat " "
+            |> sprintf "#nowarn %s"
     let contents =
         file.Namespaces
         |> Map.toSeq
         |> Seq.collect
             (fun (ns, mdles) ->
+                
                 let mdles' =
                     mdles
                     |> Map.toSeq
@@ -181,4 +190,8 @@ let genFile (file: GenFile) =
                         |> Seq.collect genModule
                         |> indented
                 })
-    Seq.append header contents
+    seq {
+        yield! header
+        warnings
+        yield! contents
+    }
