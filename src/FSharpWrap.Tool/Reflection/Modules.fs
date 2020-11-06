@@ -282,7 +282,7 @@ module Member =
                                   ParamName = FsName.ofParameter pinfo }
                         })
                     ctx
-        
+
         match info with
         | :? ConstructorInfo as ctor ->
             mthdparams ctor |> Context.map Constructor

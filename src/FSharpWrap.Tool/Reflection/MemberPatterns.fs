@@ -32,7 +32,8 @@ let (|IsPointer|_|) (t: Type) =
 
 let (|IsSpecialName|_|): MemberInfo -> _ =
     function
-    | :? MethodBase as mthd when mthd.IsSpecialName -> Some()
+    // MethodInfo is used instead of MethodBase otherwise constructors would always be skipped over.
+    | :? MethodInfo as mthd when mthd.IsSpecialName -> Some()
     | :? FieldInfo as field when field.IsSpecialName -> Some()
     | _ -> None
 

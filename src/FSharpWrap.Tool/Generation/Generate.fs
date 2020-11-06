@@ -70,7 +70,7 @@ let binding parent (mber: Member) =
         {| temp with
             Body =
               sprintf
-                  "new ``%s``(%s)"
+                  "new %s(%s)"
                   (Print.typeName parent.TypeName)
                   (Print.arguments cparams)
             Name = name'
@@ -80,6 +80,7 @@ let binding parent (mber: Member) =
                  cparams |}
         |> GenFunction
         |> Some
+    // TODO: Process instance readonly fields.
     | InstanceProperty ({ PropType = TypeArg(IsNamedType "System" "Boolean" _) } as prop) ->
         {| temp with
              Body =
