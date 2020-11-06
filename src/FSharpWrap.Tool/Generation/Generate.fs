@@ -67,6 +67,7 @@ let binding parent (mber: Member) =
     match mber.Type with
     | Constructor ctor when name.StartsWith "of" ->
         let cparams = ParamList.ofList ctor |> ParamList.toList
+        // TODO: Factor out common code for generating functions.
         {| temp with
             Body =
               sprintf
@@ -80,7 +81,18 @@ let binding parent (mber: Member) =
                  cparams |}
         |> GenFunction
         |> Some
-    // TODO: Process instance readonly fields.
+    | InstanceField ({ IsReadOnly = ReadOnly } as field) ->
+        {| temp with
+            Body =
+              sprintf
+                  "%s.``%s``:%s"
+                  (Print.fsname this.ParamName)
+                  field.FieldName
+                  (Print.typeArg field.FieldType)
+            Name = name'
+            Parameters = [ this.ParamName, this.ArgType ] |}
+        |> GenFunction
+        |> Some
     | InstanceProperty ({ PropType = TypeArg(IsNamedType "System" "Boolean" _) } as prop) ->
         {| temp with
              Body =

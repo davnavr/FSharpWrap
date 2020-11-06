@@ -3,6 +3,7 @@
 open System
 open System.Collections.Generic
 open System.Collections.Immutable
+open System.Collections.ObjectModel
 
 let hello() =
     let greet = Action<string>(printfn "Hello %s!")
@@ -18,3 +19,8 @@ let hello() =
     match names with
     | ImmutableList.IsEmpty -> printfn "Empty!"
     | notEmpty -> printfn "%O" notEmpty
+
+    // Constructor calls
+    let names' = ReadOnlyCollection.ofIList names
+
+    ()

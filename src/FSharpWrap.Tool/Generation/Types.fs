@@ -15,6 +15,7 @@ type GenBinding =
     | GenActivePattern of
         {| Attributes: GenAttribute list
            Body: string
+           // TODO: What should the parameter list type be?
            Parameters: (FsName * TypeArg) list
            PatternName: FsName |}
     | GenFunction of

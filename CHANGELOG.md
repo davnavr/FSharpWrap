@@ -6,7 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Copying ObsoleteAttribute and ExperimentalAttribute on correponding modules and members
+- Copying `ObsoleteAttribute` and `ExperimentalAttribute` on correponding modules and members
+- Suppression of warnings FS0044, FS0057, and FS0064 in generated code
+- Generation of functions for read-only instance fields
 
 ## [0.1.0] - 2020-09-06
 ### Added

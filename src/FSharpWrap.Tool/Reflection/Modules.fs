@@ -293,11 +293,11 @@ module Member =
                     { FieldName = field.Name
                       FieldType = ftype
                       IsReadOnly =
-                        if field.Attributes.HasFlag FieldAttributes.InitOnly
+                        if field.IsInitOnly
                         then ReadOnly
                         else Mutable }
                     |> membertype
-                        (field.Attributes.HasFlag FieldAttributes.Static)
+                        field.IsStatic
                         InstanceField
                         StaticField
             }
