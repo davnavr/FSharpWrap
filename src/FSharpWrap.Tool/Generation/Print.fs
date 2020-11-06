@@ -83,11 +83,17 @@ let memberName mber =
             List.map
                 (fun pt ->
                     match pt.ArgType with
-                    | TypeArg (TypeName { Name = name }) -> Some name
+                    | TypeArg targ -> Some targ
                     | _ -> None)
                 cparams
         match ptypes with
-        | [ Some pname ] -> sprintf "of%O" pname
+        | [ Some (IsNamedType "System.Collections.Generic" "IEnumerable" _ & TypeName { TypeArgs = TypeArgs [ _ ] }) ] ->
+            "ofSeq"
+        | [ Some (IsNamedType "Microsoft.FSharp.Collections" "List" _ & TypeName { TypeArgs = TypeArgs [ _ ] }) ] ->
+            "ofList"
+        | [ Some (ArrayType _) ] ->
+            "ofArray"
+        | [ Some (TypeName { Name = pname }) ] -> sprintf "of%O" pname
         | _ -> "create"
     | InstanceField field
     | StaticField field -> field.FieldName

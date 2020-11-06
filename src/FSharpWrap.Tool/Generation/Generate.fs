@@ -14,6 +14,7 @@ let private moduleAttr =
     { Arguments = [ "global.Microsoft.FSharp.Core.CompilationRepresentationFlags.ModuleSuffix" ]
       AttributeType = attrType "Microsoft.FSharp.Core" "CompilationRepresentationAttribute" }
 
+// TODO: How will the arguments be casted to the argument type?
 let attribute (attr: AttributeInfo) =
     let rec arg (t, value) =
         match value with
@@ -55,13 +56,30 @@ let private warnAttrs =
         |> List.map attribute
 
 let binding parent (mber: Member) =
+    let name = Print.memberName mber
+    let name' = FsName name
+    // TODO: Maybe assign member name here as well?
     let temp = {| Attributes = warnAttrs mber.Attributes |}
-    let name = Print.memberName mber |> FsName
     let this =
         { ArgType = TypeName parent.TypeName |> TypeArg
           IsOptional = RequiredParam
           ParamName = FsName "this" }
     match mber.Type with
+    | Constructor ctor when name.StartsWith "of" ->
+        let cparams = ParamList.ofList ctor |> ParamList.toList
+        {| temp with
+            Body =
+              sprintf
+                  "new ``%s``(%s)"
+                  (Print.typeName parent.TypeName)
+                  (Print.arguments cparams)
+            Name = name'
+            Parameters =
+              List.map
+                 (fun param -> param.ParamName, param.ArgType)
+                 cparams |}
+        |> GenFunction
+        |> Some
     | InstanceProperty ({ PropType = TypeArg(IsNamedType "System" "Boolean" _) } as prop) ->
         {| temp with
              Body =
@@ -104,7 +122,7 @@ let binding parent (mber: Member) =
                    mthd.MethodName
                    targs
                    (Print.arguments rest)
-             Name = name
+             Name = name'
              Parameters =
                mparams
                |> ParamList.toList
