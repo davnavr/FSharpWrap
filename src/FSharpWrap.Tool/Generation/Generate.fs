@@ -58,7 +58,6 @@ let private warnAttrs =
 let binding parent (mber: Member) =
     let name = Print.memberName mber
     let name' = FsName name
-    // TODO: Maybe assign member name here as well?
     let temp = {| Attributes = warnAttrs mber.Attributes |}
     let this =
         { ArgType = TypeName parent.TypeName |> TypeArg
@@ -66,7 +65,7 @@ let binding parent (mber: Member) =
           ParamName = FsName "this" }
     match mber.Type with
     | Constructor ctor when name.StartsWith "of" ->
-        let cparams = ParamList.ofList ctor |> ParamList.toList
+        let cparams = ParamList.ofList ctor
         // TODO: Factor out common code for generating functions.
         {| temp with
             Body =
@@ -75,10 +74,7 @@ let binding parent (mber: Member) =
                   (Print.typeName parent.TypeName)
                   (Print.arguments cparams)
             Name = name'
-            Parameters =
-              List.map
-                 (fun param -> param.ParamName, param.ArgType)
-                 cparams |}
+            Parameters = cparams |}
         |> GenFunction
         |> Some
     | InstanceField ({ IsReadOnly = ReadOnly } as field) ->
@@ -90,7 +86,7 @@ let binding parent (mber: Member) =
                   field.FieldName
                   (Print.typeArg field.FieldType)
             Name = name'
-            Parameters = [ this.ParamName, this.ArgType ] |}
+            Parameters = ParamList.singleton this |}
         |> GenFunction
         |> Some
     | InstanceProperty ({ PropType = TypeArg(IsNamedType "System" "Boolean" _) } as prop) ->
@@ -100,15 +96,12 @@ let binding parent (mber: Member) =
                    "if %s.``%s`` then Some() else None"
                    (Print.fsname this.ParamName)
                    prop.PropName
-             Parameters = [ this.ParamName, this.ArgType ]
+             Parameters = ParamList.singleton this
              PatternName = FsName prop.PropName |}
         |> GenActivePattern
         |> Some
     | InstanceMethod mthd ->
-        let mparams =
-            mthd.Params
-            |> ParamList.ofList
-            |> ParamList.append this
+        let mparams = ParamList.ofList mthd.Params
         let targs =
             match mthd.TypeArgs with
             | TypeArgs(_ :: _ as targs) ->
@@ -118,29 +111,17 @@ let binding parent (mber: Member) =
                 |> String.concat ","
                 |> sprintf "<%s>"
             | _ -> ""
-        let rest, this' =
-            let rec inner rest =
-                function
-                | [] -> invalidOp "The parameter list was unexpectedly empty"
-                | [ this' ] -> List.rev rest, this'
-                | h :: tail -> inner (h :: rest) tail
-            mparams
-            |> ParamList.toList
-            |> inner []
+        let mparams', (this', _) = ParamList.append this mparams
         {| temp with
              Body =
                sprintf
                    "%s.``%s``%s(%s)"
-                   (Print.fsname this'.ParamName)
+                   (Print.fsname this')
                    mthd.MethodName
                    targs
-                   (Print.arguments rest)
+                   (Print.arguments mparams)
              Name = name'
-             Parameters =
-               mparams
-               |> ParamList.toList
-               |> List.map
-                  (fun param -> param.ParamName, param.ArgType)  |}
+             Parameters = mparams' |}
         |> GenFunction
         |> Some
     | _ -> None

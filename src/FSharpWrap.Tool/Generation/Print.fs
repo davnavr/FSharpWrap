@@ -6,6 +6,15 @@ open System
 open FSharpWrap.Tool
 open FSharpWrap.Tool.Reflection
 
+let indented lines = Seq.map (sprintf "    %s") lines
+
+let block lines =
+    seq {
+        yield "begin"
+        yield! indented lines
+        yield "end"
+    }
+
 let fsname (FsName name) = sprintf "``%s``" name
 
 let ns (Namespace strs) =
@@ -21,7 +30,7 @@ let typeArg =
     | TypeArg targ -> typeRef targ
     | TypeParam tparam -> fsname tparam.ParamName |> sprintf "'%s"
 
-let param { ArgType = argt; ParamName = name } =
+let paramType { Param.ArgType = argt } =
     match argt with
     | TypeArg targ -> typeRef targ
     | TypeParam tparam ->
@@ -37,7 +46,6 @@ let param { ArgType = argt; ParamName = name } =
             |> sprintf " when %s"
         | _ -> ""
         |> sprintf "%s%s" tname
-    |> sprintf "(%s:%s)" (fsname name)
 
 let typeRef =
     function
@@ -106,14 +114,14 @@ let memberName mber =
 
 let arguments parameters =
     Seq.map
-        (fun param ->
+        (fun (pname, param) ->
             let name = fsname param.ParamName
             let f =
                 match param.IsOptional with
                 | FsOptionalParam -> sprintf "?%s=%s"
                 | OptionalParam -> sprintf "%s=%s"
                 | RequiredParam -> fun _ -> id
-            f name name)
+            fsname pname |> f name)
         parameters
     |> String.concat ","
 
@@ -125,17 +133,17 @@ let attributes (attrs: seq<GenAttribute>) =
             sprintf "[<%s(%s)>]" name args)
         attrs
 
-let argsThing =
+let parameters =
     function
-    | [] -> "()"
-    | args ->
+    | EmptyParams -> "()"
+    | ParamList plist ->
         List.map
-            (fun (argn, argt) -> 
-                { ArgType = argt
-                  IsOptional = RequiredParam
-                  ParamName = argn }
-                |> param)
-            args
+            (fun (pname, param) -> 
+                sprintf
+                    "(%s:%s)"
+                    (Print.fsname pname)
+                    (paramType param))
+            plist
         |> String.Concat
 
 let genBinding binding =
@@ -145,13 +153,13 @@ let genBinding binding =
             sprintf
                 "let inline (|%s|_|)%s= %s"
                 (fsname pattern.PatternName)
-                (argsThing pattern.Parameters)
+                (parameters pattern.Parameters)
                 pattern.Body
         | GenFunction func ->
             sprintf
                 "let inline %s%s= %s"
                 (fsname func.Name)
-                (argsThing func.Parameters)
+                (parameters func.Parameters)
                 func.Body
     seq {
         yield! attributes binding.Attributes
