@@ -215,6 +215,7 @@ module Type =
                     |> Seq.choose
                         (function
                         | IsCompilerGenerated
+                        | IsObsoleteError
                         | IsSpecialName
                         | PropAccessor -> None
                         | mber -> Some mber)

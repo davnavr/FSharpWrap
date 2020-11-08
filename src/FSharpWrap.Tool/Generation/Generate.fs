@@ -173,7 +173,7 @@ let fromAssemblies (assms: seq<AssemblyInfo>) =
             for assm in assms do
                 sprintf "- %s" assm.FullName
         }
-      IgnoredWarnings = [ 44u; 57u; 64u ]
+      IgnoredWarnings = [ 44u; 57u; 64u; ]
       Namespaces =
         assms
         |> Seq.collect (fun assm -> assm.Types)

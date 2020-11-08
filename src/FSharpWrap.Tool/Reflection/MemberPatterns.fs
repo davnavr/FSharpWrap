@@ -27,6 +27,20 @@ let (|IsCompilerGenerated|_|): MemberInfo -> _ =
 
 let (|IsNested|_|) (t: Type) = if t.IsNested then Some() else None
 
+let (|IsObsoleteError|_|): MemberInfo -> _ =
+    MemberInfo.findAttr
+        "System"
+        "ObsoleteAttribute"
+        (fun attr ->
+            let err =
+                attr.ConstructorArguments
+                |> Seq.map (fun arg -> arg.Value)
+                |> Seq.exists
+                    (function
+                    | :? bool as b when b -> true
+                    | _ -> false)
+            if err then Some() else None)
+
 let (|IsPointer|_|) (t: Type) =
     if t.IsPointer then t.GetElementType() |> Some else None
 
