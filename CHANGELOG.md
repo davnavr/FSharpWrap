@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Copying `ObsoleteAttribute` and `ExperimentalAttribute` on correponding modules and members
 - Suppression of warnings FS0044, FS0057, and FS0064 in generated code
 - Generation of functions for read-only instance fields
-- Code generation target only runs for F# (`.fsproj`) projects
+- Code generation target now only runs for F# (`.fsproj`) projects
+- Now compatible with `<ProjectReference>` dependencies
 
 ## [0.1.0] - 2020-09-06
 ### Added

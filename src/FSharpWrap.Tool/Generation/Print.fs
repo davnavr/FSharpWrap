@@ -58,7 +58,7 @@ let typeRef =
             "%s[%s]"
             (typeArg arr.ElementType)
             rank
-    | ByRefType _ -> "_"
+    | ByRefType tref -> typeArg tref |> sprintf "%s ref"
     | PointerType pnt ->
         typeArg pnt |> sprintf "nativeptr<%s>"
     | TypeName tname -> typeName tname
