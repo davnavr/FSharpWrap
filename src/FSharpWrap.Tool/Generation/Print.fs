@@ -59,6 +59,7 @@ let typeRef =
             (typeArg arr.ElementType)
             rank
     | ByRefType tref -> typeArg tref |> sprintf "%s ref"
+    | PointerType (TypeArg (IsNamedType "System" "Void" _)) -> "voidptr"
     | PointerType pnt ->
         typeArg pnt |> sprintf "nativeptr<%s>"
     | TypeName tname -> typeName tname
