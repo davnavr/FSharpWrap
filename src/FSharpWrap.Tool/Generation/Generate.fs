@@ -136,6 +136,7 @@ let binding parent (mber: Member) =
             Parameters = ParamList.singleton this |}
         |> GenFunction
         |> Some
+    // TODO: Create functions to call static methods, make sure to filter out union case constructors.
     | _ -> None
 
 let fromType (t: TypeDef): GenModule =
