@@ -7,10 +7,10 @@
     <_FSharpWrapToolPath Condition="'$(_FSharpWrapToolPath)'==''">$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll</_FSharpWrapToolPath>
   </PropertyGroup>
 
-  <Target Name="FSharpWrap" BeforeTargets="CoreCompile">
+  <Target Name="FSharpWrap" Condition="'$(MSBuildProjectExtension)'=='.fsproj'" BeforeTargets="AfterResolveReferences;CoreCompile">
     <!-- TODO: How to check that 'dotnet' exists? -->
     <Exec
-      Command="dotnet exec &quot;$(_FSharpWrapToolPath)&quot; --assembly-paths &quot;@(Reference, '&quot; &quot;')&quot; --output-file &quot;$(FSharpWrapOutputFilePath)&quot;"
+      Command="dotnet exec &quot;$(_FSharpWrapToolPath)&quot; --assembly-paths &quot;@(ReferencePath, '&quot; &quot;')&quot; --output-file &quot;$(FSharpWrapOutputFilePath)&quot;"
       ConsoleToMsBuild="true"
       LogStandardErrorAsError="true" />
   </Target>

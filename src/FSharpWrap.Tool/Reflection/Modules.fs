@@ -1,8 +1,98 @@
 ﻿namespace rec FSharpWrap.Tool.Reflection
 
+open System
+open System.Collections.ObjectModel
 open System.Reflection
 
 open FSharpWrap.Tool
+
+[<RequireQualifiedAccess>]
+module private Attributes =
+    let private argType t =
+        context {
+            let! t' = Type.ref t
+            return
+                Option.defaultWith
+                    (fun() -> invalidOp "Type parameters as attribute arguments are not supported")
+                    t'
+        }
+
+    let private argValue: obj -> ContextExpr<_> =
+        function
+        | :? Type as t ->
+            argType t |> Context.map AttributeArg.Type
+        | :? ReadOnlyCollection<CustomAttributeTypedArgument> as items ->
+            fun ctx ->
+                let items', ctx' =
+                    Seq.mapFold
+                        (fun ctx'' item -> argument item ctx'')
+                        ctx
+                        items
+                List.ofSeq items' |> AttributeArg.Array, ctx'
+        | value ->
+            match value with
+            | null -> AttributeArg.Null
+            | :? bool as b -> AttributeArg.Bool b
+            | :? char as c -> AttributeArg.Char c
+            | :? Double as d -> AttributeArg.Double d
+            | :? int8 as i -> AttributeArg.Int8 i
+            | :? int16 as i -> AttributeArg.Int16 i
+            | :? int32 as i -> AttributeArg.Int32 i
+            | :? int64 as i -> AttributeArg.Int64 i
+            | :? Single as f -> AttributeArg.Single f
+            | :? string as str -> AttributeArg.String str
+            | :? uint8 as ui -> AttributeArg.UInt8 ui
+            | :? uint16 as ui -> AttributeArg.UInt16 ui
+            | :? uint32 as ui -> AttributeArg.UInt32 ui
+            | :? uint64 as ui -> AttributeArg.UInt64 ui
+            | err ->
+                let t = err.GetType()
+                sprintf
+                    "Unsupported attribute argument %O of type %O"
+                    value
+                    t
+                |> invalidOp
+            |> Context.retn
+
+    let argument (arg: CustomAttributeTypedArgument) =
+        context {
+            let! t = argType arg.ArgumentType
+            let! value = argValue arg.Value
+            return t, value
+        }
+
+    let private create (data: CustomAttributeData) =
+        context {
+            let! attrType = Type.name data.AttributeType
+            let! ctorArgs =
+                fun ctx ->
+                    Seq.mapFold
+                        (fun ctx' arg -> argument arg ctx')
+                        ctx
+                        data.ConstructorArguments
+            let! namedArgs =
+                fun ctx ->
+                    Seq.mapFold
+                        (fun ctx' (narg: CustomAttributeNamedArgument) ->
+                            let value, ctx'' = argument narg.TypedValue ctx'
+                            (FsName narg.MemberName, value), ctx'')
+                        ctx
+                        data.NamedArguments
+            return
+                { AttributeType =
+                    Option.defaultWith
+                        (fun() -> invalidOp "Invalid attribute type")
+                        attrType
+                  ConstructorArgs = List.ofSeq ctorArgs
+                  NamedArgs = Map.ofSeq namedArgs }
+        }
+
+    let ofMember (mber: MemberInfo) ctx =
+        mber.CustomAttributes
+        |> List.ofSeq
+        |> List.mapFold
+            (fun ctx' attr -> create attr ctx')
+            ctx
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
@@ -16,6 +106,12 @@ module Patterns =
         match tparam.Constraints with
         | { Constraints = Empty } -> None
         | _ -> Some tparam.Constraints
+
+    let (|IsNamedType|_|) ns name =
+        function
+        | TypeName t when t.Name = FsName name && t.Namespace = Namespace.ofStr ns ->
+            Some t
+        | _ -> None
 
 [<RequireQualifiedAccess>]
 module Type =
@@ -81,7 +177,7 @@ module Type =
                 | _ -> None))
             (ref t)
 
-    let arg t = // TODO: Figure out why some generic parameters occasionally disappear.
+    let arg t =
         context {
             match! Context.current with
             | HasType t existing -> return existing
@@ -119,15 +215,17 @@ module Type =
                     |> Seq.choose
                         (function
                         | IsCompilerGenerated
+                        | IsObsoleteError
                         | IsSpecialName
-                        | NeverDebuggerBrowsable
                         | PropAccessor -> None
                         | mber -> Some mber)
                     |> Seq.mapFold
                         (fun ctx' mber -> Member.ofInfo mber ctx')
                         ctx
+            let! attrs = Attributes.ofMember t
             return
-                { Members = List.ofSeq members
+                { Attributes = attrs
+                  Members = List.ofSeq members
                   TypeName = tname }
         }
 
@@ -139,11 +237,15 @@ module AssemblyInfo =
             let! types =
                 fun ctx ->
                     assm.ExportedTypes
+                    // TODO: Move type filtering logic for AssemblyInfo.ofAssembly and Type.def outside of the reflection namespace.
                     |> Seq.choose
                         (function
                         | Derives "System" "Delegate" _
                         | AssignableTo "Microsoft.FSharp.Core" "FSharpFunc`2" _
                         | IsNested
+                        // NOTE: This filter currently excludes types such as ImmutableArray from code generation.
+                        | IsMutableStruct
+                        | IsStatic _
                         | IsTuple _ -> None
                         | t -> Some t)
                     |> Seq.mapFold
@@ -157,7 +259,7 @@ module AssemblyInfo =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Member =
-    let ofInfo (info: MemberInfo) =
+    let private getType (info: MemberInfo) =
         let membertype cond inst stat =
             if cond then stat else inst
         let mthdparams (m: MethodBase) =
@@ -184,6 +286,7 @@ module Member =
                                   ParamName = FsName.ofParameter pinfo }
                         })
                     ctx
+
         match info with
         | :? ConstructorInfo as ctor ->
             mthdparams ctor |> Context.map Constructor
@@ -194,11 +297,11 @@ module Member =
                     { FieldName = field.Name
                       FieldType = ftype
                       IsReadOnly =
-                        if field.Attributes.HasFlag FieldAttributes.InitOnly
+                        if field.IsInitOnly
                         then ReadOnly
                         else Mutable }
                     |> membertype
-                        (field.Attributes.HasFlag FieldAttributes.Static)
+                        field.IsStatic
                         InstanceField
                         StaticField
             }
@@ -207,7 +310,7 @@ module Member =
                 let! ptype = Type.arg prop.PropertyType
                 return
                     { PropName = prop.Name
-                      Setter = prop.CanRead
+                      Setter = prop.CanWrite
                       PropType = ptype }
                     |> membertype
                             ((prop.GetAccessors() |> Array.head).Attributes.HasFlag MethodAttributes.Static)
@@ -235,3 +338,12 @@ module Member =
                         StaticMethod
             }
         | _ -> UnknownMember info.Name |> Context.retn
+
+    let ofInfo (mber: MemberInfo) =
+        context {
+            let! mtype = getType mber
+            let! attrs = Attributes.ofMember mber
+            return
+                { Attributes = attrs
+                  Member.Type = mtype }
+        }

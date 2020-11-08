@@ -2,7 +2,6 @@
 module FSharpWrap.Tool.Program
 
 open System.IO
-open System.Diagnostics
 
 open FSharpWrap.Tool.Reflection
 open FSharpWrap.Tool.Generation
@@ -46,12 +45,12 @@ let private help =
 let main argv =
     match List.ofArray argv |> Arguments.parse with
     | Ok args ->
-        // Debugger.Launch() |> ignore
         // TODO: Handle errors raised during reading and writing of files
         let content =
             args.Assemblies
             |> Reflect.paths
             |> Generate.fromAssemblies
+            |> Print.genFile
         File.WriteAllLines(string args.OutputFile, content)
         0
     | Error msg ->

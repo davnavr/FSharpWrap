@@ -1,4 +1,4 @@
-﻿namespace FSharpWrap.Tool.Reflection
+﻿namespace FSharpWrap.Tool
 
 [<StructuralComparison; StructuralEquality>]
 type Namespace = Namespace of FsName list

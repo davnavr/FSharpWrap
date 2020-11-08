@@ -3,7 +3,17 @@ module internal rec FSharpWrap.Tool.Generation.Print
 
 open System
 
+open FSharpWrap.Tool
 open FSharpWrap.Tool.Reflection
+
+let indented lines = Seq.map (sprintf "    %s") lines
+
+let block lines =
+    seq {
+        yield "begin"
+        yield! indented lines
+        yield "end"
+    }
 
 let fsname (FsName name) = sprintf "``%s``" name
 
@@ -20,7 +30,7 @@ let typeArg =
     | TypeArg targ -> typeRef targ
     | TypeParam tparam -> fsname tparam.ParamName |> sprintf "'%s"
 
-let param { ArgType = argt; ParamName = name } =
+let paramType { Param.ArgType = argt } =
     match argt with
     | TypeArg targ -> typeRef targ
     | TypeParam tparam ->
@@ -36,7 +46,6 @@ let param { ArgType = argt; ParamName = name } =
             |> sprintf " when %s"
         | _ -> ""
         |> sprintf "%s%s" tname
-    |> sprintf "(%s:%s)" (fsname name)
 
 let typeRef =
     function
@@ -49,7 +58,8 @@ let typeRef =
             "%s[%s]"
             (typeArg arr.ElementType)
             rank
-    | ByRefType _ -> "_"
+    | ByRefType tref -> typeArg tref |> sprintf "%s ref"
+    | PointerType (TypeArg (IsNamedType "System" "Void" _)) -> "voidptr"
     | PointerType pnt ->
         typeArg pnt |> sprintf "nativeptr<%s>"
     | TypeName tname -> typeName tname
@@ -75,18 +85,24 @@ let typeName { Name = name; Namespace = nspace; Parent = parent; TypeArgs = Type
     <| name'
 
 // TODO: How will generic methods and static fields of generic types be handled, maybe add [<GeneralizableValue>]?
-let memberName =
-    function
+let memberName mber =
+    match mber.Type with
     | Constructor cparams ->
         let ptypes =
             List.map
                 (fun pt ->
                     match pt.ArgType with
-                    | TypeArg (TypeName { Name = name }) -> Some name
+                    | TypeArg targ -> Some targ
                     | _ -> None)
                 cparams
         match ptypes with
-        | [ Some pname ] -> sprintf "of%O" pname
+        | [ Some (IsNamedType "System.Collections.Generic" "IEnumerable" _ & TypeName { TypeArgs = TypeArgs [ _ ] }) ] ->
+            "ofSeq"
+        | [ Some (IsNamedType "Microsoft.FSharp.Collections" "List" _ & TypeName { TypeArgs = TypeArgs [ _ ] }) ] ->
+            "ofList"
+        | [ Some (ArrayType _) ] ->
+            "ofArray"
+        | [ Some (TypeName { Name = pname }) ] -> sprintf "of%O" pname
         | _ -> "create"
     | InstanceField field
     | StaticField field -> field.FieldName
@@ -95,20 +111,102 @@ let memberName =
     | InstanceProperty prop
     | StaticProperty prop -> prop.PropName
     | UnknownMember name -> name
-    >> String.mapi
-        (function
-        | 0 -> Char.ToLowerInvariant
-        | _ -> id)
+    |> String.toCamelCase
 
 let arguments parameters =
     Seq.map
-        (fun param ->
+        (fun (pname, param) ->
             let name = fsname param.ParamName
             let f =
                 match param.IsOptional with
                 | FsOptionalParam -> sprintf "?%s=%s"
                 | OptionalParam -> sprintf "%s=%s"
                 | RequiredParam -> fun _ -> id
-            f name name)
+            fsname pname |> f name)
         parameters
     |> String.concat ","
+
+let attributes (attrs: seq<GenAttribute>) =
+    Seq.map
+        (fun (attr: GenAttribute) ->
+            let name = typeName attr.AttributeType
+            let args = String.concat "," attr.Arguments
+            sprintf "[<%s(%s)>]" name args)
+        attrs
+
+let parameters =
+    function
+    | EmptyParams -> "()"
+    | ParamList plist ->
+        List.map
+            (fun (pname, param) -> 
+                sprintf
+                    "(%s:%s)"
+                    (Print.fsname pname)
+                    (paramType param))
+            plist
+        |> String.Concat
+
+let genBinding binding =
+    let binding' =
+        match binding with
+        | GenActivePattern pattern ->
+            sprintf
+                "let inline (|%s|_|)%s= %s"
+                (fsname pattern.PatternName)
+                (parameters pattern.Parameters)
+                pattern.Body
+        | GenFunction func ->
+            sprintf
+                "let inline %s%s= %s"
+                (fsname func.Name)
+                (parameters func.Parameters)
+                func.Body
+    seq {
+        yield! attributes binding.Attributes
+        binding'
+    }
+
+let genModule (mdle: GenModule) =
+    seq {
+        yield! attributes mdle.Attributes
+        fsname mdle.ModuleName |> sprintf "module %s ="
+        yield!
+            mdle.Bindings
+            |> Seq.collect genBinding
+            |> block
+            |> indented
+    }
+
+let genFile (file: GenFile) =
+    let header = Seq.map (sprintf "// %s") file.Header
+    let warnings =
+        match file.IgnoredWarnings with
+        | [] -> ""
+        | _ ->
+            file.IgnoredWarnings
+            |> List.map (sprintf "\"%i\"")
+            |> String.concat " "
+            |> sprintf "#nowarn %s"
+    let contents =
+        file.Namespaces
+        |> Map.toSeq
+        |> Seq.collect
+            (fun (ns, mdles) ->
+                
+                let mdles' =
+                    mdles
+                    |> Map.toSeq
+                    |> Seq.map snd
+                seq {
+                    Print.ns ns |> sprintf "namespace %s"
+                    yield!
+                        mdles'
+                        |> Seq.collect genModule
+                        |> indented
+                })
+    seq {
+        yield! header
+        warnings
+        yield! contents
+    }
