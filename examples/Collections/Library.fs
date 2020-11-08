@@ -13,7 +13,9 @@ let hello() =
     ImmutableList.forEach greet names
 
     // Curried functions
-    names |> IEnumerable.getEnumerator |> printfn "%A"
+    names
+    |> IEnumerable.getEnumerator
+    |> printfn "%A"
 
     // Pattern matching on boolean properties
     match names with
@@ -22,5 +24,10 @@ let hello() =
 
     // Constructor calls
     let names' = ReadOnlyCollection.ofIList names
+
+    // Get-only properties
+    names'
+    |> ReadOnlyCollection.count
+    |> printfn "%i"
 
     ()

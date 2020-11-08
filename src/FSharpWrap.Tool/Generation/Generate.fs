@@ -89,17 +89,6 @@ let binding parent (mber: Member) =
             Parameters = ParamList.singleton this |}
         |> GenFunction
         |> Some
-    | InstanceProperty ({ PropType = TypeArg(IsNamedType "System" "Boolean" _) } as prop) ->
-        {| temp with
-             Body =
-               sprintf
-                   "if %s.``%s`` then Some() else None"
-                   (Print.fsname this.ParamName)
-                   prop.PropName
-             Parameters = ParamList.singleton this
-             PatternName = FsName prop.PropName |}
-        |> GenActivePattern
-        |> Some
     | InstanceMethod mthd ->
         let mparams = ParamList.ofList mthd.Params
         let targs =
@@ -122,6 +111,29 @@ let binding parent (mber: Member) =
                    (Print.arguments mparams)
              Name = name'
              Parameters = mparams' |}
+        |> GenFunction
+        |> Some
+    | InstanceProperty ({ PropType = TypeArg(IsNamedType "System" "Boolean" _); Setter = false } as prop) ->
+        {| temp with
+             Body =
+               sprintf
+                   "if %s.``%s`` then Some() else None"
+                   (Print.fsname this.ParamName)
+                   prop.PropName
+             Parameters = ParamList.singleton this
+             PatternName = FsName prop.PropName |}
+        |> GenActivePattern
+        |> Some
+    | InstanceProperty ({ Setter = false } as prop) ->
+        // TODO: Factor out common code shared with an InstanceField
+        {| temp with
+            Body =
+              sprintf
+                  "%s.``%s``"
+                  (Print.fsname this.ParamName)
+                  prop.PropName
+            Name = name'
+            Parameters = ParamList.singleton this |}
         |> GenFunction
         |> Some
     | _ -> None

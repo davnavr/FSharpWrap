@@ -310,7 +310,7 @@ module Member =
                 let! ptype = Type.arg prop.PropertyType
                 return
                     { PropName = prop.Name
-                      Setter = prop.CanRead
+                      Setter = prop.CanWrite
                       PropType = ptype }
                     |> membertype
                             ((prop.GetAccessors() |> Array.head).Attributes.HasFlag MethodAttributes.Static)
