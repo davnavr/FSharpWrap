@@ -237,12 +237,14 @@ module AssemblyInfo =
             let! types =
                 fun ctx ->
                     assm.ExportedTypes
+                    // TODO: Move type filtering logic for AssemblyInfo.ofAssembly and Type.def outside of the reflection namespace.
                     |> Seq.choose
-                        (function // TODO: Move type filtering logic outside of the reflection module.
+                        (function
                         | Derives "System" "Delegate" _
                         | AssignableTo "Microsoft.FSharp.Core" "FSharpFunc`2" _
-                        | IsStatic _
                         | IsNested
+                        | IsMutableStruct
+                        | IsStatic _
                         | IsTuple _ -> None
                         | t -> Some t)
                     |> Seq.mapFold

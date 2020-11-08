@@ -177,6 +177,9 @@ let fromAssemblies (assms: seq<AssemblyInfo>) =
       Namespaces =
         assms
         |> Seq.collect (fun assm -> assm.Types)
+        |> Seq.choose
+            (function
+            | t -> Some t)
         |> Seq.fold
             addType
             Map.empty }

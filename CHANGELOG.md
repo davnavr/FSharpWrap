@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Generation of functions for read-only instance fields
 - Code generation target now only runs for F# (`.fsproj`) projects
 - Now compatible with `<ProjectReference>` dependencies
-- Exclusion of members marked `ObsoleteAttribute` when `IsError` is `true`
+- Exclusion of members marked `ObsoleteAttribute` when `IsError` is `true` to avoid errors that cannot be suppressed
+- Exclusion of structs not marked with `IsReadOnlyAttribute` from code generation to avoid problems with non-readonly members
 
 ## [0.1.0] - 2020-09-06
 ### Added

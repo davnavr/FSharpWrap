@@ -44,6 +44,17 @@ let (|IsObsoleteError|_|): MemberInfo -> _ =
 let (|IsPointer|_|) (t: Type) =
     if t.IsPointer then t.GetElementType() |> Some else None
 
+let (|IsMutableStruct|_|) (t: Type) =
+    let attr =
+        MemberInfo.findAttr
+            "System.Runtime.CompilerServices"
+            "IsReadOnlyAttribute"
+            Some
+            t
+    match attr with
+    | None when t.IsValueType -> Some()
+    | _ -> None
+
 let (|IsSpecialName|_|): MemberInfo -> _ =
     function
     // MethodInfo is used instead of MethodBase otherwise constructors would always be skipped over.
