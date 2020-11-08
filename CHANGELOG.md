@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Now compatible with `<ProjectReference>` dependencies
 - Exclusion of members marked `ObsoleteAttribute` when `IsError` is `true` to avoid errors that cannot be suppressed
 - Exclusion of structs not marked with `IsReadOnlyAttribute` from code generation to avoid problems with non-readonly members
+- Exclusion of members containing `byref` parameters from code generation to avoid FS0412 and FS3300 errors
 
 ## [0.1.0] - 2020-09-06
 ### Added

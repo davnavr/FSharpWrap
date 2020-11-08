@@ -243,6 +243,7 @@ module AssemblyInfo =
                         | Derives "System" "Delegate" _
                         | AssignableTo "Microsoft.FSharp.Core" "FSharpFunc`2" _
                         | IsNested
+                        // NOTE: This filter currently excludes types such as ImmutableArray from code generation.
                         | IsMutableStruct
                         | IsStatic _
                         | IsTuple _ -> None

@@ -127,16 +127,28 @@ let binding parent (mber: Member) =
     | _ -> None
 
 let fromType (t: TypeDef): GenModule =
+    let isRef =
+        function
+        | { Param.ArgType = TypeArg(ByRefType _) } -> true
+        | _ -> false
     { Attributes = moduleAttr :: (warnAttrs t.Attributes)
       Bindings =
-        List.fold
+        t.Members
+        |> List.choose
+            (fun mber ->
+                match mber.Type with
+                | Constructor plist
+                | InstanceMethod { Params = plist }
+                | StaticMethod { Params = plist } when List.exists isRef plist ->
+                    None
+                | _ -> Some mber)
+        |> List.fold
             (fun bindings mber ->
                 match binding t mber with
                 | Some gen when Set.contains gen bindings |> not ->
                     Set.add gen bindings
                 | _ -> bindings)
             Set.empty
-            t.Members
       ModuleName = t.TypeName.Name }
 
 let private addType mdles tdef =
@@ -177,9 +189,6 @@ let fromAssemblies (assms: seq<AssemblyInfo>) =
       Namespaces =
         assms
         |> Seq.collect (fun assm -> assm.Types)
-        |> Seq.choose
-            (function
-            | t -> Some t)
         |> Seq.fold
             addType
             Map.empty }
