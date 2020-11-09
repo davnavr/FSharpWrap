@@ -69,7 +69,13 @@ Target.create "Build Tool" <| fun _ ->
         (srcDir </> "FSharpWrap.Tool" </> "FSharpWrap.Tool.fsproj")
 
 Target.create "Test Tool" <| fun _ ->
-    ()
+    sprintf
+        "--project %s --configuration Release --no-build --no-restore"
+        (rootDir </> "test" </> "FSharpWrap.Tool.Tests" </> "FSharpWrap.Tool.Tests.fsproj")
+    |> DotNetCli.exec
+        id
+        "run"
+    |> handleErr "One or more tests failed"
 
 Target.create "Build Examples" <| fun _ ->
     let path = rootDir </> "FSharpWrap.Examples.sln"
