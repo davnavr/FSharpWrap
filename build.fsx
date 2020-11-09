@@ -1,5 +1,6 @@
 #if FAKE_DEPENDENCIES
 #r "paket:
+nuget Fake.Core.ReleaseNotes
 nuget Fake.Core.Target
 nuget Fake.DotNet.Cli
 nuget Fake.DotNet.NuGet
@@ -10,6 +11,7 @@ nuget Fake.IO.FileSystem
 #load "./.fake/build.fsx/intellisense.fsx"
 
 open Fake.Core
+
 open Fake.Core.TargetOperators
 open Fake.DotNet
 open Fake.IO
@@ -24,8 +26,7 @@ let outDir = rootDir </> "out"
 let srcDir = rootDir </> "src"
 let slnFile = rootDir </> "FSharpWrap.sln"
 
-let version = Environment.environVarOrDefault "PACKAGE_VERSION" "0.0.0"
-let notes = Environment.environVar "PACKAGE_RELEASE_NOTES"
+let changelog = rootDir </> "CHANGELOG.md" |> Changelog.load
 
 let handleErr msg: ProcessResult -> _ =
     function
@@ -51,7 +52,7 @@ let buildProj proj =
                     { opt.MSBuildParams with
                         Properties =
                             [
-                                "Version", version
+                                "Version", changelog.LatestEntry.NuGetVersion
                             ]}
                 NoRestore = true })
         proj
@@ -82,28 +83,35 @@ Target.create "Build Examples" <| fun _ ->
     DotNetCli.restore id path
     buildProj path
 
-let pushpkg todir ver _ =
+Target.create "Pack" <| fun _ ->
     NuGetCli.NuGetPackDirectly
         (fun nparams ->
             { nparams with
-                OutputPath = todir
+                OutputPath = outDir
                 Properties =
                     [
                         "Name", "FSharpWrap"
-                        "PackageVersion", ver
-                        "PackageReleaseNotes", notes
+                        "PackageVersion", changelog.LatestEntry.NuGetVersion
+                        "PackageReleaseNotes", sprintf "https://github.com/davnavr/FSharpWrap/blob/v%O/CHANGELOG.md" changelog.LatestEntry.SemVer
                         "RootDir", rootDir
                     ]
-                Version = ver
+                Version = changelog.LatestEntry.NuGetVersion
                 WorkingDir = rootDir })
         (srcDir </> "FSharpWrap" </> "FSharpWrap.nuspec")
 
-Target.create "Pack" (pushpkg outDir version)
+Target.create "Publish GitHub" ignore
+
+Target.create "Publish NuGet" ignore
+
+Target.create "Publish" ignore
 
 "Clean"
 ==> "Build Tool"
 ==> "Test Tool"
 ==> "Build Examples"
 ==> "Pack"
+==> "Publish GitHub"
+==> "Publish NuGet"
+==> "Publish"
 
 Target.runOrDefault "Pack"
