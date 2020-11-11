@@ -25,39 +25,38 @@ let srcDir = rootDir </> "src"
 let slnFile = rootDir </> "FSharpWrap.sln"
 
 let version = Environment.environVarOrDefault "PACKAGE_VERSION" "0.0.0"
-let notes = Environment.environVar "PACKAGE_RELEASE_NOTES"
 
-let handleErr msg: ProcessResult -> _ =
-    function
-    | { ExitCode = ecode } when ecode <> 0 ->
-        failwithf "Process exited with code %i: %s" ecode msg
-    | _ -> ()
+[<AutoOpen>]
+module Helpers =
+    let handleErr msg: ProcessResult -> _ =
+        function
+        | { ExitCode = ecode } when ecode <> 0 ->
+            failwithf "Process exited with code %i: %s" ecode msg
+        | _ -> ()
+
+    let buildProj proj props =
+        DotNetCli.build
+            (fun opt ->
+                { opt with
+                    Configuration = DotNetCli.Release
+                    MSBuildParams =
+                        { opt.MSBuildParams with
+                            Properties = props }
+                    NoRestore = true })
+            proj
 
 Target.create "Clean" <| fun _ ->
     Shell.cleanDir outDir
 
     !!(rootDir </> "examples/**/*.autogen.fs") |> File.deleteAll
-    
+
     slnFile
     |> DotNetCli.exec id "clean"
     |> handleErr "Unexpected error while cleaning solution"
 
-let buildProj proj =
-    DotNetCli.build
-        (fun opt ->
-            { opt with
-                Configuration = DotNetCli.Release
-                MSBuildParams =
-                    { opt.MSBuildParams with
-                        Properties =
-                            [
-                                "Version", version
-                            ]}
-                NoRestore = true })
-        proj
 
 Target.create "Build Tool" <| fun _ ->
-    buildProj slnFile
+    buildProj slnFile [ "Version", version ]
 
     DotNetCli.publish
         (fun options ->
@@ -69,30 +68,37 @@ Target.create "Build Tool" <| fun _ ->
         (srcDir </> "FSharpWrap.Tool" </> "FSharpWrap.Tool.fsproj")
 
 Target.create "Test Tool" <| fun _ ->
-    ()
+    let proj =
+        rootDir </> "test" </> "FSharpWrap.Tool.Tests" </> "FSharpWrap.Tool.Tests.fsproj"
+    sprintf
+        "--project %s --configuration Release --no-build --no-restore"
+        proj
+        |> DotNetCli.exec
+        id
+        "run"
+    |> handleErr "One or more tests failed"
 
 Target.create "Build Examples" <| fun _ ->
     let path = rootDir </> "FSharpWrap.Examples.sln"
     DotNetCli.restore id path
-    buildProj path
+    buildProj path []
 
-let pushpkg todir ver _ =
+Target.create "Pack" <| fun _ ->
+    let nuspec = srcDir </> "FSharpWrap" </> "FSharpWrap.nuspec"
     NuGetCli.NuGetPackDirectly
         (fun nparams ->
             { nparams with
-                OutputPath = todir
+                OutputPath = outDir
                 Properties =
                     [
                         "Name", "FSharpWrap"
-                        "PackageVersion", ver
-                        "PackageReleaseNotes", notes
+                        "PackageVersion", version
+                        "PackageReleaseNotes", sprintf "https://github.com/davnavr/FSharpWrap/blob/v%s/CHANGELOG.md" version
                         "RootDir", rootDir
                     ]
-                Version = ver
+                Version = version
                 WorkingDir = rootDir })
-        (srcDir </> "FSharpWrap" </> "FSharpWrap.nuspec")
-
-Target.create "Pack" (pushpkg outDir version)
+        nuspec
 
 "Clean"
 ==> "Build Tool"
