@@ -8,7 +8,7 @@
     <_FSharpWrapToolPath Condition="'$(_FSharpWrapToolPath)'==''">$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll</_FSharpWrapToolPath>
   </PropertyGroup>
 
-  <!-- List of default assemblies to exclude from code generation for faste compiler times -->
+  <!-- List of default assemblies to exclude from code generation for faster compile times -->
   <ItemGroup Condition="'$(FSharpWrapExcludeDefaults)'=='true'">
     <FSharpWrapExcludeAssemblyFiles Include="Microsoft.CSharp.dll" />
     <FSharpWrapExcludeAssemblyFiles Include="Microsoft.VisualBasic.dll" />
