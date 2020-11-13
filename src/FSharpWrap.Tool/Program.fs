@@ -54,8 +54,6 @@ let main argv =
         File.WriteAllLines(string args.OutputFile, content)
         0
     | Error msg ->
-        match msg with
-        | Some msg' -> printfn "%s" msg'
-        | _ -> ()
+        printfn "%O" msg
         List.iter (printfn "%s") help
         -1

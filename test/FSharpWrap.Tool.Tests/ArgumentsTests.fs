@@ -37,11 +37,41 @@ module Generators =
                 |> Gen.nonEmptyListOf
                 |> Gen.resize 6
                 |> Gen.map (List.map string)
-            return
-                [
-                    opt
-                    yield! paths
-                ]
+            return opt :: paths
+        }
+
+    let excludeAssemblyFiles =
+        gen {
+            let! opt = option "exclude-assembly-files"
+            let! files =
+                Gen.path
+                |> Gen.nonEmptyListOf
+                |> Gen.resize 3
+                |> Gen.map (List.map string)
+            return opt :: files
+        }
+
+    let excludeNamespaces =
+        let chars =
+            [
+                [ 'A'..'Z' ]
+                [ 'a'..'z' ]
+            ]
+            |> List.collect id
+        gen {
+            let! opt = option "exclude-namespaces"
+            let! nslist =
+                gen {
+                    let! h = Gen.elements chars
+                    let! tail = Gen.chars chars
+                    return sprintf "%c%s" h tail
+                }
+                |> Gen.arrayOf
+                |> Gen.resize 4
+                |> Gen.map (String.concat ".")
+                |> Gen.arrayOf
+                |> Gen.resize 3
+            return [ opt; yield! nslist ]
         }
 
     let outfile =
@@ -54,10 +84,14 @@ module Generators =
     let private arguments more t =
         gen {
             let! assemblies' = assemblies
+            let! excludeAssemblyFiles' = excludeAssemblyFiles
+            let! excludeNamespaces' = excludeNamespaces
             let! outfile' = outfile
             return!
                 [
                     assemblies'
+                    excludeAssemblyFiles'
+                    excludeNamespaces'
                     outfile'
                     more
                 ]
@@ -145,5 +179,19 @@ let tests =
             (fun argv args ->
                 args.Assemblies
                 |> List.map string
+                |> Expect.containsAll argv)
+
+        successfulParse
+            "parsed arguments should contain excluded assembly files"
+            (fun argv args ->
+                args.Exclude.AssemblyFiles
+                |> List.map string
+                |> Expect.containsAll argv)
+
+        successfulParse
+            "parsed arguments should contain excluded namespaces"
+            (fun argv args ->
+                args.Exclude.Namespaces
+                |> List.map (sprintf "%O")
                 |> Expect.containsAll argv)
     ]
