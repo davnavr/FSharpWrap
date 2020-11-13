@@ -1,7 +1,7 @@
 ﻿namespace FSharpWrap.Tool
 
 type Excluded =
-    { AssemblyFiles: string list
+    { AssemblyFiles: Set<string>
       Namespaces: Namespace list
       Types: unit list }
 
@@ -118,7 +118,7 @@ module Arguments =
                     | (path, AssemblyPaths) -> // TODO: Maybe create function for failing fast by returning { state with Type = ... |> Invalid }
                         { state with Type = InvalidAssemblyPath path |> Invalid }
                     | (file, ExcludeAssemblyFiles) ->
-                        { state with Exclude = { state.Exclude with AssemblyFiles = file :: state.Exclude.AssemblyFiles } }
+                        { state with Exclude = { state.Exclude with AssemblyFiles = Set.add file state.Exclude.AssemblyFiles } }
                     | (ns, ExcludeNamespaces) ->
                         { state with Exclude = { state.Exclude with Namespaces = Namespace.ofStr ns :: state.Exclude.Namespaces } }
                     | (Path.Valid path, OutputFile) ->
@@ -131,7 +131,7 @@ module Arguments =
         inner
             { AssemblyPaths = []
               Exclude =
-                { AssemblyFiles = []
+                { AssemblyFiles = Set.empty
                   Namespaces = []
                   Types = [] }
               OutputFile = None

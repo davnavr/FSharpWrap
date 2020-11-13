@@ -7,7 +7,7 @@
 Utility that automatically generates F# modules and functions based on your F# project file's references.
 
 ## Usage
-Add the following under an `<ItemGroup>` to your `.fsproj` project file.
+Add the following under an `<ItemGroup>` to your `.fsproj` project file
 
 ```xml
 <PackageReference Include="FSharpWrap" Version="0.1.0">
@@ -23,6 +23,21 @@ Depending on your needs, you may also want to add the following to your `.gitign
 
 ```text
 *.autogen.fs
+```
+
+To exclude entire assemblies from code generation, use the following in your project file
+
+```xml
+<ItemGroup>
+  <!-- This will exclude an assembly file whose file name is an exact match -->
+  <FSharpWrapExcludeAssemblyFiles Include="Assembly.To.Exclude.dll" />
+  <FSharpWrapExcludeAssemblyFiles Include="Other.Assembly.To.Exclude.dll" />
+
+  <!--
+    By default, FSharpWrap excludes some assemblies from code generation
+    For an exact list, go to "./src/FSharpWrap/FSharpWrap.targets"
+  -->
+</ItemGroup>
 ```
 
 ## Example

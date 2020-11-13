@@ -7,8 +7,11 @@ open FSharpWrap.Tool
 
 type Context =
     private
-        { TypeParams: ImmutableDictionary<Type, TypeParam>
+        { Excluded: Excluded
+          TypeParams: ImmutableDictionary<Type, TypeParam>
           TypeRefs: ImmutableDictionary<Type, TypeRef> }
+
+    member this.Filter = this.Excluded
 
 type ContextExpr<'T> = Context -> 'T * Context
 
@@ -24,8 +27,9 @@ module private ContextPatterns =
 
 [<RequireQualifiedAccess>]
 module private Context =
-    let empty =
-        { TypeParams = ImmutableDictionary.Empty
+    let init filter =
+        { Excluded = filter
+          TypeParams = ImmutableDictionary.Empty
           TypeRefs = ImmutableDictionary.Empty }
 
     let map mapping (expr: ContextExpr<_>) ctx =

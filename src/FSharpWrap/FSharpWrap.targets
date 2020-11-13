@@ -7,10 +7,29 @@
     <_FSharpWrapToolPath Condition="'$(_FSharpWrapToolPath)'==''">$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll</_FSharpWrapToolPath>
   </PropertyGroup>
 
+  <!-- TODO: How to only exclude these assemblies when the item group is empty? -->
+  <ItemGroup>
+    <FSharpWrapExcludeAssemblyFiles Include="FSharp.Core.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="Microsoft.CSharp.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="Microsoft.Win32.Primitives.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="Microsoft.VisualBasic.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="Microsoft.VisualBasic.Core.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="System.Collections.NonGeneric.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="System.Drawing.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="System.Drawing.Primitives.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="System.Linq.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="System.Linq.Expressions.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="System.Linq.Parallel.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="System.Linq.Queryable.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="System.Linq.Security.dll" />
+    <FSharpWrapExcludeAssemblyFiles Include="System.ValueTuple.dll" />
+  </ItemGroup>
+
   <Target Name="FSharpWrap" Condition="'$(MSBuildProjectExtension)'=='.fsproj'" BeforeTargets="AfterResolveReferences;CoreCompile">
     <!-- TODO: How to check that 'dotnet' exists? -->
+    <!-- TODO: How to remove exclude-assembly-files flag when FSharpWrapExcludeAssemblyFiles is empty? -->
     <Exec
-      Command="dotnet exec &quot;$(_FSharpWrapToolPath)&quot; --assembly-paths &quot;@(ReferencePath, '&quot; &quot;')&quot; --output-file &quot;$(FSharpWrapOutputFilePath)&quot;"
+      Command="dotnet exec &quot;$(_FSharpWrapToolPath)&quot; --assembly-paths &quot;@(ReferencePath, '&quot; &quot;')&quot; --exclude-assembly-files &quot;@(FSharpWrapExcludeAssemblyFiles, '&quot; &quot;')&quot; --output-file &quot;$(FSharpWrapOutputFilePath)&quot;"
       ConsoleToMsBuild="true"
       LogStandardErrorAsError="true" />
   </Target>
