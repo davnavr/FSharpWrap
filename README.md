@@ -32,12 +32,17 @@ To exclude entire assemblies from code generation, use the following in your pro
   <!-- This will exclude an assembly file whose file name is an exact match -->
   <FSharpWrapExcludeAssemblyFiles Include="Assembly.To.Exclude.dll" />
   <FSharpWrapExcludeAssemblyFiles Include="Other.Assembly.To.Exclude.dll" />
-
-  <!--
-    By default, FSharpWrap excludes some assemblies from code generation
-    For an exact list, go to "./src/FSharpWrap/FSharpWrap.targets"
-  -->
 </ItemGroup>
+
+<PropertyGroup>
+  <!--
+    By default, FSharpWrap excludes some assemblies from code generation,
+    go to "./src/FSharpWrap/FSharpWrap.targets" for an exact list
+
+    To disable the default exclusion of certain assemblies, set this property to false
+  -->
+  <!--<FSharpWrapExcludeDefaults>false</FSharpWrapExcludeDefaults>-->
+</PropertyGroup>
 ```
 
 ## Example
