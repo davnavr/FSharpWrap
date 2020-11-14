@@ -47,15 +47,14 @@ let main argv =
     | Ok args ->
         // TODO: Handle errors raised during reading and writing of files
         let content =
-            args.Assemblies
-            |> Reflect.paths
+            Reflect.paths
+                args.Assemblies
+                args.Exclude
             |> Generate.fromAssemblies
             |> Print.genFile
         File.WriteAllLines(string args.OutputFile, content)
         0
     | Error msg ->
-        match msg with
-        | Some msg' -> printfn "%s" msg'
-        | _ -> ()
+        printfn "%O" msg
         List.iter (printfn "%s") help
         -1

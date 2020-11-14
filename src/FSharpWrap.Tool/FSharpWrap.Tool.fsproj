@@ -13,6 +13,7 @@
     <Compile Include="Path.fs" />
     <Compile Include="FsName.fs" />
     <Compile Include="Namespace.fs" />
+    <Compile Include="Arguments.fs" />
     <Compile Include="Reflection\MemberPatterns.fs" />
     <Compile Include="Reflection\TypeArgList.fs" />
     <Compile Include="Reflection\Types.fs" />
@@ -23,7 +24,6 @@
     <Compile Include="Generation\Types.fs" />
     <Compile Include="Generation\Print.fs" />
     <Compile Include="Generation\Generate.fs" />
-    <Compile Include="Arguments.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

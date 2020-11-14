@@ -1,6 +1,11 @@
 ﻿module Program
 
+open System.Diagnostics
+
 open CSharpDependency
+
+let notExcluded() =
+    StackTrace() |> StackTrace.getFrame 0
 
 [<EntryPoint>]
 let main _ =

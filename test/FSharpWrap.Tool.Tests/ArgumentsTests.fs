@@ -37,11 +37,18 @@ module Generators =
                 |> Gen.nonEmptyListOf
                 |> Gen.resize 6
                 |> Gen.map (List.map string)
-            return
-                [
-                    opt
-                    yield! paths
-                ]
+            return opt :: paths
+        }
+
+    let excludeAssemblyFiles =
+        gen {
+            let! opt = option "exclude-assembly-files"
+            let! files =
+                Gen.path
+                |> Gen.nonEmptyListOf
+                |> Gen.resize 3
+                |> Gen.map (List.map string)
+            return opt :: files
         }
 
     let outfile =
@@ -54,10 +61,12 @@ module Generators =
     let private arguments more t =
         gen {
             let! assemblies' = assemblies
+            let! excludeAssemblyFiles' = excludeAssemblyFiles
             let! outfile' = outfile
             return!
                 [
                     assemblies'
+                    excludeAssemblyFiles'
                     outfile'
                     more
                 ]
@@ -145,5 +154,12 @@ let tests =
             (fun argv args ->
                 args.Assemblies
                 |> List.map string
+                |> Expect.containsAll argv)
+
+        successfulParse
+            "parsed arguments should contain excluded assembly files"
+            (fun argv args ->
+                args.Exclude.AssemblyFiles
+                |> Seq.map string
                 |> Expect.containsAll argv)
     ]
