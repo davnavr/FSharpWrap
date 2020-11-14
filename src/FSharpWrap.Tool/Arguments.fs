@@ -1,9 +1,7 @@
 ﻿namespace FSharpWrap.Tool
 
 type Excluded =
-    { AssemblyFiles: Set<string>
-      Namespaces: Namespace list
-      Types: unit list }
+    { AssemblyFiles: Set<string>  }
 
 type Arguments =
     { AssemblyPaths: Path * Path list
@@ -36,7 +34,6 @@ module Arguments =
         private
         | AssemblyPaths
         | ExcludeAssemblyFiles
-        | ExcludeNamespaces
         | OutputFile
         | Invalid of InvalidArgument
         | Unknown
@@ -73,7 +70,6 @@ module Arguments =
             // TODO: Make this option accept directories as well.
             Required "assembly-paths", AssemblyPaths, "Specifies the paths to the assemblies", "path list"
             Optional "exclude-assembly-files", ExcludeAssemblyFiles, "Specifies the names of the assembly files to exclude from code generation", "name list"
-            Optional "exclude-namespaces", ExcludeNamespaces, "Specifies the namespaces to exclude from code generation", "namespace list"
             Required "output-file", OutputFile, "Specifies the path to the file containing the generated F# code", "file"
         ]
         |> Seq.map (fun (name, st, desc, value) ->
@@ -119,8 +115,6 @@ module Arguments =
                         { state with Type = InvalidAssemblyPath path |> Invalid }
                     | (file, ExcludeAssemblyFiles) ->
                         { state with Exclude = { state.Exclude with AssemblyFiles = Set.add file state.Exclude.AssemblyFiles } }
-                    | (ns, ExcludeNamespaces) ->
-                        { state with Exclude = { state.Exclude with Namespaces = Namespace.ofStr ns :: state.Exclude.Namespaces } }
                     | (Path.Valid path, OutputFile) ->
                         { state with OutputFile = Some path; Type = Unknown }
                     | (path, OutputFile) -> // TODO: Check that the path is a file and not a directory.
@@ -130,9 +124,6 @@ module Arguments =
                 inner state' tail
         inner
             { AssemblyPaths = []
-              Exclude =
-                { AssemblyFiles = Set.empty
-                  Namespaces = []
-                  Types = [] }
+              Exclude = { AssemblyFiles = Set.empty }
               OutputFile = None
               Type = Unknown }

@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Filtering of types, namespaces, and assemblies to avoid generating code for dependencies you won't use
+- Filtering of assemblies to avoid generating code for dependencies you won't use
 
 ## [0.2.0] - 2020-11-08
 ### Added
