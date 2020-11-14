@@ -10,6 +10,7 @@
 
   <!-- List of default assemblies to exclude from code generation for faster compile times -->
   <ItemGroup Condition="'$(FSharpWrapExcludeDefaults)'=='true'">
+    <FSharpWrapExcludeAssemblyFiles Include="FSharp.Core.dll" />
     <FSharpWrapExcludeAssemblyFiles Include="Microsoft.CSharp.dll" />
     <FSharpWrapExcludeAssemblyFiles Include="Microsoft.VisualBasic.dll" />
     <FSharpWrapExcludeAssemblyFiles Include="Microsoft.VisualBasic.Core.dll" />
