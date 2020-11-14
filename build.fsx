@@ -129,7 +129,7 @@ Target.create "Pack" <| fun _ ->
 ==> "Build Examples"
 ==> "Pack"
 
-"Build Tool" ==> "Run Benchmarks" ?=> "Build Examples"
+"Test Tool" ==> "Run Benchmarks" ?=> "Build Examples"
 "Run Benchmarks" ==> "Pack"
 
 Target.runOrDefault "Build Examples"
