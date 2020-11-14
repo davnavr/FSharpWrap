@@ -6,7 +6,7 @@ open System.Reflection
 
 open FSharpWrap.Tool
 
-let private context r ldf filter: seq<AssemblyInfo> =
+let context r ldf filter: seq<AssemblyInfo> =
     using
         (new MetadataLoadContext(r))
         (fun data ->

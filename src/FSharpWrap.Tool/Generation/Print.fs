@@ -1,5 +1,5 @@
 ﻿[<RequireQualifiedAccess>]
-module internal rec FSharpWrap.Tool.Generation.Print
+module rec FSharpWrap.Tool.Generation.Print
 
 open System
 
