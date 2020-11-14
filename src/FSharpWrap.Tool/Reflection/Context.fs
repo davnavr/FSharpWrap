@@ -26,7 +26,7 @@ module private ContextPatterns =
         | _ -> None
 
 [<RequireQualifiedAccess>]
-module private Context =
+module Context =
     let init filter =
         { Excluded = filter
           TypeParams = ImmutableDictionary.Empty

@@ -3,15 +3,15 @@
   <!-- Project properties -->
   <PropertyGroup>
     <AssemblyName>FSharpWrap.Tool.Benchmarks</AssemblyName>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="Data.fs" />
-    <Compile Include="Benchmarks.fs" />
-  </ItemGroup>
 
   <!-- Source files -->
+  <ItemGroup>
+    <Compile Include="Benchmarks.fs" />
+    <Compile Include="Runner.fs" />
+  </ItemGroup>
 
   <!-- References -->
   <ItemGroup>
