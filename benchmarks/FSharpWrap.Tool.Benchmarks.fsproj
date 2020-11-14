@@ -4,13 +4,12 @@
   <PropertyGroup>
     <AssemblyName>FSharpWrap.Tool.Benchmarks</AssemblyName>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net5.0</TargetFrameworks>
   </PropertyGroup>
 
   <!-- Source files -->
   <ItemGroup>
     <Compile Include="Benchmarks.fs" />
-    <Compile Include="Runner.fs" />
   </ItemGroup>
 
   <!-- References -->
