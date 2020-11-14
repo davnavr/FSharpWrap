@@ -45,6 +45,21 @@ module Helpers =
                     NoRestore = true })
             proj
 
+    let runProj args proj =
+        [
+            "--configuration Release"
+            "--no-build"
+            "--no-restore"
+        ]
+        |> args
+        |> String.concat " "
+        |> sprintf
+            "--project %s %s"
+            proj
+        |> DotNetCli.exec
+            id
+            "run"
+
 Target.create "Clean" <| fun _ ->
     Shell.cleanDir outDir
 
@@ -53,7 +68,6 @@ Target.create "Clean" <| fun _ ->
     slnFile
     |> DotNetCli.exec id "clean"
     |> handleErr "Unexpected error while cleaning solution"
-
 
 Target.create "Build Tool" <| fun _ ->
     buildProj slnFile [ "Version", version ]
@@ -68,20 +82,29 @@ Target.create "Build Tool" <| fun _ ->
         (srcDir </> "FSharpWrap.Tool" </> "FSharpWrap.Tool.fsproj")
 
 Target.create "Test Tool" <| fun _ ->
-    let proj =
-        rootDir </> "test" </> "FSharpWrap.Tool.Tests" </> "FSharpWrap.Tool.Tests.fsproj"
-    sprintf
-        "--project %s --configuration Release --no-build --no-restore"
-        proj
-        |> DotNetCli.exec
-        id
-        "run"
+    rootDir </> "test" </> "FSharpWrap.Tool.Tests" </> "FSharpWrap.Tool.Tests.fsproj"
+    |> runProj id
     |> handleErr "One or more tests failed"
 
 Target.create "Build Examples" <| fun _ ->
     let path = rootDir </> "FSharpWrap.Examples.sln"
     DotNetCli.restore id path
     buildProj path []
+
+Target.create "Run Benchmarks" <| fun _ ->
+    rootDir </> "benchmarks" </> "FSharpWrap.Tool.Benchmarks.fsproj"
+    |> runProj
+        (fun args ->
+            [
+                yield! args
+                "--framework net5.0"
+                "--"
+                "--runtimes netcoreapp31 netcoreapp50"
+                "--filter *"
+                "--artifacts"
+                outDir </> "BenchmarkDotNet.Artifacts"
+            ])
+    |> handleErr "One or more benchmarks could not be run successfully"
 
 Target.create "Pack" <| fun _ ->
     let nuspec = srcDir </> "FSharpWrap" </> "FSharpWrap.nuspec"
@@ -106,4 +129,7 @@ Target.create "Pack" <| fun _ ->
 ==> "Build Examples"
 ==> "Pack"
 
-Target.runOrDefault "Pack"
+"Build Tool" ==> "Run Benchmarks" ?=> "Build Examples"
+"Run Benchmarks" ==> "Pack"
+
+Target.runOrDefault "Build Examples"
