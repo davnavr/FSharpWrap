@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Data.fs" />
-    <Compile Include="GenerationBenchmarks.fs" />
+    <Compile Include="Benchmarks.fs" />
   </ItemGroup>
 
   <!-- Source files -->
