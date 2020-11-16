@@ -39,11 +39,11 @@ module Context =
     let current (ctx: Context) = ctx, ctx
 
 [<AutoOpen>]
-module private ContextBuilder =
+module internal ContextBuilder =
     type ContextBuilder() =
-        member _.Bind(expr: ContextExpr<_>, body: _ -> ContextExpr<_>) =
+        member inline _.Bind(expr: ContextExpr<_>, body: _ -> ContextExpr<_>) =
             fun ctx -> expr ctx ||> body
-        member _.Bind(update: Context -> Context, body: unit -> ContextExpr<_>) =
+        member inline _.Bind(update: Context -> Context, body: unit -> ContextExpr<_>) =
             update >> body()
         member _.Return obj: ContextExpr<_> = fun ctx -> obj, ctx
         member _.ReturnFrom expr: ContextExpr<_> = expr

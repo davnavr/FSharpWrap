@@ -204,7 +204,29 @@ module Type =
                     return TypeArg tref
         }
 
-    let def t =
+    let def t ctx =
+        let tname, ctx2 = (name t |> Context.map Option.get) ctx
+        let members, ctx3 =
+            t.GetMembers()
+            |> Seq.ofArray
+            |> Seq.where (fun m -> m.DeclaringType = t)
+            |> Seq.choose
+                (function
+                | IsCompilerGenerated
+                | IsObsoleteError
+                | IsSpecialName
+                | PropAccessor -> None
+                | mber -> Some mber)
+            |> Seq.mapFold
+                (fun ctx' mber -> Member.ofInfo mber ctx')
+                ctx2
+        let attrs, ctx' = Attributes.ofMember t ctx3
+        { Attributes = attrs
+          Members = List.ofSeq members
+          TypeName = tname }
+        , ctx'
+
+    let def_old t =
         context {
             let! tname = name t |> Context.map Option.get
             let! members =
