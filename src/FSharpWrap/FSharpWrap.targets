@@ -5,6 +5,7 @@
     <FSharpWrapOutputFileName Condition="'$(FSharpWrapOutputFileName)'==''">output.autogen.fs</FSharpWrapOutputFileName>
     <FSharpWrapOutputFilePath Condition="'$(FSharpWrapOutputFilePath)'==''">$(MSBuildProjectDirectory)/$(FSharpWrapOutputFileName)</FSharpWrapOutputFilePath>
     <FSharpWrapExcludeDefaults Condition="'$(FSharpWrapExcludeDefaults)'==''">true</FSharpWrapExcludeDefaults>
+    <_FSharpWrapLaunchDebugger Condition="'$(_FSharpWrapLaunchDebugger)'==''">false</_FSharpWrapLaunchDebugger>
     <_FSharpWrapToolPath Condition="'$(_FSharpWrapToolPath)'==''">$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll</_FSharpWrapToolPath>
   </PropertyGroup>
 

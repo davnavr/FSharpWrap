@@ -89,7 +89,11 @@ Target.create "Test Tool" <| fun _ ->
 Target.create "Build Examples" <| fun _ ->
     let path = rootDir </> "FSharpWrap.Examples.sln"
     DotNetCli.restore id path
-    buildProj path []
+    buildProj
+        path
+        [
+            "_FSharpWrapLaunchDebugger", Environment.environVarOrDefault "DEBUG_FSHARPWRAP_TOOL" "false"
+        ]
 
 Target.create "Run Benchmarks" <| fun _ ->
     rootDir </> "benchmarks" </> "FSharpWrap.Tool.Benchmarks.fsproj"

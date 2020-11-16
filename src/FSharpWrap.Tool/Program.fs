@@ -1,6 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module FSharpWrap.Tool.Program
 
+open System.Diagnostics
 open System.IO
 
 open FSharpWrap.Tool.Reflection
@@ -45,6 +46,9 @@ let private help =
 let main argv =
     match List.ofArray argv |> Arguments.parse with
     | Ok args ->
+        if args.LaunchDebugger then
+            Debugger.Launch() |> ignore
+
         // TODO: Handle errors raised during reading and writing of files
         let content =
             Reflect.paths
