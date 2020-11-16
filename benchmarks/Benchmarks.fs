@@ -3,6 +3,7 @@
 open System.Reflection
 
 open BenchmarkDotNet.Attributes
+open BenchmarkDotNet.Configs
 open BenchmarkDotNet.Engines
 open BenchmarkDotNet.Running
 
@@ -18,7 +19,9 @@ let inline private assemblies() =
     |> fst
     |> List.singleton
 
+[<GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByMethod)>]
 [<MemoryDiagnoser>]
+[<MinColumn; MaxColumn>]
 type Benchmarks() =
     let consumer = Consumer()
     let assms = assemblies()
