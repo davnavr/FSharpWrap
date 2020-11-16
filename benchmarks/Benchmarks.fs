@@ -12,11 +12,10 @@ open FSharpWrap.Tool.Reflection
 open FSharpWrap.Tool.Generation
 
 let inline private assemblies() =
-    let ctx = Context.init { Excluded.AssemblyFiles = Set.empty }
-    AssemblyInfo.ofAssembly
+    Context.init
+        { Excluded.AssemblyFiles = Set.empty }
+    |> AssemblyInfo.ofAssembly
         (typeof<System.Collections.Immutable.ImmutableDictionary>.Assembly)
-        ctx
-    |> fst
     |> List.singleton
 
 [<GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByMethod)>]

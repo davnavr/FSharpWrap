@@ -10,21 +10,19 @@ let private context r ldf filter: seq<AssemblyInfo> =
     using
         (new MetadataLoadContext(r))
         (fun data ->
+            let ctx = Context.init filter
             ldf data
-            |> Seq.mapFold
-                (fun (ctx: Context) (assm: Assembly) ->
+            |> Seq.map
+                (fun (assm: Assembly) ->
                     let skip =
                         let file = Path.GetFileName assm.Location
                         Set.exists
                             ((=) file)
                             ctx.Filter.AssemblyFiles
                     if skip
-                    then None, ctx
+                    then None
                     else
-                        let assm', ctx' = AssemblyInfo.ofAssembly assm ctx
-                        Some assm', ctx')
-                (Context.init filter)
-            |> fst
+                        AssemblyInfo.ofAssembly assm ctx |> Some)
             |> Seq.choose id)
 
 let paths (assms: seq<Path>) =
