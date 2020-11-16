@@ -6,7 +6,7 @@ open System.Reflection
 
 open FSharpWrap.Tool
 
-let private context r ldf filter: seq<AssemblyInfo> =
+let private context r ldf filter =
     using
         (new MetadataLoadContext(r))
         (fun data ->
@@ -23,7 +23,8 @@ let private context r ldf filter: seq<AssemblyInfo> =
                     then None
                     else
                         AssemblyInfo.ofAssembly assm ctx |> Some)
-            |> Seq.choose id)
+            |> Seq.choose id
+            |> List.ofSeq)
 
 let paths (assms: seq<Path>) =
     let paths = Seq.map string assms
