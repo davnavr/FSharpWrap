@@ -17,12 +17,18 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
+    env:
+      DOTNET_NOLOGO: true
     steps:
     - uses: actions/checkout@v2
-    - name: Setup .NET Core
+    - name: Setup .NET 5.0
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.100
+        dotnet-version: '5.0.x'
+    - name: Setup .NET 3.1
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.x'
     - name: Get Tag Version
       id: release_version
       if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'ubuntu-latest'
