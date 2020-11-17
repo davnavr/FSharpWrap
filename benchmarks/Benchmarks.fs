@@ -1,10 +1,11 @@
 ﻿module FSharpWrap.Tool.Benchmarks
 
+open System.IO
 open System.Reflection
+open System.Text
 
 open BenchmarkDotNet.Attributes
 open BenchmarkDotNet.Configs
-open BenchmarkDotNet.Engines
 open BenchmarkDotNet.Running
 
 open FSharpWrap.Tool
@@ -18,23 +19,37 @@ let inline private assemblies() =
         (typeof<System.Collections.Immutable.ImmutableDictionary>.Assembly)
     |> List.singleton
 
+let private sw() = lazy(new StreamWriter(new MemoryStream()))
+
+type PrintData =
+    { Name: string
+      Print: Printer }
+
+    override this.ToString() = this.Name
+
 [<GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByMethod)>]
 [<MemoryDiagnoser>]
 [<MinColumn; MaxColumn>]
 type Benchmarks() =
-    let consumer = Consumer()
     let assms = assemblies()
     let file = Generate.fromAssemblies assms
+    let out =
+        { Close = ignore
+          Line = ignore
+          Write = ignore }
 
     [<Benchmark>]
     member _.Reflect() = assemblies()
     [<Benchmark>]
     member _.GenerateCode() = Generate.fromAssemblies assms
     [<Benchmark>]
-    member _.PrintCode() = (Print.genFile file).Consume consumer
+    member _.PrintCode() = Print.genFile file out
 
 [<EntryPoint>]
 let main argv =
-    (Assembly.GetExecutingAssembly() |> BenchmarkSwitcher.FromAssembly).Run(args = argv)
+    let assm = Assembly.GetExecutingAssembly()
+    BenchmarkSwitcher
+        .FromAssembly(assm)
+        .Run(args = argv)
     |> ignore
     0

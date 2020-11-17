@@ -50,13 +50,20 @@ let main argv =
             Debugger.Launch() |> ignore
 
         // TODO: Handle errors raised during reading and writing of files
-        let content =
+        let file = new StreamWriter(string args.OutputFile)
+        let print =
             Reflect.paths
                 args.Assemblies
                 args.Exclude
             |> Generate.fromAssemblies
             |> Print.genFile
-        File.WriteAllLines(string args.OutputFile, content)
+        using
+            file
+            (fun stream ->
+                { Close = stream.Close
+                  Line = stream.WriteLine
+                  Write = stream.Write }
+                |> print)
         0
     | Error msg ->
         printfn "%O" msg

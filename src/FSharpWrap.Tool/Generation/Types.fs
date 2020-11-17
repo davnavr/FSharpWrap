@@ -69,3 +69,11 @@ type GenFile =
     { Header: seq<string>
       IgnoredWarnings: uint list
       Namespaces: Map<Namespace, GenNamespace> }
+
+[<NoComparison; NoEquality>]
+type Printer =
+    { Close: unit -> unit
+      Line: unit -> unit
+      Write: string -> unit }
+
+    interface IDisposable with member this.Dispose() = this.Close()
