@@ -4,11 +4,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <FSharpWrapExcludeDefaults>false</FSharpWrapExcludeDefaults>
+    <!-- TODO: Figure out the problem with members having $W at the end of their name for QueryBuilder in FSharp.Core.dll -->
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="output.autogen.fs" />
     <Compile Include="Program.fs" />
+    <FSharpWrapExcludeAssemblyFiles Include="FSharp.Core.dll" />
   </ItemGroup>
 
   <!-- References -->

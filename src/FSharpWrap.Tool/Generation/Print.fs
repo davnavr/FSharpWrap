@@ -1,19 +1,25 @@
 ﻿[<RequireQualifiedAccess>]
-module internal rec FSharpWrap.Tool.Generation.Print
+module rec FSharpWrap.Tool.Generation.Print
 
 open System
+open System.IO
 
 open FSharpWrap.Tool
 open FSharpWrap.Tool.Reflection
 
-let indented lines = Seq.map (sprintf "    %s") lines
-
-let block lines =
-    seq {
-        yield "begin"
-        yield! indented lines
-        yield "end"
-    }
+let private indented out =
+    let mutable indented = false
+    { out with
+        Write =
+            fun str ->
+                if not indented then
+                    indented <- true
+                    out.Write "    "
+                out.Write str
+        Line =
+            fun() ->
+                indented <- false
+                out.Line() }
 
 let fsname (FsName name) = sprintf "``%s``" name
 
@@ -126,12 +132,15 @@ let arguments parameters =
         parameters
     |> String.concat ","
 
-let attributes (attrs: seq<GenAttribute>) =
-    Seq.map
+let attributes out (attrs: seq<GenAttribute>) =
+    Seq.iter
         (fun (attr: GenAttribute) ->
-            let name = typeName attr.AttributeType
-            let args = String.concat "," attr.Arguments
-            sprintf "[<%s(%s)>]" name args)
+            out.Write "[<"
+            typeName attr.AttributeType |> out.Write
+            out.Write "("
+            String.concat "," attr.Arguments |> out.Write
+            out.Write ")>]"
+            out.Line())
         attrs
 
 let parameters =
@@ -147,66 +156,59 @@ let parameters =
             plist
         |> String.Concat
 
-let genBinding binding =
-    let binding' =
-        match binding with
-        | GenActivePattern pattern ->
-            sprintf
-                "let inline (|%s|_|)%s= %s"
-                (fsname pattern.PatternName)
-                (parameters pattern.Parameters)
-                pattern.Body
-        | GenFunction func ->
-            sprintf
-                "let inline %s%s= %s"
-                (fsname func.Name)
-                (parameters func.Parameters)
-                func.Body
-    seq {
-        yield! attributes binding.Attributes
-        binding'
-    }
+let genBinding out (binding: GenBinding) =
+    attributes out binding.Attributes
+    out.Write "let inline "
+    match binding with
+    | GenActivePattern pattern ->
+        sprintf
+            "(|%s|_|)%s= %s"
+            (fsname pattern.PatternName)
+            (parameters pattern.Parameters)
+            pattern.Body
+        |> out.Write
+        out.Line()
+    | GenFunction func ->
+        fsname func.Name |> out.Write
+        parameters func.Parameters |> out.Write
+        out.Write "= "
+        out.Write func.Body
+        out.Line()
 
-let genModule (mdle: GenModule) =
-    seq {
-        yield! attributes mdle.Attributes
-        fsname mdle.ModuleName |> sprintf "module %s ="
-        yield!
-            mdle.Bindings
-            |> Seq.collect genBinding
-            |> block
-            |> indented
-    }
+let genModule out (mdle: GenModule) =
+    attributes out mdle.Attributes
+    out.Write "module "
+    fsname mdle.ModuleName |> out.Write
+    out.Write " ="
+    out.Line()
+    let out' = indented out
+    out'.Write "begin"
+    out'.Line()
+    Set.iter
+        (indented out' |> genBinding)
+        mdle.Bindings
+    out'.Write "end"
+    out'.Line()
 
-let genFile (file: GenFile) =
-    let header = Seq.map (sprintf "// %s") file.Header
-    let warnings =
-        match file.IgnoredWarnings with
-        | [] -> ""
-        | _ ->
-            file.IgnoredWarnings
-            |> List.map (sprintf "\"%i\"")
-            |> String.concat " "
-            |> sprintf "#nowarn %s"
-    let contents =
+let genFile (file: GenFile) out =
+    for line in file.Header do
+        out.Write "// "
+        out.Write line
+        out.Line()
+
+    if List.isEmpty file.IgnoredWarnings |> not then
+        out.Write "#nowarn"
+        for warn in file.IgnoredWarnings do
+            sprintf " \"%i\"" warn |> out.Write
+        out.Line()
+
+    Map.iter
+        (fun ns mdles ->
+            out.Write "namespace "
+            Print.ns ns |> out.Write
+            out.Line()
+
+            Map.iter
+                (fun _ -> indented out |> genModule)
+                mdles)
         file.Namespaces
-        |> Map.toSeq
-        |> Seq.collect
-            (fun (ns, mdles) ->
-                
-                let mdles' =
-                    mdles
-                    |> Map.toSeq
-                    |> Seq.map snd
-                seq {
-                    Print.ns ns |> sprintf "namespace %s"
-                    yield!
-                        mdles'
-                        |> Seq.collect genModule
-                        |> indented
-                })
-    seq {
-        yield! header
-        warnings
-        yield! contents
-    }

@@ -17,12 +17,18 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
+    env:
+      DOTNET_NOLOGO: true
     steps:
     - uses: actions/checkout@v2
-    - name: Setup .NET Core
+    - name: Setup .NET 5.0
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.401
+        dotnet-version: '5.0.x'
+    - name: Setup .NET 3.1
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.x'
     - name: Get Tag Version
       id: release_version
       if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'ubuntu-latest'
@@ -49,8 +55,20 @@ jobs:
       run: |
         dotnet restore ./FSharpWrap.sln
         dotnet tool restore
+    - name: Determine Target
+      id: build_script_target
+      run: |
+        if ("${{ matrix.os }}" -eq "ubuntu-latest") {
+            $target = "Pack"
+        }
+        else {
+            $target = "Build Examples"
+        }
+        
+        -join("::set-output name=target::", $target) | Write-Host
+      shell: pwsh
     - name: Build
-      run: dotnet fake run build.fsx
+      run: dotnet fake run build.fsx -t "${{ steps.build_script_target.outputs.target }}"
     - name: Upload Packages
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v2
@@ -58,6 +76,7 @@ jobs:
         name: FSharpWrap
         path: |
           ./out/*.nupkg
+          ./out/BenchmarkDotNet.Artifacts/results/*.*
           ./CHANGELOG.md
   publish:
     if: startsWith(github.ref, 'refs/tags/v')

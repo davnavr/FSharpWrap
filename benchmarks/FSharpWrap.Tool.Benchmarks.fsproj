@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Project properties -->
+  <PropertyGroup>
+    <AssemblyName>FSharpWrap.Tool.Benchmarks</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
+  </PropertyGroup>
+
+  <!-- Source files -->
+  <ItemGroup>
+    <Compile Include="Benchmarks.fs" />
+  </ItemGroup>
+
+  <!-- References -->
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+    <ProjectReference Include="$(RootDirectory)/src/FSharpWrap.Tool/FSharpWrap.Tool.fsproj" />
+  </ItemGroup>
+
+</Project>

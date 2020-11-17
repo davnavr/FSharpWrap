@@ -1,6 +1,7 @@
 ﻿[<RequireQualifiedAccess>]
 module FSharpWrap.Tool.Program
 
+open System.Diagnostics
 open System.IO
 
 open FSharpWrap.Tool.Reflection
@@ -45,14 +46,24 @@ let private help =
 let main argv =
     match List.ofArray argv |> Arguments.parse with
     | Ok args ->
+        if args.LaunchDebugger then
+            Debugger.Launch() |> ignore
+
         // TODO: Handle errors raised during reading and writing of files
-        let content =
+        let file = new StreamWriter(string args.OutputFile)
+        let print =
             Reflect.paths
                 args.Assemblies
                 args.Exclude
             |> Generate.fromAssemblies
             |> Print.genFile
-        File.WriteAllLines(string args.OutputFile, content)
+        using
+            file
+            (fun stream ->
+                { Close = stream.Close
+                  Line = stream.WriteLine
+                  Write = stream.Write }
+                |> print)
         0
     | Error msg ->
         printfn "%O" msg

@@ -6,6 +6,7 @@ type Excluded =
 type Arguments =
     { AssemblyPaths: Path * Path list
       Exclude: Excluded
+      LaunchDebugger: bool
       OutputFile: Path }
 
     member this.Assemblies =
@@ -36,11 +37,12 @@ module Arguments =
         | ExcludeAssemblyFiles
         | OutputFile
         | Invalid of InvalidArgument
+        | LaunchDebugger
         | Unknown
-
-    type private State =
+    and private State =
         { AssemblyPaths: Path list
           Exclude: Excluded
+          LaunchDebugger: bool
           OutputFile: Path option
           Type: StateType }
 
@@ -70,6 +72,7 @@ module Arguments =
             // TODO: Make this option accept directories as well.
             Required "assembly-paths", AssemblyPaths, "Specifies the paths to the assemblies", "path list"
             Optional "exclude-assembly-files", ExcludeAssemblyFiles, "Specifies the names of the assembly files to exclude from code generation", "name list"
+            Optional "launch-debugger", LaunchDebugger, "Calls Debugger.Launch after all arguments have been processed", ""
             Required "output-file", OutputFile, "Specifies the path to the file containing the generated F# code", "file"
         ]
         |> Seq.map (fun (name, st, desc, value) ->
@@ -95,12 +98,16 @@ module Arguments =
         let rec inner state args =
             match (state.Type, args) with
             | (Invalid msg, _) -> Error msg
+            | (LaunchDebugger, _) ->
+                let state' = { state with LaunchDebugger = true; Type = Unknown }
+                inner state' args
             | (_, []) ->
                 match state with
                 | { AssemblyPaths = phead :: ptail
                     OutputFile = Some out } ->
                     { AssemblyPaths = phead, ptail
                       Exclude = state.Exclude
+                      LaunchDebugger = state.LaunchDebugger
                       OutputFile = out }
                     |> Ok
                 | { AssemblyPaths = [] } -> Error EmptyAssemblyPaths
@@ -125,5 +132,6 @@ module Arguments =
         inner
             { AssemblyPaths = []
               Exclude = { AssemblyFiles = Set.empty }
+              LaunchDebugger = false
               OutputFile = None
               Type = Unknown }

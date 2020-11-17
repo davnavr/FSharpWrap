@@ -1,10 +1,53 @@
 <Project>
 
+  <UsingTask
+    TaskName="FSharpWrapFormatCliArguments"
+    TaskFactory="RoslynCodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <CliArguments ParameterType="System.String" Output="true" />
+      <ToolPath ParameterType="System.String" Required="true" />
+      <AssemblyPaths ParameterType="System.String[]" Required="true" />
+      <ExcludeAssemblyFiles ParameterType="System.String[]" Required="true" />
+      <LaunchDebugger ParameterType="System.Boolean" />
+      <OutputFilePath ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.Text" />
+      <Code Type="Fragment" Language="C#">
+        <![CDATA[
+        var args = new List<string>
+        {
+            ToolPath,
+            "--output-file",
+            OutputFilePath,
+            "--assembly-paths"
+        };
+
+        args.AddRange(AssemblyPaths);
+
+        if (ExcludeAssemblyFiles.Length > 0)
+        {
+            args.Add("--exclude-assembly-files");
+            args.AddRange(ExcludeAssemblyFiles);
+        }
+
+        if (LaunchDebugger) args.Add("--launch-debugger");
+
+        CliArguments = String.Join(" ", args.ConvertAll(arg => $"\"{arg}\""));
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
   <!-- FSharpWrap Settings -->
   <PropertyGroup>
     <FSharpWrapOutputFileName Condition="'$(FSharpWrapOutputFileName)'==''">output.autogen.fs</FSharpWrapOutputFileName>
     <FSharpWrapOutputFilePath Condition="'$(FSharpWrapOutputFilePath)'==''">$(MSBuildProjectDirectory)/$(FSharpWrapOutputFileName)</FSharpWrapOutputFilePath>
     <FSharpWrapExcludeDefaults Condition="'$(FSharpWrapExcludeDefaults)'==''">true</FSharpWrapExcludeDefaults>
+    <_FSharpWrapLaunchDebugger Condition="'$(_FSharpWrapLaunchDebugger)'==''">false</_FSharpWrapLaunchDebugger>
     <_FSharpWrapToolPath Condition="'$(_FSharpWrapToolPath)'==''">$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll</_FSharpWrapToolPath>
   </PropertyGroup>
 
@@ -62,9 +105,17 @@
 
   <Target Name="FSharpWrap" Condition="'$(MSBuildProjectExtension)'=='.fsproj'" BeforeTargets="AfterResolveReferences;CoreCompile">
     <!-- TODO: How to check that 'dotnet' exists? -->
-    <!-- TODO: How to remove exclude-assembly-files flag when FSharpWrapExcludeAssemblyFiles is empty? -->
+    <FSharpWrapFormatCliArguments
+      ToolPath="$(_FSharpWrapToolPath)"
+      AssemblyPaths="@(ReferencePath)"
+      ExcludeAssemblyFiles="@(FSharpWrapExcludeAssemblyFiles)"
+      LaunchDebugger="$(_FSharpWrapLaunchDebugger)"
+      OutputFilePath="$(FSharpWrapOutputFilePath)">
+      <Output TaskParameter="CliArguments" PropertyName="_FSharpWrapCliArguments" />
+    </FSharpWrapFormatCliArguments>
+
     <Exec
-      Command="dotnet exec &quot;$(_FSharpWrapToolPath)&quot; --assembly-paths &quot;@(ReferencePath, '&quot; &quot;')&quot; --exclude-assembly-files &quot;@(FSharpWrapExcludeAssemblyFiles, '&quot; &quot;')&quot; --output-file &quot;$(FSharpWrapOutputFilePath)&quot;"
+      Command="dotnet exec $(_FSharpWrapCliArguments)"
       ConsoleToMsBuild="true"
       LogStandardErrorAsError="true" />
   </Target>
