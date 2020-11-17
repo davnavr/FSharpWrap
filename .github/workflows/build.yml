@@ -52,7 +52,7 @@ jobs:
     - name: Determine Target
       id: build_script_target
       run: |
-        if (${{ matrix.os }} -eq "ubuntu-latest") {
+        if ("${{ matrix.os }}" -eq "ubuntu-latest") {
             $target = "Pack"
         }
         else {
