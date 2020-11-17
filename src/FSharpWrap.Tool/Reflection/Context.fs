@@ -14,7 +14,7 @@ type Context =
     member this.Filter = this.Excluded
 
 [<AutoOpen>]
-module private ContextPatterns =
+module internal ContextPatterns =
     let (|HasType|_|) (t: Type, ctx) =
         match t, ctx with
         | GenericParam _, { TypeParams = ContainsValue t tparam } ->

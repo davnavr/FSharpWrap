@@ -19,8 +19,6 @@ let inline private assemblies() =
         (typeof<System.Collections.Immutable.ImmutableDictionary>.Assembly)
     |> List.singleton
 
-let private sw() = lazy(new StreamWriter(new MemoryStream()))
-
 type PrintData =
     { Name: string
       Print: Printer }
