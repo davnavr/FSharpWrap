@@ -49,8 +49,20 @@ jobs:
       run: |
         dotnet restore ./FSharpWrap.sln
         dotnet tool restore
+    - name: Determine Target
+      id: build_script_target
+      run: |
+        if (${{ matrix.os }} -eq "ubuntu-latest") {
+            $target = "Pack"
+        }
+        else {
+            $target = "Build Examples"
+        }
+        
+        -join("::set-output name=target::", $target) | Write-Host
+      shell: pwsh
     - name: Build
-      run: dotnet fake run build.fsx
+      run: dotnet fake run build.fsx -t "${{ steps.build_script_target.outputs.target }}"
     - name: Upload Packages
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v2
@@ -58,6 +70,7 @@ jobs:
         name: FSharpWrap
         path: |
           ./out/*.nupkg
+          ./out/BenchmarkDotNet.Artifacts/results/*.*
           ./CHANGELOG.md
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
