@@ -65,9 +65,17 @@ Target.create "Clean" <| fun _ ->
 
     !!(rootDir </> "examples/**/*.autogen.fs") |> File.deleteAll
 
-    slnFile
-    |> DotNetCli.exec id "clean"
-    |> handleErr "Unexpected error while cleaning solution"
+    List.iter
+        (fun cfg ->
+            [
+                slnFile
+                sprintf "--configuration %s" cfg
+                "--nologo"
+            ]
+            |> String.concat " "
+            |> DotNetCli.exec id "clean"
+            |> handleErr "Unexpected error while cleaning solution")
+        [ "Debug"; "Release" ]
 
 Target.create "Build Tool" <| fun _ ->
     buildProj slnFile [ "Version", version ]
@@ -98,10 +106,11 @@ Target.create "Build Examples" <| fun _ ->
 Target.create "Run Benchmarks" <| fun _ ->
     rootDir </> "benchmarks" </> "FSharpWrap.Tool.Benchmarks.fsproj"
     |> runProj
-        (fun args ->
+        (fun _ ->
             [
-                yield! args
+                "--configuration Release"
                 "--framework net5.0"
+                "--no-restore"
                 "--"
                 "--runtimes netcoreapp31 netcoreapp50"
                 "--filter *"
