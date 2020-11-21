@@ -18,7 +18,7 @@ let private context r ldf filter =
                         let file = Path.GetFileName assm.Location
                         Set.exists
                             ((=) file)
-                            ctx.Filter.AssemblyFiles
+                            ctx.Filter.AssemblyNames
                     if skip
                     then None
                     else

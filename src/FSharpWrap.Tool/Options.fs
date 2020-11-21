@@ -1,9 +1,10 @@
 ﻿namespace FSharpWrap.Tool
 
 type Excluded =
-    { AssemblyFiles: Set<string>  }
+    { AssemblyFiles: Set<Path>
+      AssemblyNames: Set<string> }
 
-type Arguments =
+type Options =
     { AssemblyPaths: Path * Path list
       Exclude: Excluded
       LaunchDebugger: bool
@@ -12,7 +13,7 @@ type Arguments =
     member this.Assemblies =
         let h, tail = this.AssemblyPaths in h :: tail
 
-type InvalidArgument =
+type InvalidOptions =
     | EmptyAssemblyPaths
     | InvalidAssemblyPath of string
     | InvalidOutputFile of string
@@ -30,58 +31,52 @@ type InvalidArgument =
         | UnknownOption opt -> sprintf "Unknown option or invalid argument '%s'" opt
 
 [<RequireQualifiedAccess>]
-module Arguments =
+module Options =
     type StateType =
         private
         | AssemblyPaths
         | ExcludeAssemblyFiles
-        | OutputFile
-        | Invalid of InvalidArgument
+        | ExcludeAssemblyNames
+        | IncludeAssemblyFiles
+        | IncludeAssemblyNames
+        | Invalid of InvalidOptions
         | LaunchDebugger
+        | OutputFile
         | Unknown
-    and private State =
+
+    type private State =
         { AssemblyPaths: Path list
           Exclude: Excluded
           LaunchDebugger: bool
           OutputFile: Path option
           Type: StateType }
 
-    type ArgumentType =
-        | Optional of string
-        | Required of string
-
-        member this.Name =
-            match this with
-            | Optional name
-            | Required name -> name
-
-        override this.ToString() =
-            match this with
-            | Optional name -> sprintf "[--%s]" name
-            | Required name -> sprintf "--%s" name
+    type OptionType =
+        | Switch
+        | Argument of string
+        | ArgumentList of string
 
     type Info =
-        { ArgType: ArgumentType
-          ArgValue: string
+        { ArgType: OptionType
           Description: string
           State: StateType }
 
     let all =
+        // TODO: Make some options accept directories and wildcards as well.
         [
-            Optional "help", Invalid ShowUsage, "Shows this help message", ""
-            // TODO: Make this option accept directories as well.
-            Required "assembly-paths", AssemblyPaths, "Specifies the paths to the assemblies", "path list"
-            Optional "exclude-assembly-files", ExcludeAssemblyFiles, "Specifies the names of the assembly files to exclude from code generation", "name list"
-            Optional "launch-debugger", LaunchDebugger, "Calls Debugger.Launch after all arguments have been processed", ""
-            Required "output-file", OutputFile, "Specifies the path to the file containing the generated F# code", "file"
+            "exclude-assembly-files", ExcludeAssemblyFiles, "Specifies the paths to the assemblies to exclude from code generation", ArgumentList "paths"
+            "exclude-assembly-names", ExcludeAssemblyNames, "Specifies the names of the assembly files to exclude from code generation", ArgumentList "names"
+            "help", Invalid ShowUsage, "Shows this help message", Switch
+            "include-assembly-files", IncludeAssemblyFiles, "Specifies the paths to the assemblies to include in code generation", ArgumentList "paths"
+            "include-assembly-names", IncludeAssemblyNames, "Specifies the names of the assembly files to include in code generation", ArgumentList "names"
+            "launch-debugger", LaunchDebugger, "Calls Debugger.Launch after all arguments have been processed", Switch
+            "output-file", OutputFile, "Specifies the path to the file containing the generated F# code", Argument "file"
         ]
-        |> Seq.map (fun (name, st, desc, value) ->
-            let info =
-                { ArgType = name
-                  ArgValue = value
-                  Description = desc
-                  State = st }
-            name.Name, info)
+        |> Seq.map (fun (name, st, desc, argt) ->
+            name,
+            { ArgType = argt
+              Description = desc
+              State = st })
         |> Map.ofSeq
 
     let parse =
@@ -104,34 +99,38 @@ module Arguments =
             | (_, []) ->
                 match state with
                 | { AssemblyPaths = phead :: ptail
-                    OutputFile = Some out } ->
+                    OutputFile = out } ->
+                    let out' =
+                        match out with
+                        | Some file -> file
+                        | None -> Path.ofStr "output.autogen.fs" |> Option.get
                     { AssemblyPaths = phead, ptail
                       Exclude = state.Exclude
                       LaunchDebugger = state.LaunchDebugger
-                      OutputFile = out }
+                      OutputFile = out' }
                     |> Ok
                 | { AssemblyPaths = [] } -> Error EmptyAssemblyPaths
-                | { OutputFile = None } -> Error NoOutputFile
             | (_, arg :: tail) ->
+                let inline invalid err = { state with Type = Invalid err }
                 let state' =
                     match (arg, state.Type) with
                     | (Argument arg', _) -> { state with Type = arg'.State }
                     | (Path.Valid path, AssemblyPaths) ->
                         { state with AssemblyPaths = path :: state.AssemblyPaths }
-                    | (path, AssemblyPaths) -> // TODO: Maybe create function for failing fast by returning { state with Type = ... |> Invalid }
-                        { state with Type = InvalidAssemblyPath path |> Invalid }
-                    | (file, ExcludeAssemblyFiles) ->
+                    | (Path.Valid file, ExcludeAssemblyFiles) -> // TODO: Check that it is a file.
                         { state with Exclude = { state.Exclude with AssemblyFiles = Set.add file state.Exclude.AssemblyFiles } }
-                    | (Path.Valid path, OutputFile) ->
-                        { state with OutputFile = Some path; Type = Unknown }
-                    | (path, OutputFile) -> // TODO: Check that the path is a file and not a directory.
-                        { state with Type = InvalidOutputFile path |> Invalid }
-                    | _ ->
-                        { state with Type = UnknownOption arg |> Invalid }
+                    | (path, ExcludeAssemblyFiles)
+                    | (path, AssemblyPaths) -> InvalidAssemblyPath path |> invalid
+                    | (Path.Valid file, OutputFile) ->
+                        { state with OutputFile = Some file; Type = Unknown }
+                    | (path, OutputFile) -> InvalidOutputFile path |> invalid // TODO: Check that the path is a file and not a directory.
+                    | _ -> UnknownOption arg |> invalid
                 inner state' tail
         inner
             { AssemblyPaths = []
-              Exclude = { AssemblyFiles = Set.empty }
+              Exclude =
+                { AssemblyFiles = Set.empty
+                  AssemblyNames = Set.empty }
               LaunchDebugger = false
               OutputFile = None
-              Type = Unknown }
+              Type = AssemblyPaths }

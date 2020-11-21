@@ -1,4 +1,4 @@
-﻿module FSharpWrap.Tool.Tests.ArgumentsTests
+﻿module FSharpWrap.Tool.Tests.OptionsTests
 
 open Expecto
 open FsCheck
@@ -94,7 +94,7 @@ module Generators =
                         |> Gen.chars
                     return! option name
                 }
-                |> Gen.filter (fun str -> Map.containsKey str Arguments.all |> not)
+                |> Gen.filter (fun str -> Map.containsKey str Options.all |> not)
             badopt
             |> Gen.listOf
             |> Gen.map InvalidArgumentOptions
@@ -108,7 +108,7 @@ module Generators =
 module private Expect =
     let parseError msg args =
         Expect.isError
-            (Arguments.parse args)
+            (Options.parse args)
             msg
 
 [<Tests>]
@@ -131,7 +131,7 @@ let tests =
             (fun (ValidArguments args) -> args)
             (fun msg argv ->
                 let args =
-                    Expect.wantOk (Arguments.parse argv) "Parsing unexpectedly failed"
+                    Expect.wantOk (Options.parse argv) "Parsing unexpectedly failed"
                 f argv args msg)
 
     testList "argument parsing tests" [
