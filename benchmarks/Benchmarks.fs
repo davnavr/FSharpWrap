@@ -1,8 +1,6 @@
 ﻿module FSharpWrap.Tool.Benchmarks
 
-open System.IO
 open System.Reflection
-open System.Text
 
 open BenchmarkDotNet.Attributes
 open BenchmarkDotNet.Configs
@@ -13,8 +11,7 @@ open FSharpWrap.Tool.Reflection
 open FSharpWrap.Tool.Generation
 
 let inline private assemblies() =
-    Context.init
-        { Filter.ExcludeAssemblyFiles = Set.empty }
+    Context.init Filter.Empty
     |> AssemblyInfo.ofAssembly
         (typeof<System.Collections.Immutable.ImmutableDictionary>.Assembly)
     |> List.singleton

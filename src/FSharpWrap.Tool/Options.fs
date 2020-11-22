@@ -6,6 +6,12 @@ type Filter =
       IncludeAssemblyFiles: Set<Path>
       IncludeAssemblyNames: Set<string> }
 
+    static member Empty =
+        { ExcludeAssemblyFiles = Set.empty
+          ExcludeAssemblyNames = Set.empty
+          IncludeAssemblyFiles = Set.empty
+          IncludeAssemblyNames = Set.empty }
+
 type Options =
     { AssemblyPaths: Path * Path list
       Filter: Filter
@@ -22,7 +28,8 @@ type InvalidOptions =
     | MultipleOutputFiles
     | NoOutputFile
     | ShowUsage
-    | UnknownOption of string
+    | InvalidArgument of string
+    | InvalidOption of string
 
     override this.ToString() =
         match this with
@@ -32,7 +39,8 @@ type InvalidOptions =
         | InvalidOutputFile file -> sprintf "The path to the output file is invalid '%s'" file
         | MultipleOutputFiles -> "Please specify only one output file"
         | NoOutputFile -> "Please specify the path to the output file"
-        | UnknownOption opt -> sprintf "Unknown option or invalid argument '%s'" opt
+        | InvalidArgument arg -> sprintf "Invalid argument '%s'" arg
+        | InvalidOption opt -> sprintf "Invalid option specified '--%s'" opt
 
 [<RequireQualifiedAccess>]
 module Options =
@@ -84,16 +92,17 @@ module Options =
         |> Map.ofSeq
 
     let parse =
-        let (|ValidOption|_|) =
+        let (|ValidOption|InvalidOption|Argument|) =
             function
             | (opt: string) when opt.StartsWith "--" ->
                 let name =
                     opt
                         .Substring(2)
-                        .TrimStart()
                         .TrimEnd()
-                Map.tryFind name all
-            | _ -> None
+                match Map.tryFind name all with
+                | Some opt' -> Choice1Of3 opt'
+                | None -> Choice2Of3 name
+            | arg -> Choice3Of3 arg
         let rec inner state args =
             match (state.Type, args) with
             | (Invalid msg, _) -> Error msg
@@ -120,6 +129,7 @@ module Options =
                 let state' =
                     match (arg, state.Type) with
                     | (ValidOption arg', _) -> { state with Type = arg'.State }
+                    | (InvalidOption opt, _) -> InvalidOption opt |> invalid
                     | (Path.Valid path, AssemblyPaths) ->
                         { state with AssemblyPaths = path :: state.AssemblyPaths }
                     | (Path.Valid file, ExcludeAssemblyFiles) -> // TODO: Check that it is a file.
@@ -136,18 +146,15 @@ module Options =
                     | (name, IncludeAssemblyNames) ->
                         let included = Set.add name state.Filter.IncludeAssemblyNames
                         { state with Filter = { state.Filter with IncludeAssemblyNames = included } }
+                    | (path, AssemblyPaths)
                     | (path, ExcludeAssemblyFiles)
-                    | (path, AssemblyPaths) -> InvalidAssemblyPath path |> invalid
+                    | (path, IncludeAssemblyFiles) -> InvalidAssemblyPath path |> invalid
                     | (path, OutputFile) -> InvalidOutputFile path |> invalid // TODO: Check that the path is a file and not a directory.
-                    | _ -> UnknownOption arg |> invalid
+                    | _ -> InvalidArgument arg |> invalid
                 inner state' tail
         inner
             { AssemblyPaths = []
-              Filter =
-                { ExcludeAssemblyFiles = Set.empty
-                  ExcludeAssemblyNames = Set.empty
-                  IncludeAssemblyFiles = Set.empty
-                  IncludeAssemblyNames = Set.empty }
+              Filter = Filter.Empty
               LaunchDebugger = false
               OutputFile = None
               Type = AssemblyPaths }
