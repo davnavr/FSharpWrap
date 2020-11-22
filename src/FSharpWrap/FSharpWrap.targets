@@ -8,9 +8,13 @@
       <CliArguments ParameterType="System.String" Output="true" />
       <ToolPath ParameterType="System.String" Required="true" />
       <AssemblyPaths ParameterType="System.String[]" Required="true" />
-      <ExcludeAssemblyFiles ParameterType="System.String[]" Required="true" />
-      <LaunchDebugger ParameterType="System.Boolean" />
       <OutputFilePath ParameterType="System.String" Required="true" />
+
+      <!-- Filters -->
+      <ExcludeAssemblyFiles ParameterType="System.String[]" />
+      <IncludeAssemblyFiles ParameterType="System.String[]" />
+
+      <LaunchDebugger ParameterType="System.Boolean" />
     </ParameterGroup>
     <Task>
       <Using Namespace="System" />
@@ -18,20 +22,22 @@
       <Using Namespace="System.Text" />
       <Code Type="Fragment" Language="C#">
         <![CDATA[
-        var args = new List<string>
-        {
-            ToolPath,
-            "--output-file",
-            OutputFilePath,
-            "--assembly-paths"
-        };
-
+        var args = new List<string>(4);
+        args.Add(ToolPath);
         args.AddRange(AssemblyPaths);
+        args.Add("--output-file");
+        args.Add(OutputFilePath);
 
-        if (ExcludeAssemblyFiles.Length > 0)
+        if (ExcludeAssemblyFiles?.Length > 0)
         {
             args.Add("--exclude-assembly-files");
             args.AddRange(ExcludeAssemblyFiles);
+        }
+
+        if (IncludeAssemblyFiles?.Length > 0)
+        {
+            args.Add("--include-assembly-files");
+            args.AddRange(IncludeAssemblyFiles);
         }
 
         if (LaunchDebugger) args.Add("--launch-debugger");
@@ -46,71 +52,19 @@
   <PropertyGroup>
     <FSharpWrapOutputFileName Condition="'$(FSharpWrapOutputFileName)'==''">output.autogen.fs</FSharpWrapOutputFileName>
     <FSharpWrapOutputFilePath Condition="'$(FSharpWrapOutputFilePath)'==''">$(MSBuildProjectDirectory)/$(FSharpWrapOutputFileName)</FSharpWrapOutputFilePath>
-    <FSharpWrapExcludeDefaults Condition="'$(FSharpWrapExcludeDefaults)'==''">true</FSharpWrapExcludeDefaults>
     <_FSharpWrapLaunchDebugger Condition="'$(_FSharpWrapLaunchDebugger)'==''">false</_FSharpWrapLaunchDebugger>
     <_FSharpWrapToolPath Condition="'$(_FSharpWrapToolPath)'==''">$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll</_FSharpWrapToolPath>
   </PropertyGroup>
-
-  <!-- List of default assemblies to exclude from code generation for faster compile times -->
-  <ItemGroup Condition="'$(FSharpWrapExcludeDefaults)'=='true'">
-    <FSharpWrapExcludeAssemblyFiles Include="FSharp.Core.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="Microsoft.CSharp.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="Microsoft.VisualBasic.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="Microsoft.VisualBasic.Core.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="Microsoft.Win32.Primitives.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Collections.NonGeneric.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Diagnostics.Contracts.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Diagnostics.Debug.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Diagnostics.DiagnosticSource.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Diagnostics.FileVersionInfo.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Diagnostics.StackTrace.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Diagnostics.TextWriterTraceListener.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Diagnostics.Tools.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Diagnostics.TraceSource.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Diagnostics.Tracing.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Drawing.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Drawing.Primitives.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Linq.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Linq.Expressions.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Linq.Parallel.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Linq.Queryable.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Linq.Security.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.ObjectModel.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Reflection.DispatchProxy.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Reflection.Emit.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Reflection.Emit.ILGeneration.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Reflection.Emit.Lightweight.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Reflection.Metadata.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Reflection.Primitives.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Resources.Reader.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Resources.ResourceManager.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Resources.Writer.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Runtime.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Runtime.CompilerServices.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Runtime.CompilerServices.Unsafe.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Runtime.CompilerServices.VisualC.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Runtime.Extensions.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Runtime.InteropServices.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Security.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Security.Claims.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Security.Cryptography.Algorithms.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Security.Cryptography.Csp.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Security.Cryptography.Encoding.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Security.Cryptography.Primitives.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Security.Cryptography.X509Certificates.dll" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Security.Principal" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.Security.SecureString" />
-    <FSharpWrapExcludeAssemblyFiles Include="System.ValueTuple.dll" />
-  </ItemGroup>
 
   <Target Name="FSharpWrap" Condition="'$(MSBuildProjectExtension)'=='.fsproj'" BeforeTargets="AfterResolveReferences;CoreCompile">
     <!-- TODO: How to check that 'dotnet' exists? -->
     <FSharpWrapFormatCliArguments
       ToolPath="$(_FSharpWrapToolPath)"
       AssemblyPaths="@(ReferencePath)"
-      ExcludeAssemblyFiles="@(FSharpWrapExcludeAssemblyFiles)"
-      LaunchDebugger="$(_FSharpWrapLaunchDebugger)"
-      OutputFilePath="$(FSharpWrapOutputFilePath)">
+      OutputFilePath="$(FSharpWrapOutputFilePath)"
+      ExcludeAssemblyFiles="@(FSharpWrapExcludeFiles)"
+      IncludeAssemblyFiles="@(FSharpWrapIncludeFiles)"
+      LaunchDebugger="$(_FSharpWrapLaunchDebugger)">
       <Output TaskParameter="CliArguments" PropertyName="_FSharpWrapCliArguments" />
     </FSharpWrapFormatCliArguments>
 
