@@ -15,11 +15,14 @@ let main argv =
             Debugger.Launch() |> ignore
 
         // TODO: Handle errors raised during reading and writing of files
-        let file = new StreamWriter(string args.OutputFile)
+        let file =
+            let name = File.fullPath args.OutputFile
+            new StreamWriter(name.Path)
         let print =
-            Reflect.paths
-                args.Assemblies
-                args.Filter
+            let assms =
+                List.map Path.fullPath args.Assemblies
+            args.Filter
+            |> Reflect.paths assms
             |> Generate.fromAssemblies
             |> Print.genFile
         using

@@ -16,7 +16,7 @@ type File =
       Parent: Directory
       Path: string }
 
-    override this.ToString() = this.Path //Path.Combine(this.Parent.Path, this.Path)
+    override this.ToString() = this.Path
 
 type Path =
     | File of File
@@ -59,6 +59,8 @@ module File =
         | Some file -> Choice1Of2 file
         | None -> Choice2Of2()
 
+    let fullPath (file: File) = { file with File.Path = Path.GetFullPath file.Path }
+
 [<RequireQualifiedAccess>]
 module Directory =
     let ofStr str =
@@ -82,6 +84,8 @@ module Directory =
         | Some file -> Choice1Of2 file
         | None -> Choice2Of2()
 
+    let fullPath (dir: Directory) = { dir with Directory.Path = Path.GetFullPath dir.Path }
+
 [<RequireQualifiedAccess>]
 module Path =
     let ofStr =
@@ -94,3 +98,8 @@ module Path =
         match ofStr str with
         | Some path -> Choice1Of2 path
         | None -> Choice2Of2()
+
+    let fullPath =
+        function
+        | File file -> File.fullPath file |> File
+        | Directory dir -> Directory.fullPath dir |> Directory

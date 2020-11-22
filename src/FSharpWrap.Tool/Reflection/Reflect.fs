@@ -28,10 +28,16 @@ let private context r ldf filter =
             |> List.ofSeq)
 
 let paths (assms: seq<Path>) =
-    let paths = Seq.map string assms
+    let files =
+        Seq.collect
+            (function
+            | Directory dir ->
+                Directory.EnumerateFiles(dir.Path, "*.dll", SearchOption.AllDirectories)
+            | File file -> Seq.singleton file.Path)
+            assms
     context
-        (PathAssemblyResolver paths)
+        (PathAssemblyResolver files)
         (fun ctx ->
             Seq.map
                 ctx.LoadFromAssemblyPath
-                paths)
+                files)

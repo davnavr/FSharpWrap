@@ -5,6 +5,7 @@ open System.Collections.Generic
 
 open FSharpWrap.Tool
 
+[<NoComparison; NoEquality>]
 type Context =
     private
         { Excluded: Filter
