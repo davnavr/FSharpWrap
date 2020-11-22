@@ -6,32 +6,32 @@ type AssemblyFiles =
     | Include of Set<File>
     | All
 
-type AssemblyNamesFilter =
-    | ExcludeAssemblyNames of Set<string>
-    | IncludeAssemblyNames of Set<string>
+[<RequireQualifiedAccess>]
+type AssemblyNames =
+    | Exclude of Set<string>
+    | Include of Set<string>
+    | All
 
 type Filter =
     { AssemblyFiles: AssemblyFiles
-      AssemblyNames: AssemblyNamesFilter
+      AssemblyNames: AssemblyNames
       Namespaces: Set<Namespace> }
 
     static member Empty =
         { AssemblyFiles = AssemblyFiles.All
-          AssemblyNames = ExcludeAssemblyNames Set.empty
+          AssemblyNames = AssemblyNames.All
           Namespaces = Set.empty }
 
 [<RequireQualifiedAccess>]
 module Filter =
-    let addAssemblyName name filter =
-        let names =
-            let add = Set.add name
-            match filter.AssemblyNames with
-            | ExcludeAssemblyNames files -> add files |> ExcludeAssemblyNames
-            | IncludeAssemblyNames files -> add files |> IncludeAssemblyNames
-        { filter with AssemblyNames = names }
-
     let assemblyFiles { AssemblyFiles = files } =
         match files with
         | AssemblyFiles.Exclude files'
         | AssemblyFiles.Include files' -> files'
         | AssemblyFiles.All -> Set.empty
+
+    let assemblyNames { AssemblyNames = names } =
+        match names with
+        | AssemblyNames.Exclude names'
+        | AssemblyNames.Include names' -> names'
+        | AssemblyNames.All -> Set.empty

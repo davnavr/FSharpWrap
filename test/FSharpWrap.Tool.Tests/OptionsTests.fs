@@ -199,5 +199,5 @@ let tests =
                     "./Two.dll"
                 ]
                 |> Options.parse
-            Expect.equal result (Error MixedAssemblyFileFilter) "Parsing should fail because assembly file filter is mixed"
+            Expect.equal result (Error MixedFilter) "Parsing should fail because assembly file filter is mixed"
     ]
