@@ -4,6 +4,7 @@ open System
 open System.ComponentModel
 open System.IO
 
+// TODO: Add separate types for files and folders, note that files can have an empty file extension,
 [<RequireQualifiedAccess>]
 module Path =
     [<EditorBrowsable(EditorBrowsableState.Never)>]

@@ -159,7 +159,7 @@ let tests =
         successfulParse
             "parsed arguments should contain excluded assembly files"
             (fun argv args ->
-                args.Exclude.AssemblyFiles
+                args.Filter.ExcludeAssemblyFiles
                 |> Seq.map string
                 |> Expect.containsAll argv)
     ]

@@ -7,7 +7,7 @@ open FSharpWrap.Tool
 
 type Context =
     private
-        { Excluded: Excluded
+        { Excluded: Filter
           TypeParams: Dictionary<Type, TypeParam>
           TypeRefs: Dictionary<Type, TypeRef> }
 

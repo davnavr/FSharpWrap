@@ -19,7 +19,7 @@ let main argv =
         let print =
             Reflect.paths
                 args.Assemblies
-                args.Exclude
+                args.Filter
             |> Generate.fromAssemblies
             |> Print.genFile
         using

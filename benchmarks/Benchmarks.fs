@@ -14,7 +14,7 @@ open FSharpWrap.Tool.Generation
 
 let inline private assemblies() =
     Context.init
-        { Excluded.AssemblyFiles = Set.empty }
+        { Filter.ExcludeAssemblyFiles = Set.empty }
     |> AssemblyInfo.ofAssembly
         (typeof<System.Collections.Immutable.ImmutableDictionary>.Assembly)
     |> List.singleton

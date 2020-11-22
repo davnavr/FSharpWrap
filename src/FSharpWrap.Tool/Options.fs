@@ -1,12 +1,14 @@
 ﻿namespace FSharpWrap.Tool
 
-type Excluded =
-    { AssemblyFiles: Set<Path>
-      AssemblyNames: Set<string> }
+type Filter =
+    { ExcludeAssemblyFiles: Set<Path>
+      ExcludeAssemblyNames: Set<string>
+      IncludeAssemblyFiles: Set<Path>
+      IncludeAssemblyNames: Set<string> }
 
 type Options =
     { AssemblyPaths: Path * Path list
-      Exclude: Excluded
+      Filter: Filter
       LaunchDebugger: bool
       OutputFile: Path }
 
@@ -17,6 +19,7 @@ type InvalidOptions =
     | EmptyAssemblyPaths
     | InvalidAssemblyPath of string
     | InvalidOutputFile of string
+    | MultipleOutputFiles
     | NoOutputFile
     | ShowUsage
     | UnknownOption of string
@@ -27,6 +30,7 @@ type InvalidOptions =
         | EmptyAssemblyPaths -> "Please specify the assemblies to generate code for"
         | InvalidAssemblyPath path -> sprintf "The path to the assembly '%s' is invalid" path
         | InvalidOutputFile file -> sprintf "The path to the output file is invalid '%s'" file
+        | MultipleOutputFiles -> "Please specify only one output file"
         | NoOutputFile -> "Please specify the path to the output file"
         | UnknownOption opt -> sprintf "Unknown option or invalid argument '%s'" opt
 
@@ -46,7 +50,7 @@ module Options =
 
     type private State =
         { AssemblyPaths: Path list
-          Exclude: Excluded
+          Filter: Filter
           LaunchDebugger: bool
           OutputFile: Path option
           Type: StateType }
@@ -80,11 +84,11 @@ module Options =
         |> Map.ofSeq
 
     let parse =
-        let (|Argument|_|) =
+        let (|ValidOption|_|) =
             function
-            | (arg: string) when arg.StartsWith "--" ->
+            | (opt: string) when opt.StartsWith "--" ->
                 let name =
-                    arg
+                    opt
                         .Substring(2)
                         .TrimStart()
                         .TrimEnd()
@@ -93,6 +97,7 @@ module Options =
         let rec inner state args =
             match (state.Type, args) with
             | (Invalid msg, _) -> Error msg
+            | (OutputFile, _) when state.OutputFile.IsSome -> Error MultipleOutputFiles
             | (LaunchDebugger, _) ->
                 let state' = { state with LaunchDebugger = true; Type = Unknown }
                 inner state' args
@@ -105,7 +110,7 @@ module Options =
                         | Some file -> file
                         | None -> Path.ofStr "output.autogen.fs" |> Option.get
                     { AssemblyPaths = phead, ptail
-                      Exclude = state.Exclude
+                      Filter = state.Filter
                       LaunchDebugger = state.LaunchDebugger
                       OutputFile = out' }
                     |> Ok
@@ -114,23 +119,35 @@ module Options =
                 let inline invalid err = { state with Type = Invalid err }
                 let state' =
                     match (arg, state.Type) with
-                    | (Argument arg', _) -> { state with Type = arg'.State }
+                    | (ValidOption arg', _) -> { state with Type = arg'.State }
                     | (Path.Valid path, AssemblyPaths) ->
                         { state with AssemblyPaths = path :: state.AssemblyPaths }
                     | (Path.Valid file, ExcludeAssemblyFiles) -> // TODO: Check that it is a file.
-                        { state with Exclude = { state.Exclude with AssemblyFiles = Set.add file state.Exclude.AssemblyFiles } }
-                    | (path, ExcludeAssemblyFiles)
-                    | (path, AssemblyPaths) -> InvalidAssemblyPath path |> invalid
+                        let excluded = Set.add file state.Filter.ExcludeAssemblyFiles
+                        { state with Filter = { state.Filter with ExcludeAssemblyFiles = excluded } }
+                    | (Path.Valid file, IncludeAssemblyFiles) ->
+                        let included = Set.add file state.Filter.IncludeAssemblyFiles
+                        { state with Filter = { state.Filter with IncludeAssemblyFiles = included } }
                     | (Path.Valid file, OutputFile) ->
                         { state with OutputFile = Some file; Type = Unknown }
+                    | (name, ExcludeAssemblyNames) -> // TODO: What would a valid assembly name look like?
+                        let excluded = Set.add name state.Filter.ExcludeAssemblyNames
+                        { state with Filter = { state.Filter with ExcludeAssemblyNames = excluded } }
+                    | (name, IncludeAssemblyNames) ->
+                        let included = Set.add name state.Filter.IncludeAssemblyNames
+                        { state with Filter = { state.Filter with IncludeAssemblyNames = included } }
+                    | (path, ExcludeAssemblyFiles)
+                    | (path, AssemblyPaths) -> InvalidAssemblyPath path |> invalid
                     | (path, OutputFile) -> InvalidOutputFile path |> invalid // TODO: Check that the path is a file and not a directory.
                     | _ -> UnknownOption arg |> invalid
                 inner state' tail
         inner
             { AssemblyPaths = []
-              Exclude =
-                { AssemblyFiles = Set.empty
-                  AssemblyNames = Set.empty }
+              Filter =
+                { ExcludeAssemblyFiles = Set.empty
+                  ExcludeAssemblyNames = Set.empty
+                  IncludeAssemblyFiles = Set.empty
+                  IncludeAssemblyNames = Set.empty }
               LaunchDebugger = false
               OutputFile = None
               Type = AssemblyPaths }
