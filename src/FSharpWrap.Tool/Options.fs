@@ -4,7 +4,7 @@ type Options =
     { AssemblyPaths: Path * Path list
       Filter: Filter
       LaunchDebugger: bool
-      OutputFile: Path }
+      OutputFile: File }
 
     member this.Assemblies =
         let h, tail = this.AssemblyPaths in h :: tail
@@ -37,7 +37,7 @@ module Options =
     type StateType =
         private
         | AssemblyPaths
-        | AssemblyFilesFilter of (Set<File> -> AssemblyFiles)
+        | AssemblyFilesFilter of (Set<Path> -> AssemblyFiles)
         | AssemblyNamesFilter of (Set<string> -> AssemblyNames)
         | Invalid of InvalidOptions
         | LaunchDebugger
@@ -48,7 +48,7 @@ module Options =
         { AssemblyPaths: Path list
           Filter: Filter
           LaunchDebugger: bool
-          OutputFile: Path option
+          OutputFile: File option
           Type: StateType }
 
     type OptionType =
@@ -107,7 +107,7 @@ module Options =
                     let out' =
                         match out with
                         | Some file -> file
-                        | None -> Path.ofStr "output.autogen.fs" |> Option.get
+                        | None -> File.ofStr "output.autogen.fs" |> Option.get
                     { AssemblyPaths = phead, ptail
                       Filter = state.Filter
                       LaunchDebugger = state.LaunchDebugger
@@ -122,18 +122,18 @@ module Options =
                     | (InvalidOption opt, _) -> InvalidOption opt |> invalid
                     | (Path.Valid path, AssemblyPaths) ->
                         { state with AssemblyPaths = path :: state.AssemblyPaths }
-                    | (Path.Valid file, AssemblyFilesFilter filter) -> // TODO: Check that it is a file.
-                        let files =
+                    | (Path.Valid path, AssemblyFilesFilter filter) ->
+                        let paths =
                             Filter.assemblyFiles state.Filter
-                            |> Set.add file
+                            |> Set.add path
                             |> filter
-                        match state.Filter.AssemblyFiles, files with
+                        match state.Filter.AssemblyFiles, paths with
                         | AssemblyFiles.Exclude _, AssemblyFiles.Include _
                         | AssemblyFiles.Include _, AssemblyFiles.Exclude _->
                             invalid MixedFilter
                         | _ ->
-                            { state with Filter = { state.Filter with AssemblyFiles = files } }
-                    | (Path.Valid file, OutputFile) ->
+                            { state with Filter = { state.Filter with AssemblyFiles = paths } }
+                    | (File.Valid file, OutputFile) ->
                         { state with OutputFile = Some file; Type = Unknown }
                     | (name, AssemblyNamesFilter filter) -> // TODO: What would a valid assembly name look like?
                         let names =

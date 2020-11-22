@@ -2,8 +2,8 @@
 
 [<RequireQualifiedAccess>]
 type AssemblyFiles =
-    | Exclude of Set<File>
-    | Include of Set<File>
+    | Exclude of Set<Path>
+    | Include of Set<Path>
     | All
 
 [<RequireQualifiedAccess>]

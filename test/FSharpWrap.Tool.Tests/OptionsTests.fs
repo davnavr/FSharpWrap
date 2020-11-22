@@ -147,7 +147,7 @@ let tests =
             (fun argv args ->
                 args.Filter
                 |> Filter.assemblyFiles
-                |> Seq.map string
+                |> Seq.map string // TODO: These tests fail because the path to a directory or file is transformed into a full path when calling FileInfo or DirectoryInfo ctors
                 |> Expect.containsAll argv)
 
         successfulParse
