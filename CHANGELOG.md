@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Small performance improvements
 - Additional switches to specify which assemblies and namespaces to include in code generation
+### Changed
+- Default assemblies that are included are now only NuGet packages or project references
 
 ## [0.3.0] - 2020-11-13
 ### Added

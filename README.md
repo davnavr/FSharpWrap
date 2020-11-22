@@ -16,7 +16,7 @@ Add the following under an `<ItemGroup>` to your `.fsproj` project file
 </PackageReference>
 
 <!-- Make sure this comes before any of your *.fs files -->
-<Compile Include="output.autogen.fs" />
+<Compile Include="$(FSharpWrapOutputFileName)" />
 ```
 
 Depending on your needs, you may also want to add the following to your `.gitignore` file
@@ -25,17 +25,24 @@ Depending on your needs, you may also want to add the following to your `.gitign
 *.autogen.fs
 ```
 
-To exclude entire assemblies from code generation, use the following in your project file
+To exclude or include entire assemblies from code generation, use ONE of the following in your project file
 
 ```xml
 <ItemGroup>
   <!-- This will exclude an assembly file whose file name is an exact match -->
-  <FSharpWrapExcludeAssemblyFiles Include="Assembly.To.Exclude.dll" />
-  <FSharpWrapExcludeAssemblyFiles Include="Other.Assembly.To.Exclude.dll" />
+  <FSharpWrapExcludeFiles Include="/Some/Path/To/An/Assembly.To.Exclude.dll" />
+  <!-- This will exclude all .dll files in the directory and any subdirectories -->
+  <FSharpWrapExcludeFiles Include="/Another/Path/To/Exclude/" />
+</ItemGroup>
+```
+```xml
+<ItemGroup>
+  <!-- You can either include OR exclude assembly files, but NOT BOTH -->
+  <FSharpWrapIncludeFiles Include="/A/Path/Or/Directory/With/Assemblies.dll"/>
 </ItemGroup>
 ```
 
-By default, only NuGet packages are included in code generation.
+By default, only NuGet packages and project references are included in code generation.
 
 ## Example
 A dependency containing the following C# class:

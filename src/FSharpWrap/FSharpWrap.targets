@@ -7,8 +7,12 @@
     <ParameterGroup>
       <CliArguments ParameterType="System.String" Output="true" />
       <ToolPath ParameterType="System.String" Required="true" />
+
       <AssemblyPaths ParameterType="System.String[]" Required="true" />
       <OutputFilePath ParameterType="System.String" Required="true" />
+      <PackageReferences ParameterType="System.String[]" Required="true" />
+      <PackageRoot ParameterType="System.String" Required="true" />
+      <ProjectReferences ParameterType="System.String[]" Required="true" />
 
       <!-- Filters -->
       <ExcludeAssemblyFiles ParameterType="System.String[]" />
@@ -19,10 +23,11 @@
     <Task>
       <Using Namespace="System" />
       <Using Namespace="System.Collections.Generic" />
-      <Using Namespace="System.Text" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
       <Code Type="Fragment" Language="C#">
         <![CDATA[
-        var args = new List<string>(4);
+        var args = new List<string>(6);
         args.Add(ToolPath);
         args.AddRange(AssemblyPaths);
         args.Add("--output-file");
@@ -38,6 +43,27 @@
         {
             args.Add("--include-assembly-files");
             args.AddRange(IncludeAssemblyFiles);
+        }
+        else if ((ExcludeAssemblyFiles?.Length ?? 0) == 0)
+        {
+            var packages =
+                AssemblyPaths
+                    .Where(assm =>
+                        {
+                            var inRoot = assm.Contains(PackageRoot);
+                            var isImported =
+                                PackageReferences.Any(package => assm.Contains(package.ToLower()));
+                            return inRoot && isImported;
+                        })
+                    .ToList();
+
+            // Default filter if none is specified.
+            if (ProjectReferences.Length > 0 || packages.Count > 0)
+            {
+                args.Add("--include-assembly-files");
+                args.AddRange(ProjectReferences);
+                args.AddRange(packages);
+            }
         }
 
         if (LaunchDebugger) args.Add("--launch-debugger");
@@ -57,17 +83,27 @@
   </PropertyGroup>
 
   <Target Name="FSharpWrap" Condition="'$(MSBuildProjectExtension)'=='.fsproj'" BeforeTargets="AfterResolveReferences;CoreCompile">
-    <!-- TODO: How to check that 'dotnet' exists? -->
+    <MSBuild
+      Projects="%(ProjectReference.Identity)"
+      Targets="GetTargetPath"
+      Properties="Configuration=$(Configuration)">
+      <Output TaskParameter="TargetOutputs" ItemName="_FSharpWrapProjectReferences" />
+    </MSBuild>
+
     <FSharpWrapFormatCliArguments
       ToolPath="$(_FSharpWrapToolPath)"
       AssemblyPaths="@(ReferencePath)"
       OutputFilePath="$(FSharpWrapOutputFilePath)"
+      PackageReferences="@(PackageReference)"
+      PackageRoot="$(NuGetPackageRoot)"
+      ProjectReferences="@(_FSharpWrapProjectReferences)"
       ExcludeAssemblyFiles="@(FSharpWrapExcludeFiles)"
       IncludeAssemblyFiles="@(FSharpWrapIncludeFiles)"
       LaunchDebugger="$(_FSharpWrapLaunchDebugger)">
       <Output TaskParameter="CliArguments" PropertyName="_FSharpWrapCliArguments" />
     </FSharpWrapFormatCliArguments>
 
+    <!-- TODO: How to check that 'dotnet' exists? -->
     <Exec
       Command="dotnet exec $(_FSharpWrapCliArguments)"
       ConsoleToMsBuild="true"
