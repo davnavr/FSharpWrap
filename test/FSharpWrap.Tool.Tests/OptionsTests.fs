@@ -145,7 +145,8 @@ let tests =
         successfulParse
             "parsed arguments should contain excluded assembly files"
             (fun argv args ->
-                args.Filter.ExcludeAssemblyFiles
+                args.Filter
+                |> Filter.assemblyFiles
                 |> Seq.map string
                 |> Expect.containsAll argv)
 
@@ -167,7 +168,8 @@ let tests =
                     "./File2.fs"
                 ]
                 |> Options.parse
-            Expect.isError result "Parsing should fail because of duplicate flag"
+
+            Expect.equal result (Error MultipleOutputFiles) "Parsing should fail because --output-file is specified more than once"
 
         testCase "included assemblies can be specified more than once" <| fun() ->
             let result =
@@ -184,4 +186,18 @@ let tests =
                 ]
                 |> Options.parse
             Expect.isOk result "Parsing should succeed with options expecting lists"
+
+        testCase "cannot have mixed filter for assembly files" <| fun() ->
+            let result =
+                [
+                    "./FSharpWrap.Tool.dll"
+                    "--output-file"
+                    "./fun.fs"
+                    "--include-assembly-files"
+                    "./One.dll"
+                    "--exclude-assembly-files"
+                    "./Two.dll"
+                ]
+                |> Options.parse
+            Expect.equal result (Error MixedAssemblyFileFilter) "Parsing should fail because assembly file filter is mixed"
     ]

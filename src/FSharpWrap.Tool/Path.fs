@@ -41,3 +41,6 @@ module Path =
         inner []
 
 type Path = Path.Path
+
+// Temporary
+type File = Path

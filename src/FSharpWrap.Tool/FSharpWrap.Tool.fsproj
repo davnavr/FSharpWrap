@@ -13,6 +13,7 @@
     <Compile Include="Path.fs" />
     <Compile Include="FsName.fs" />
     <Compile Include="Namespace.fs" />
+    <Compile Include="Filter.fs" />
     <Compile Include="Options.fs" />
     <Compile Include="Reflection\MemberPatterns.fs" />
     <Compile Include="Reflection\TypeArgList.fs" />

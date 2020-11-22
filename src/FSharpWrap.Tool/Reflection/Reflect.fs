@@ -16,9 +16,10 @@ let private context r ldf filter =
                 (fun (assm: Assembly) ->
                     let skip =
                         let file = Path.GetFileName assm.Location
-                        Set.exists
-                            ((=) file)
-                            ctx.Filter.ExcludeAssemblyNames
+                        //Set.exists
+                        //    ((=) file)
+                        //    ctx.Filter.ExcludeAssemblyNames
+                        false
                     if skip
                     then None
                     else
