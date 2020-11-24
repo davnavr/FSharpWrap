@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <FSharpWrapOutputFileName>OtherFileName.fs</FSharpWrapOutputFileName>
+    <FSharpWrapOutputFileName>OtherFileName.autogen.fs</FSharpWrapOutputFileName>
   </PropertyGroup>
 
   <ItemGroup>
