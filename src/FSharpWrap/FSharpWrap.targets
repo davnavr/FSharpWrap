@@ -9,7 +9,7 @@
       <ToolPath ParameterType="System.String" Required="true" />
 
       <AssemblyPaths ParameterType="System.String[]" Required="true" />
-      <OutputFilePath ParameterType="System.String" Required="true" />
+      <OutputFile ParameterType="System.String" Required="true" />
 
       <!-- Filters -->
       <ExcludeAssemblyNames ParameterType="System.String[]" Required="true" />
@@ -26,52 +26,58 @@
       <Using Namespace="System.Linq" />
       <Code Type="Fragment" Language="C#">
         <![CDATA[
-        // TODO: Add step to check that the tool path exists
+if (!File.Exists(ToolPath))
+{
+    Log.LogError($"Unable to locate FSharpWrap executable at {ToolPath}");
+    return false;
+}
 
-        var args = new List<string>(6);
-        args.Add(ToolPath);
-        args.AddRange(AssemblyPaths);
-        args.Add("--output-file");
-        args.Add(OutputFilePath);
+var args = new List<string>(6);
+args.Add(ToolPath);
+args.AddRange(AssemblyPaths);
+args.Add("--output-file");
+args.Add(OutputFile);
 
-        if (ExcludeAssemblyNames.Length > 0)
-        {
-            args.Add("--exclude-assembly-names");
-            args.AddRange(ExcludeAssemblyNames);
-        }
+if (ExcludeAssemblyNames.Length > 0)
+{
+    args.Add("--exclude-assembly-names");
+    args.AddRange(ExcludeAssemblyNames);
+}
 
-        if (IncludeAssemblyNames.Length > 0)
-        {
-            args.Add("--include-assembly-names");
-            args.AddRange(IncludeAssemblyNames);
-        }
+if (IncludeAssemblyNames.Length > 0)
+{
+    args.Add("--include-assembly-names");
+    args.AddRange(IncludeAssemblyNames);
+}
 
-        if (ExcludeNamespaces.Length > 0)
-        {
-            args.Add("--exclude-namespaces");
-            args.AddRange(ExcludeNamespaces);
-        }
+if (ExcludeNamespaces.Length > 0)
+{
+    args.Add("--exclude-namespaces");
+    args.AddRange(ExcludeNamespaces);
+}
 
-        if (IncludeNamespaces.Length > 0)
-        {
-            args.Add("--include-namespaces");
-            args.AddRange(IncludeNamespaces);
-        }
+if (IncludeNamespaces.Length > 0)
+{
+    args.Add("--include-namespaces");
+    args.AddRange(IncludeNamespaces);
+}
 
-        if (LaunchDebugger) args.Add("--launch-debugger");
+if (LaunchDebugger) args.Add("--launch-debugger");
 
-        CliArguments = String.Join(" ", args.ConvertAll(arg => $"\"{arg}\""));
+CliArguments = String.Join(" ", args.ConvertAll(arg => $"\"{arg}\""));
         ]]>
       </Code>
     </Task>
   </UsingTask>
 
-  <!-- FSharpWrap Settings -->
   <PropertyGroup>
-    <FSharpWrapOutputFileName Condition="'$(FSharpWrapOutputFileName)'==''">output.autogen.fs</FSharpWrapOutputFileName>
-    <FSharpWrapOutputFilePath Condition="'$(FSharpWrapOutputFilePath)'==''">$(MSBuildProjectDirectory)/$(FSharpWrapOutputFileName)</FSharpWrapOutputFilePath>
     <_FSharpWrapLaunchDebugger Condition="'$(_FSharpWrapLaunchDebugger)'==''">false</_FSharpWrapLaunchDebugger>
     <_FSharpWrapToolPath Condition="'$(_FSharpWrapToolPath)'==''">$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll</_FSharpWrapToolPath>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(FSharpWrapOutputFile)'==''">
+    <FSharpWrapOutputFile Condition="'$(TargetFrameworks)'==''">$(MSBuildProjectDirectory)/output.autogen.fs</FSharpWrapOutputFile>
+    <FSharpWrapOutputFile Condition="'$(TargetFrameworks)'!=''">$(MSBuildProjectDirectory)/output.$(TargetFramework).autogen.fs</FSharpWrapOutputFile>
   </PropertyGroup>
 
   <Target Name="FSharpWrap" Condition="'$(MSBuildProjectExtension)'=='.fsproj'" BeforeTargets="AfterResolveReferences;CoreCompile">
@@ -85,7 +91,7 @@
     <FSharpWrapFormatCliArguments
       ToolPath="$(_FSharpWrapToolPath)"
       AssemblyPaths="@(ReferencePath)"
-      OutputFilePath="$(FSharpWrapOutputFilePath)"
+      OutputFile="$(FSharpWrapOutputFile)"
       ExcludeAssemblyNames="@(FSharpWrapExcludeNames)"
       IncludeAssemblyNames="@(FSharpWrapIncludeNames)"
       ExcludeNamespaces="@(FSharpWrapExcludeNamespaces)"

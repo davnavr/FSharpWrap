@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="output.autogen.fs" />
+    <Compile Include="$(FSharpWrapOutputFile)" />
     <Compile Include="Library.fs" />
   </ItemGroup>
 

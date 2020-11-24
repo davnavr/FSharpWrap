@@ -14,25 +14,29 @@ let main argv =
         if args.LaunchDebugger then
             Debugger.Launch() |> ignore
 
-        // TODO: Handle errors raised during reading and writing of files
-        let file =
-            let name = File.fullPath args.OutputFile
-            new StreamWriter(name.Path)
-        let print =
-            let assms =
-                List.map Path.fullPath args.Assemblies
-            args.Filter
-            |> Reflect.paths assms
-            |> Generate.fromAssemblies
-            |> Print.genFile
-        using
-            file
-            (fun stream ->
-                { Close = stream.Close
-                  Line = stream.WriteLine
-                  Write = stream.Write }
-                |> print)
-        0
+        try
+            let file =
+                let name = File.fullPath args.OutputFile
+                new StreamWriter(name.Path)
+            let print =
+                let assms =
+                    List.map Path.fullPath args.Assemblies
+                args.Filter
+                |> Reflect.paths assms
+                |> Generate.fromAssemblies
+                |> Print.genFile
+            using
+                file
+                (fun stream ->
+                    { Close = stream.Close
+                      Line = stream.WriteLine
+                      Write = stream.Write }
+                    |> print)
+            0
+        with
+        | ex ->
+            stderr.WriteLine ex.Message
+            -1
     | Error ShowUsage ->
         printfn "Usage: fsharpwrap <assembly files> [options]"
         stdout.WriteLine()

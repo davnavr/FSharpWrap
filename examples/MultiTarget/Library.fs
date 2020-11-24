@@ -1,5 +1,6 @@
-﻿namespace MultiTarget
+﻿module MultiTarget.Tests
 
-module Say =
-    let hello name =
-        printfn "Hello %s" name
+open System
+
+let getAssembly (t: Type) =
+    Type.assembly t
