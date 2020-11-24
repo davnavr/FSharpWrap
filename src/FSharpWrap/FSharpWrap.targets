@@ -26,41 +26,45 @@
       <Using Namespace="System.Linq" />
       <Code Type="Fragment" Language="C#">
         <![CDATA[
-        // TODO: Add step to check that the tool path exists
+if (!File.Exists(ToolPath))
+{
+    Log.LogError($"Unable to locate FSharpWrap executable at {ToolPath}");
+    return false;
+}
 
-        var args = new List<string>(6);
-        args.Add(ToolPath);
-        args.AddRange(AssemblyPaths);
-        args.Add("--output-file");
-        args.Add(OutputFilePath);
+var args = new List<string>(6);
+args.Add(ToolPath);
+args.AddRange(AssemblyPaths);
+args.Add("--output-file");
+args.Add(OutputFilePath);
 
-        if (ExcludeAssemblyNames.Length > 0)
-        {
-            args.Add("--exclude-assembly-names");
-            args.AddRange(ExcludeAssemblyNames);
-        }
+if (ExcludeAssemblyNames.Length > 0)
+{
+    args.Add("--exclude-assembly-names");
+    args.AddRange(ExcludeAssemblyNames);
+}
 
-        if (IncludeAssemblyNames.Length > 0)
-        {
-            args.Add("--include-assembly-names");
-            args.AddRange(IncludeAssemblyNames);
-        }
+if (IncludeAssemblyNames.Length > 0)
+{
+    args.Add("--include-assembly-names");
+    args.AddRange(IncludeAssemblyNames);
+}
 
-        if (ExcludeNamespaces.Length > 0)
-        {
-            args.Add("--exclude-namespaces");
-            args.AddRange(ExcludeNamespaces);
-        }
+if (ExcludeNamespaces.Length > 0)
+{
+    args.Add("--exclude-namespaces");
+    args.AddRange(ExcludeNamespaces);
+}
 
-        if (IncludeNamespaces.Length > 0)
-        {
-            args.Add("--include-namespaces");
-            args.AddRange(IncludeNamespaces);
-        }
+if (IncludeNamespaces.Length > 0)
+{
+    args.Add("--include-namespaces");
+    args.AddRange(IncludeNamespaces);
+}
 
-        if (LaunchDebugger) args.Add("--launch-debugger");
+if (LaunchDebugger) args.Add("--launch-debugger");
 
-        CliArguments = String.Join(" ", args.ConvertAll(arg => $"\"{arg}\""));
+CliArguments = String.Join(" ", args.ConvertAll(arg => $"\"{arg}\""));
         ]]>
       </Code>
     </Task>
