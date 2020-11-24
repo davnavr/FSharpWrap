@@ -5,7 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="$(FSharpWrapOutputFilePath)" />
     <Compile Include="Library.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FSharpWrapIncludeNamespaces Include="System" />
   </ItemGroup>
 
 </Project>
