@@ -9,7 +9,7 @@
       <ToolPath ParameterType="System.String" Required="true" />
 
       <AssemblyPaths ParameterType="System.String[]" Required="true" />
-      <OutputFilePath ParameterType="System.String" Required="true" />
+      <OutputFile ParameterType="System.String" Required="true" />
 
       <!-- Filters -->
       <ExcludeAssemblyNames ParameterType="System.String[]" Required="true" />
@@ -36,7 +36,7 @@ var args = new List<string>(6);
 args.Add(ToolPath);
 args.AddRange(AssemblyPaths);
 args.Add("--output-file");
-args.Add(OutputFilePath);
+args.Add(OutputFile);
 
 if (ExcludeAssemblyNames.Length > 0)
 {
@@ -70,12 +70,14 @@ CliArguments = String.Join(" ", args.ConvertAll(arg => $"\"{arg}\""));
     </Task>
   </UsingTask>
 
-  <!-- FSharpWrap Settings -->
   <PropertyGroup>
-    <FSharpWrapOutputFileName Condition="'$(FSharpWrapOutputFileName)'==''">output.autogen.fs</FSharpWrapOutputFileName>
-    <FSharpWrapOutputFilePath Condition="'$(FSharpWrapOutputFilePath)'==''">$(MSBuildProjectDirectory)/$(FSharpWrapOutputFileName)</FSharpWrapOutputFilePath>
     <_FSharpWrapLaunchDebugger Condition="'$(_FSharpWrapLaunchDebugger)'==''">false</_FSharpWrapLaunchDebugger>
     <_FSharpWrapToolPath Condition="'$(_FSharpWrapToolPath)'==''">$(MSBuildThisFileDirectory)/FSharpWrap.Tool.dll</_FSharpWrapToolPath>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(FSharpWrapOutputFile)'==''">
+    <FSharpWrapOutputFile Condition="'$(TargetFrameworks)'==''">$(MSBuildProjectDirectory)/output.autogen.fs</FSharpWrapOutputFile>
+    <FSharpWrapOutputFile Condition="'$(TargetFrameworks)'!=''">$(MSBuildProjectDirectory)/output.$(TargetFramework).autogen.fs</FSharpWrapOutputFile>
   </PropertyGroup>
 
   <Target Name="FSharpWrap" Condition="'$(MSBuildProjectExtension)'=='.fsproj'" BeforeTargets="AfterResolveReferences;CoreCompile">
@@ -89,7 +91,7 @@ CliArguments = String.Join(" ", args.ConvertAll(arg => $"\"{arg}\""));
     <FSharpWrapFormatCliArguments
       ToolPath="$(_FSharpWrapToolPath)"
       AssemblyPaths="@(ReferencePath)"
-      OutputFilePath="$(FSharpWrapOutputFilePath)"
+      OutputFile="$(FSharpWrapOutputFile)"
       ExcludeAssemblyNames="@(FSharpWrapExcludeNames)"
       IncludeAssemblyNames="@(FSharpWrapIncludeNames)"
       ExcludeNamespaces="@(FSharpWrapExcludeNamespaces)"
