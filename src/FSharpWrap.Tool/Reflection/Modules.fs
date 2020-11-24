@@ -177,10 +177,12 @@ module Type =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module AssemblyInfo =
-    let ofAssembly (assm: Assembly) ctx =
+    let ofAssembly (assm: Assembly) (ctx: Context) =
         let types =
-            // TODO: Move type filtering logic for AssemblyInfo.ofAssembly and Type.def outside of the reflection namespace.
-            Seq.choose
+            Seq.where
+                (Filter.typeIncluded ctx.Filter)
+                assm.ExportedTypes
+            |> Seq.choose
                 (function
                 | Derives "System" "Delegate" _
                 | AssignableTo "Microsoft.FSharp.Core" "FSharpFunc`2" _
@@ -190,7 +192,6 @@ module AssemblyInfo =
                 | IsStatic _
                 | IsTuple _ -> None
                 | t -> Some t)
-                assm.ExportedTypes
             |> Seq.map (fun t -> Type.def t ctx)
             |> Seq.toList
         { FullName = assm.FullName

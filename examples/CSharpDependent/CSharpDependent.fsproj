@@ -9,7 +9,11 @@
   <ItemGroup>
     <Compile Include="output.autogen.fs" />
     <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <FSharpWrapIncludeNames Include="CSharpDependency;System.Diagnostics.StackTrace" />
+    <FSharpWrapExcludeNamespaces Include="System.Diagnostics.SymbolStore" />
   </ItemGroup>
 
   <!-- References -->

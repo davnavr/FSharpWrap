@@ -25,11 +25,21 @@ type Filter =
 module Filter =
     let private all _ = true
 
-    let assemblyIncluded filter =
-        let found names (assm: Assembly) =
-            let name = assm.GetName().Name
-            Set.contains name names
-        match filter.Assemblies with
+    let inline private included items map =
+        let found items' item =
+            let item' = map item
+            Set.contains item' items'
+        match items with
         | Exclude exc -> found exc >> not
         | Include inc -> found inc
         | All -> all
+
+    let assemblyIncluded { Assemblies = assms } =
+        fun (assm: Assembly) ->
+            assm.GetName().Name
+        |> included assms
+
+    let typeIncluded { Namespaces = namespaces } =
+        fun (t: System.Type) ->
+            Namespace.ofStr t.Namespace
+        |> included namespaces

@@ -37,7 +37,8 @@ module Options =
     type StateType =
         private
         | AssemblyPaths
-        | AssemblyNames of (Set<string> -> FilterType<string>)
+        | FilterAssemblyNames of (Set<string> -> FilterType<string>)
+        | FilterNamespaces of (Set<Namespace> -> FilterType<Namespace>)
         | Invalid of InvalidOptions
         | LaunchDebugger
         | OutputFile
@@ -63,9 +64,11 @@ module Options =
     let all =
         // TODO: Make some options accept directories and wildcards as well.
         [
-            "exclude-assembly-names", AssemblyNames Exclude, "Specifies the names of the assembly files to exclude from code generation", ArgumentList "names"
+            "exclude-assembly-names", FilterAssemblyNames Exclude, "Specifies the names of the assembly files to exclude from code generation", ArgumentList "names"
+            "exclude-namespaces", FilterNamespaces Exclude, "Specifies the namespaces of the types to exclude from code generation", ArgumentList "namespaces"
             "help", Invalid ShowUsage, "Shows this help message", Switch
-            "include-assembly-names", AssemblyNames Include, "Specifies the names of the assembly files to include in code generation", ArgumentList "names"
+            "include-assembly-names", FilterAssemblyNames Include, "Specifies the names of the assembly files to include in code generation", ArgumentList "names"
+            "include-namespaces", FilterNamespaces Include, "Specifies the namespaces of the types to include in code generation", ArgumentList "namespaces"
             "launch-debugger", LaunchDebugger, "Calls Debugger.Launch after all arguments have been processed", Switch
             "output-file", OutputFile, "Specifies the path to the file containing the generated F# code", Argument "file"
         ]
@@ -113,6 +116,15 @@ module Options =
                 | { AssemblyPaths = [] } -> Error EmptyAssemblyPaths
             | _, arg :: tail ->
                 let inline invalid err = { state with Type = Invalid err }
+                let inline filter item (existing: FilterType<_>) f update =
+                    let items =
+                        Set.add item existing.Items |> f
+                    match existing, items with
+                    | Exclude _, Include _
+                    | Include _, Exclude _ ->
+                        invalid MixedFilter
+                    | _ ->
+                        { state with Filter = update items state.Filter }
                 let state' =
                     match arg, state.Type with
                     | (ValidOption arg', _) -> { state with Type = arg'.State }
@@ -121,18 +133,18 @@ module Options =
                         { state with AssemblyPaths = path :: state.AssemblyPaths }
                     | (File.Valid file, OutputFile) ->
                         { state with OutputFile = Some file; Type = Unknown }
-                    | (name, AssemblyNames filter) -> // TODO: What would a valid assembly name look like?
-                        let names =
-                            Set.add
-                                name
-                                state.Filter.Assemblies.Items
-                            |> filter
-                        match state.Filter.Assemblies, names with
-                        | Exclude _, Include _
-                        | Include _, Exclude _ ->
-                            invalid MixedFilter
-                        | _ ->
-                            { state with Filter = { state.Filter with Assemblies = names } }
+                    | (name, FilterAssemblyNames t) ->
+                        filter
+                            name
+                            state.Filter.Assemblies
+                            t
+                            (fun names f -> { f with Assemblies = names })
+                    | (ns, FilterNamespaces t) ->
+                        filter
+                            (Namespace.ofStr ns)
+                            state.Filter.Namespaces
+                            t
+                            (fun names f -> { f with Namespaces = names })
                     | (path, AssemblyPaths) -> InvalidAssemblyPath path |> invalid
                     | (path, OutputFile) -> InvalidOutputFile path |> invalid
                     | _ -> InvalidArgument arg |> invalid

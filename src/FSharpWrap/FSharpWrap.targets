@@ -10,13 +10,12 @@
 
       <AssemblyPaths ParameterType="System.String[]" Required="true" />
       <OutputFilePath ParameterType="System.String" Required="true" />
-      <PackageReferences ParameterType="System.String[]" Required="true" />
-      <PackageRoot ParameterType="System.String" Required="true" />
-      <ProjectReferences ParameterType="System.String[]" Required="true" />
 
       <!-- Filters -->
       <ExcludeAssemblyNames ParameterType="System.String[]" Required="true" />
       <IncludeAssemblyNames ParameterType="System.String[]" Required="true" />
+      <ExcludeNamespaces ParameterType="System.String[]" Required="true" />
+      <IncludeNamespaces ParameterType="System.String[]" Required="true" />
 
       <LaunchDebugger ParameterType="System.Boolean" />
     </ParameterGroup>
@@ -27,22 +26,36 @@
       <Using Namespace="System.Linq" />
       <Code Type="Fragment" Language="C#">
         <![CDATA[
+        // TODO: Add step to check that the tool path exists
+
         var args = new List<string>(6);
         args.Add(ToolPath);
         args.AddRange(AssemblyPaths);
         args.Add("--output-file");
         args.Add(OutputFilePath);
 
-        if (ExcludeAssemblyNames?.Length > 0)
+        if (ExcludeAssemblyNames.Length > 0)
         {
             args.Add("--exclude-assembly-names");
             args.AddRange(ExcludeAssemblyNames);
         }
 
-        if (IncludeAssemblyNames?.Length > 0)
+        if (IncludeAssemblyNames.Length > 0)
         {
             args.Add("--include-assembly-names");
             args.AddRange(IncludeAssemblyNames);
+        }
+
+        if (ExcludeNamespaces.Length > 0)
+        {
+            args.Add("--exclude-namespaces");
+            args.AddRange(ExcludeNamespaces);
+        }
+
+        if (IncludeNamespaces.Length > 0)
+        {
+            args.Add("--include-namespaces");
+            args.AddRange(IncludeNamespaces);
         }
 
         if (LaunchDebugger) args.Add("--launch-debugger");
@@ -73,11 +86,10 @@
       ToolPath="$(_FSharpWrapToolPath)"
       AssemblyPaths="@(ReferencePath)"
       OutputFilePath="$(FSharpWrapOutputFilePath)"
-      PackageReferences="@(PackageReference)"
-      PackageRoot="$(NuGetPackageRoot)"
-      ProjectReferences="@(_FSharpWrapProjectReferences)"
       ExcludeAssemblyNames="@(FSharpWrapExcludeNames)"
       IncludeAssemblyNames="@(FSharpWrapIncludeNames)"
+      ExcludeNamespaces="@(FSharpWrapExcludeNamespaces)"
+      IncludeNamespaces="@(FSharpWrapIncludeNamespaces)"
       LaunchDebugger="$(_FSharpWrapLaunchDebugger)">
       <Output TaskParameter="CliArguments" PropertyName="_FSharpWrapCliArguments" />
     </FSharpWrapFormatCliArguments>

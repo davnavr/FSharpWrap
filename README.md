@@ -42,6 +42,24 @@ Assemblies can be either excluded or included from code generation, but not both
 
 By default, all assemblies referenced by a project are included in code generation.
 
+Namespaces can also be either included or excluded from code generation
+
+```xml
+<ItemGroup>
+  <!--
+    In the assemblies that will be included in code generation, only
+    the types that are in the namespaces G, H, or I will be included
+  -->
+  <FSharpWrapIncludeNamespaces Include="G;H;I" />
+</ItemGroup>
+```
+```xml
+<ItemGroup>
+  <!-- Types in the namespace J, K, or L are excluded from code generation -->
+  <FSharpWrapExcludeNamespaces Include="J;K;L" />
+</ItemGroup>
+```
+
 ## Example
 A dependency containing the following C# class:
 

@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <FSharpWrapIncludeNames Include="netstandard;System.Collections.Immutable" />
+    <FSharpWrapIncludeNamespaces Include="System.Collections.Generic;System.Collections.Immutable;System.Collections.ObjectModel" />
   </ItemGroup>
 
   <!-- References -->
