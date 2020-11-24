@@ -1,4 +1,4 @@
-﻿module FSharpWrap.Tool.Tests.ArgumentsTests
+﻿module FSharpWrap.Tool.Tests.OptionsTests
 
 open Expecto
 open FsCheck
@@ -20,58 +20,33 @@ type ValidArguments =
 [<AutoOpen>]
 module Generators =
     let private option name =
-        gen {
-            let! ws1, ws2 = Gen.two Gen.ws
-            return sprintf
-                "--%s%s%s"
-                ws1
-                name
-                ws2
-        }
+        Gen.map
+            (sprintf "--%s%s" name)
+            Gen.ws
 
-    let assemblies =
+    let private arguments more t =
         gen {
-            let! opt = option "assembly-paths"
-            let! paths =
+            let! assemblies =
                 Gen.path
                 |> Gen.nonEmptyListOf
                 |> Gen.resize 6
                 |> Gen.map (List.map string)
-            return opt :: paths
-        }
-
-    let excludeAssemblyFiles =
-        gen {
-            let! opt = option "exclude-assembly-files"
-            let! files =
-                Gen.path
-                |> Gen.nonEmptyListOf
-                |> Gen.resize 3
-                |> Gen.map (List.map string)
-            return opt :: files
-        }
-
-    let outfile =
-        gen {
-            let! opt = option "output-file"
-            let! file = Gen.map string Gen.path
-            return [ opt; file ]
-        }
-
-    let private arguments more t =
-        gen {
-            let! assemblies' = assemblies
-            let! excludeAssemblyFiles' = excludeAssemblyFiles
-            let! outfile' = outfile
-            return!
+            let! outfile =
+                gen {
+                    let! opt = option "output-file"
+                    let! file = Gen.map string Gen.path
+                    return [ opt; file ]
+                }
+            let! debug = Gen.elements [ []; [ "--launch-debugger" ] ]
+            let! rest =
                 [
-                    assemblies'
-                    excludeAssemblyFiles'
-                    outfile'
+                    outfile
+                    debug
                     more
                 ]
                 |> Gen.shuffle
-                |> Gen.map (List.ofArray >> List.collect id >> t)
+                |> Gen.map (List.ofArray >> List.collect id)
+            return t (assemblies @ rest)
         }
 
     type ArgumentGenerators =
@@ -94,7 +69,7 @@ module Generators =
                         |> Gen.chars
                     return! option name
                 }
-                |> Gen.filter (fun str -> Map.containsKey str Arguments.all |> not)
+                |> Gen.filter (fun str -> Map.containsKey str Options.all |> not)
             badopt
             |> Gen.listOf
             |> Gen.map InvalidArgumentOptions
@@ -108,7 +83,7 @@ module Generators =
 module private Expect =
     let parseError msg args =
         Expect.isError
-            (Arguments.parse args)
+            (Options.parse args)
             msg
 
 [<Tests>]
@@ -131,7 +106,7 @@ let tests =
             (fun (ValidArguments args) -> args)
             (fun msg argv ->
                 let args =
-                    Expect.wantOk (Arguments.parse argv) "Parsing unexpectedly failed"
+                    Expect.wantOk (Options.parse argv) "Parsing unexpectedly failed"
                 f argv args msg)
 
     testList "argument parsing tests" [
@@ -157,9 +132,53 @@ let tests =
                 |> Expect.containsAll argv)
 
         successfulParse
-            "parsed arguments should contain excluded assembly files"
+            "parsed arguments should specify debugger launch"
             (fun argv args ->
-                args.Exclude.AssemblyFiles
-                |> Seq.map string
-                |> Expect.containsAll argv)
+                List.contains
+                    "--launch-debugger"
+                    argv
+                |> Expect.equal args.LaunchDebugger)
+
+        testCase "output file cannot be specified twice" <| fun() ->
+            let result =
+                [
+                    "./MyAssembly.dll"
+                    "--output-file"
+                    "./File1.fs"
+                    "--output-file"
+                    "./File2.fs"
+                ]
+                |> Options.parse
+
+            Expect.equal result (Error MultipleOutputFiles) "Parsing should fail because --output-file is specified more than once"
+
+        testCase "included assemblies can be specified more than once" <| fun() ->
+            let result =
+                [
+                    "./Hello/World.dll"
+                    "--output-file"
+                    "./Temp/Thing.fs"
+                    "--include-assembly-names"
+                    "FancyParsing"
+                    "Keyboard"
+                    "My.Thing"
+                    "--include-assembly-names"
+                    "CI"
+                ]
+                |> Options.parse
+            Expect.isOk result "Parsing should succeed with options expecting lists"
+
+        testCase "cannot have mixed filter for assembly names" <| fun() ->
+            let result =
+                [
+                    "./FSharpWrap.Tool.dll"
+                    "--output-file"
+                    "./fun.fs"
+                    "--include-assembly-names"
+                    "One"
+                    "--exclude-assembly-names"
+                    "Two"
+                ]
+                |> Options.parse
+            Expect.equal result (Error MixedFilter) "Parsing should fail because assembly file filter is mixed"
     ]

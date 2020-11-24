@@ -16,7 +16,7 @@ Add the following under an `<ItemGroup>` to your `.fsproj` project file
 </PackageReference>
 
 <!-- Make sure this comes before any of your *.fs files -->
-<Compile Include="output.autogen.fs" />
+<Compile Include="$(FSharpWrapOutputFileName)" />
 ```
 
 Depending on your needs, you may also want to add the following to your `.gitignore` file
@@ -25,24 +25,39 @@ Depending on your needs, you may also want to add the following to your `.gitign
 *.autogen.fs
 ```
 
-To exclude entire assemblies from code generation, use the following in your project file
+Assemblies can be either excluded or included from code generation, but not both
 
 ```xml
 <ItemGroup>
-  <!-- This will exclude an assembly file whose file name is an exact match -->
-  <FSharpWrapExcludeAssemblyFiles Include="Assembly.To.Exclude.dll" />
-  <FSharpWrapExcludeAssemblyFiles Include="Other.Assembly.To.Exclude.dll" />
+  <!-- This will include only assemblies with the names A, B, or C in code generation -->
+  <FSharpWrapIncludeNames Include="A;B;C" />
 </ItemGroup>
+```
+```xml
+<ItemGroup>
+  <!-- This will exclude assemblies with the names D, E, or F, from code generation -->
+  <FSharpWrapIncludeNames Include="D;E;F" />
+</ItemGroup>
+```
 
-<PropertyGroup>
+By default, all assemblies referenced by a project are included in code generation.
+
+Namespaces can also be either included or excluded from code generation
+
+```xml
+<ItemGroup>
   <!--
-    By default, FSharpWrap excludes some assemblies from code generation,
-    go to "./src/FSharpWrap/FSharpWrap.targets" for an exact list
-
-    To disable the default exclusion of certain assemblies, set this property to false
+    In the assemblies that will be included in code generation, only
+    the types that are in the namespaces G, H, or I will be included
   -->
-  <!--<FSharpWrapExcludeDefaults>false</FSharpWrapExcludeDefaults>-->
-</PropertyGroup>
+  <FSharpWrapIncludeNamespaces Include="G;H;I" />
+</ItemGroup>
+```
+```xml
+<ItemGroup>
+  <!-- Types in the namespace J, K, or L are excluded from code generation -->
+  <FSharpWrapExcludeNamespaces Include="J;K;L" />
+</ItemGroup>
 ```
 
 ## Example

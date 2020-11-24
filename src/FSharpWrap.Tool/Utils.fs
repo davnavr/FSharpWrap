@@ -5,10 +5,10 @@ open System.Reflection
 
 [<AutoOpen>]
 module internal Collections =
-    let inline (|Empty|_|) col =
+    let inline (|Empty|NotEmpty|) col =
         if (^T : (member IsEmpty : bool) col)
-        then Some()
-        else None
+        then Choice1Of2()
+        else Choice2Of2 col
 
     let inline (|ContainsValue|_|) key col =
         let mutable value = Unchecked.defaultof<'Value>

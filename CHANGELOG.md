@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Small performance improvements
+- Additional properties to specify which assemblies and namespaces to include in code generation
+### Changed
+- All assemblies are included in code generation by default
 
 ## [0.3.0] - 2020-11-13
 ### Added
