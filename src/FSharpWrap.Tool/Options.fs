@@ -37,8 +37,7 @@ module Options =
     type StateType =
         private
         | AssemblyPaths
-        | AssemblyFilesFilter of (Set<Path> -> AssemblyFiles)
-        | AssemblyNamesFilter of (Set<string> -> AssemblyNames)
+        | AssemblyNames of (Set<string> -> FilterType<string>)
         | Invalid of InvalidOptions
         | LaunchDebugger
         | OutputFile
@@ -64,11 +63,9 @@ module Options =
     let all =
         // TODO: Make some options accept directories and wildcards as well.
         [
-            "exclude-assembly-files", AssemblyFilesFilter AssemblyFiles.Exclude, "Specifies the paths to the assemblies to exclude from code generation", ArgumentList "paths"
-            "exclude-assembly-names", AssemblyNamesFilter AssemblyNames.Exclude, "Specifies the names of the assembly files to exclude from code generation", ArgumentList "names"
+            "exclude-assembly-names", AssemblyNames Exclude, "Specifies the names of the assembly files to exclude from code generation", ArgumentList "names"
             "help", Invalid ShowUsage, "Shows this help message", Switch
-            "include-assembly-files", AssemblyFilesFilter AssemblyFiles.Include, "Specifies the paths to the assemblies to include in code generation", ArgumentList "paths"
-            "include-assembly-names", AssemblyNamesFilter AssemblyNames.Include, "Specifies the names of the assembly files to include in code generation", ArgumentList "names"
+            "include-assembly-names", AssemblyNames Include, "Specifies the names of the assembly files to include in code generation", ArgumentList "names"
             "launch-debugger", LaunchDebugger, "Calls Debugger.Launch after all arguments have been processed", Switch
             "output-file", OutputFile, "Specifies the path to the file containing the generated F# code", Argument "file"
         ]
@@ -122,33 +119,22 @@ module Options =
                     | (InvalidOption opt, _) -> InvalidOption opt |> invalid
                     | (Path.Valid path, AssemblyPaths) ->
                         { state with AssemblyPaths = path :: state.AssemblyPaths }
-                    | (Path.Valid path, AssemblyFilesFilter filter) ->
-                        let paths =
-                            Filter.assemblyFiles state.Filter
-                            |> Set.add path
-                            |> filter
-                        match state.Filter.AssemblyFiles, paths with
-                        | AssemblyFiles.Exclude _, AssemblyFiles.Include _
-                        | AssemblyFiles.Include _, AssemblyFiles.Exclude _->
-                            invalid MixedFilter
-                        | _ ->
-                            { state with Filter = { state.Filter with AssemblyFiles = paths } }
                     | (File.Valid file, OutputFile) ->
                         { state with OutputFile = Some file; Type = Unknown }
-                    | (name, AssemblyNamesFilter filter) -> // TODO: What would a valid assembly name look like?
+                    | (name, AssemblyNames filter) -> // TODO: What would a valid assembly name look like?
                         let names =
-                            Filter.assemblyNames state.Filter
-                            |> Set.add name
+                            Set.add
+                                name
+                                state.Filter.Assemblies.Items
                             |> filter
-                        match state.Filter.AssemblyNames, names with
-                        | AssemblyNames.Exclude _, AssemblyNames.Include _
-                        | AssemblyNames.Include _, AssemblyNames.Exclude _->
+                        match state.Filter.Assemblies, names with
+                        | Exclude _, Include _
+                        | Include _, Exclude _ ->
                             invalid MixedFilter
                         | _ ->
-                            { state with Filter = { state.Filter with AssemblyNames = names } }
-                    | (path, AssemblyPaths)
-                    | (path, AssemblyFilesFilter _) -> InvalidAssemblyPath path |> invalid
-                    | (path, OutputFile) -> InvalidOutputFile path |> invalid // TODO: Check that the path is a file and not a directory.
+                            { state with Filter = { state.Filter with Assemblies = names } }
+                    | (path, AssemblyPaths) -> InvalidAssemblyPath path |> invalid
+                    | (path, OutputFile) -> InvalidOutputFile path |> invalid
                     | _ -> InvalidArgument arg |> invalid
                 inner state' tail
         inner

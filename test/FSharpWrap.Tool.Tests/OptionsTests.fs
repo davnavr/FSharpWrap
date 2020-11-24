@@ -31,16 +31,6 @@ module Generators =
                 |> Gen.nonEmptyListOf
                 |> Gen.resize 6
                 |> Gen.map (List.map string)
-            let! excludeAssemblyFiles =
-                gen {
-                    let! opt = option "exclude-assembly-files"
-                    let! files =
-                        Gen.path
-                        |> Gen.nonEmptyListOf
-                        |> Gen.resize 3
-                        |> Gen.map (List.map string)
-                    return opt :: files
-                }
             let! outfile =
                 gen {
                     let! opt = option "output-file"
@@ -50,7 +40,6 @@ module Generators =
             let! debug = Gen.elements [ []; [ "--launch-debugger" ] ]
             let! rest =
                 [
-                    excludeAssemblyFiles
                     outfile
                     debug
                     more
@@ -143,14 +132,6 @@ let tests =
                 |> Expect.containsAll argv)
 
         successfulParse
-            "parsed arguments should contain excluded assembly files"
-            (fun argv args ->
-                args.Filter
-                |> Filter.assemblyFiles
-                |> Seq.map string // TODO: These tests fail because the path to a directory or file is transformed into a full path when calling FileInfo or DirectoryInfo ctors
-                |> Expect.containsAll argv)
-
-        successfulParse
             "parsed arguments should specify debugger launch"
             (fun argv args ->
                 List.contains
@@ -177,26 +158,26 @@ let tests =
                     "./Hello/World.dll"
                     "--output-file"
                     "./Temp/Thing.fs"
-                    "--include-assembly-files"
-                    "./Deps/FancyParsing.dll"
-                    "./nuget/Keyboard.dll"
-                    "./hello/from/My.Thing.dll"
-                    "--include-assembly-files"
-                    "./worker/CI.dll"
+                    "--include-assembly-names"
+                    "FancyParsing"
+                    "Keyboard"
+                    "My.Thing"
+                    "--include-assembly-names"
+                    "CI"
                 ]
                 |> Options.parse
             Expect.isOk result "Parsing should succeed with options expecting lists"
 
-        testCase "cannot have mixed filter for assembly files" <| fun() ->
+        testCase "cannot have mixed filter for assembly names" <| fun() ->
             let result =
                 [
                     "./FSharpWrap.Tool.dll"
                     "--output-file"
                     "./fun.fs"
-                    "--include-assembly-files"
-                    "./One.dll"
-                    "--exclude-assembly-files"
-                    "./Two.dll"
+                    "--include-assembly-names"
+                    "One"
+                    "--exclude-assembly-names"
+                    "Two"
                 ]
                 |> Options.parse
             Expect.equal result (Error MixedFilter) "Parsing should fail because assembly file filter is mixed"

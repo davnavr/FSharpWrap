@@ -25,24 +25,22 @@ Depending on your needs, you may also want to add the following to your `.gitign
 *.autogen.fs
 ```
 
-To exclude or include entire assemblies from code generation, use ONE of the following in your project file
+Assemblies can be either excluded or included from code generation, but not both
 
 ```xml
 <ItemGroup>
-  <!-- This will exclude an assembly file whose file name is an exact match -->
-  <FSharpWrapExcludeFiles Include="/Some/Path/To/An/Assembly.To.Exclude.dll" />
-  <!-- This will exclude all .dll files in the directory and any subdirectories -->
-  <FSharpWrapExcludeFiles Include="/Another/Path/To/Exclude/" />
+  <!-- This will include only assemblies with the names A, B, or C in code generation -->
+  <FSharpWrapIncludeNames Include="A;B;C" />
 </ItemGroup>
 ```
 ```xml
 <ItemGroup>
-  <!-- You can either include OR exclude assembly files, but NOT BOTH -->
-  <FSharpWrapIncludeFiles Include="/A/Path/Or/Directory/With/Assemblies.dll"/>
+  <!-- This will exclude assemblies with the names D, E, or F, from code generation -->
+  <FSharpWrapIncludeNames Include="D;E;F" />
 </ItemGroup>
 ```
 
-By default, only NuGet packages and project references are included in code generation.
+By default, all assemblies referenced by a project are included in code generation.
 
 ## Example
 A dependency containing the following C# class:
