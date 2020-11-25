@@ -11,7 +11,7 @@ let config = {
             Path.Combine(dir, name)
 
         let style (root: string, page: string) =
-            DirectoryInfo(root).Name = "style" && Path.GetExtension(page) = ".css"
+            page.StartsWith "style" && page.EndsWith ".css"
 
         { Script = "index.fsx"; Trigger = Once; OutputFile = NewFileName "index.html" }
         { Script = "page.fsx"; Trigger = OnFileExt ".md"; OutputFile = Custom page }
