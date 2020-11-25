@@ -8,10 +8,10 @@
         "fake"
       ]
     },
-    "fsharp.formatting.commandtool": {
-      "version": "7.2.9",
+    "fornax": {
+      "version": "0.13.1",
       "commands": [
-        "fsdocs"
+        "fornax"
       ]
     }
   }
