@@ -13,6 +13,7 @@ let generate (content: SiteContents) (root: string) (page: string) =
             (fun article -> article.File.FullName = page')
     [
         h1 [] [ !!article.Title ]
+        hr []
         !!article.Content
     ]
     |> Layout.write content article.Title

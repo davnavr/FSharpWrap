@@ -6,6 +6,12 @@
 open Html
 
 let write (ctx: SiteContents) title content =
+    let links =
+        [
+            "Home", "index.html"
+            "GitHub", "https://github.com/davnavr/FSharpWrap"
+        ]
+
     html [] [
         head [] [
             meta [ CharSet "utf-8" ]
@@ -15,7 +21,14 @@ let write (ctx: SiteContents) title content =
         ]
 
         body [] [
-            main [] content
+            nav [ Class "links-bar" ] [
+                h1 [ Class "links-bar__logo" ] [ !!"FSharpWrap" ]
+
+                for (name, link) in links do
+                    a [ Href link ] [ !!name ]
+            ]
+
+            main [ Class "article" ] content
         ]
     ]
     |> HtmlElement.ToString

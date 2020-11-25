@@ -1,6 +1,28 @@
 html, body {
   font-family: Verdana, sans-serif;
   font-size: 16px;
-  height: 100%;
-  width: 100%;
+  margin: 0;
+}
+
+.links-bar {
+  display: none;
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  top: 0;
+  width: 300px;
+}
+
+.article {
+  position: relative;
+}
+
+@media screen and (min-width: 1000px) {
+  .article {
+    margin-left: 300px;
+  }
+
+  .links-bar {
+    display: block;
+  }
 }
