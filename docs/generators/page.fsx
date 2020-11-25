@@ -13,8 +13,6 @@ let generate (content: SiteContents) (root: string) (page: string) =
             (fun article -> article.File.FullName = page')
     [
         h1 [] [ !!article.Title ]
-        !!"How to add content?"
+        !!article.Content
     ]
-    |> Layout.write
-        content
-        (sprintf "FSharpWrap - %s" article.Title)
+    |> Layout.write content article.Title
