@@ -13,7 +13,6 @@ let config = {
         let style (root: string, page: string) =
             page.StartsWith "style" && page.EndsWith ".css"
 
-        { Script = "index.fsx"; Trigger = Once; OutputFile = NewFileName "index.html" }
         { Script = "page.fsx"; Trigger = OnFileExt ".md"; OutputFile = Custom page }
         { Script = "static.fsx"; Trigger = OnFilePredicate style; OutputFile = SameFileName }
     ]
