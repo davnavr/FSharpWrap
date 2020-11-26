@@ -11,11 +11,11 @@ let write (ctx: SiteContents) title content =
             meta [ CharSet "utf-8" ]
             meta [ Name "viewport"; Content "width=device-width, initial-scale=1" ]
             Html.title [] [ !!(sprintf "FSharpWrap - %s" title) ]
-            link [ Rel "stylesheet"; Href "style/main.css" ]
-            link [ Rel "stylesheet"; Href "//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/vs2015.min.css" ]
-            script [ Src "//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js" ] []
+            link [ Rel "stylesheet"; Href "./style/main.css" ]
+            link [ Rel "stylesheet"; Href "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/vs2015.min.css" ]
+            script [ Src "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js" ] []
             script [ Src "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/languages/fsharp.min.js" ] []
-            script [ Src "js/codecopy.js" ] []
+            script [ Src "./js/codecopy.js" ] []
             script [] [ !!"hljs.initHighlightingOnLoad();" ]
         ]
 
@@ -41,7 +41,7 @@ let write (ctx: SiteContents) title content =
                             if title.EndsWith article.Title
                             then [ Class "navbar__selected" ]
                             else []
-                        article.Title, article.Link, liprops)
+                        article.Title, sprintf "./%s" article.Link, liprops)
                     articles
                 h2 [ Class "navbar__title" ] [ !!"Links" ]
                 links
