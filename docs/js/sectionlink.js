@@ -1,4 +1,4 @@
-// Adds a "copy" button to code blocks
+// Gives sections an id
 
 window.addEventListener("load", (_event) => {
     let labels = document.body.querySelectorAll(".article h2");
