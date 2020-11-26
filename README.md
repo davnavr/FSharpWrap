@@ -10,13 +10,13 @@ Utility that automatically generates F# modules and functions based on your F# p
 Add the following under an `<ItemGroup>` to your `.fsproj` project file
 
 ```xml
-<PackageReference Include="FSharpWrap" Version="0.1.0">
+<PackageReference Include="FSharpWrap" Version="0.4.0">
   <PrivateAssets>all</PrivateAssets>
   <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 </PackageReference>
 
 <!-- Make sure this comes before any of your *.fs files -->
-<Compile Include="$(FSharpWrapOutputFileName)" />
+<Compile Include="$(FSharpWrapOutputFile)" />
 ```
 
 Depending on your needs, you may also want to add the following to your `.gitignore` file
