@@ -5,7 +5,7 @@
 
 open Html
 
-let write (ctx: SiteContents) title content =
+let write (ctx: SiteContents) title content sections =
     html [] [
         head [] [
             meta [ CharSet "utf-8" ]
@@ -15,36 +15,40 @@ let write (ctx: SiteContents) title content =
             link [ Rel "stylesheet"; Href "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/vs2015.min.css" ]
             script [ Src "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js" ] []
             script [ Src "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/languages/fsharp.min.js" ] []
-            script [ Src "./js/codecopy.js" ] []
             script [] [ !!"hljs.initHighlightingOnLoad();" ]
+            script [ Src "./js/codecopy.js" ] []
+            script [ Src "./js/sectionlink.js" ] []
         ]
 
+        let links ulclass aclass map =
+            List.map
+                (fun item ->
+                    let title, url, liprops = map item
+                    li liprops [
+                        let aclass' = sprintf "infobar__link %s" aclass
+                        a [ Class aclass'; Href url ] [ !!title ]
+                    ])
+            >> ul [ Class ulclass ]
+
         body [] [
-            nav [ Class "navbar" ] [
+            nav [ Class "navbar infobar" ] [
                 let articles =
                     ctx.GetValues<Article.Info>()
                     |> List.ofSeq
                     |> List.sortBy (fun { Index = i } -> i)
-                let links map =
-                    List.map
-                        (fun item ->
-                            let title, url, liprops = map item
-                            li liprops [
-                                a [ Class "navbar__link"; Href url ] [ !!title ]
-                            ])
-                    >> ul [ Class "navbar__urls" ]
+                let links' map = links "navbar__urls" "navbar__link" map
 
                 h1 [] [ !!"FSharpWrap" ]
-                links
+                links'
                     (fun (article: Article.Info) ->
                         let liprops =
                             if title.EndsWith article.Title
                             then [ Class "navbar__selected" ]
                             else []
-                        article.Title, sprintf "./%s" article.Link, liprops)
+                        article.Title, "." + article.Link, liprops)
                     articles
                 h2 [ Class "navbar__title" ] [ !!"Links" ]
-                links
+                links'
                     (fun (name, url) -> name, url, [])
                     [
                         "GitHub", "https://github.com/davnavr/FSharpWrap"
@@ -53,6 +57,15 @@ let write (ctx: SiteContents) title content =
             ]
 
             main [ Class "article" ] content
+
+            aside [ Class "tocbar infobar" ] [
+                h3 [] [ !!"Contents" ]
+                links
+                    "tocbar__contents"
+                    "tocbar__link"
+                    (fun (name, url) -> name, url, [])
+                    sections
+            ]
         ]
     ]
     |> HtmlElement.ToString

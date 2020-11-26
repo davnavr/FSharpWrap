@@ -4,25 +4,52 @@ html, body {
   margin: 0;
 }
 
-.navbar {
-  background-color: #35464f;
+.article {
+  padding: 20px;
+  position: relative;
+}
+
+.infobar {
   box-sizing: border-box;
-  color: #ffffff;
   display: none;
   height: 100%;
   margin: 0;
   padding: 0px 10px 0px 10px;
   position: fixed;
   top: 0;
+}
+
+  .infobar ul li {
+    padding: 5px;
+  }
+
+.infobar__link:link, .infobar__link:visited {
+  text-decoration: none;
+}
+
+.infobar__link:hover, .infobar__link:active {
+  text-decoration: underline;
+}
+
+.navbar {
+  background-color: #35464f;
+  color: #ffffff;
   width: 300px;
 }
 
-@media screen and (min-width: 1000px) {
+.tocbar {
+  right: 0;
+  top: 0;
+  width: 200px;
+}
+
+@media screen and (min-width: 1100px) {
   .article {
     margin-left: 300px;
+    margin-right: 200px;
   }
 
-  .navbar {
+  .infobar {
     display: block;
   }
 }
@@ -32,10 +59,6 @@ html, body {
   padding: 0;
 }
 
-  .navbar__urls li {
-    padding: 5px;
-  }
-
 .navbar__selected {
   background-color: #447087;
 }
@@ -44,28 +67,22 @@ html, body {
   color: #ffffff;
 }
 
-  .navbar__link:link, .navbar__link:visited {
-    text-decoration: none;
-  }
-
-  .navbar__link:hover, .navbar__link:active {
-    text-decoration: underline;
-  }
-
 .navbar__title {
   color: #aaaaaa;
   font-weight: normal;
 }
 
-.article {
-  padding-bottom: 5px;
-  padding-left: 20px;
-  padding-right: 100px;
-  padding-top: 5px;
-  position: relative;
+.tocbar__contents {
+  list-style-type: square;
+  padding: 0;
+}
+
+.tocbar__link {
+  color: #000000;
+  text-decoration: none;
 }
 
 .code__copy-button {
   position: absolute;
-  right: 100px;
+  right: 20px;
 }

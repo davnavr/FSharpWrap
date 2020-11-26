@@ -11,9 +11,19 @@ let generate (content: SiteContents) (root: string) (page: string) =
         |> Option.defaultValue Seq.empty
         |> Seq.find
             (fun article -> article.File.FullName = page')
-    [
+    let article' = [
         h1 [] [ !!article.Title ]
         hr []
         !!article.Content
     ]
-    |> Layout.write content article.Title
+    let sections =
+        List.map
+            (fun (section: string) ->
+                let url =
+                    section
+                        .ToLower()
+                        .Replace(' ', '-')
+                    |> sprintf "#%s"
+                section, url)
+            article.Sections
+    Layout.write content article.Title article' sections
