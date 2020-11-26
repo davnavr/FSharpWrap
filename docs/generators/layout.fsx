@@ -10,7 +10,10 @@ let write (ctx: SiteContents) title content =
         [
             "Home", "index.html"
             "GitHub", "https://github.com/davnavr/FSharpWrap"
+            "NuGet", "https://www.nuget.org/packages/FSharpWrap/"
         ]
+    let articles =
+        ctx.GetValues<Article.Info>() |> List.ofSeq
 
     html [] [
         head [] [
@@ -21,11 +24,19 @@ let write (ctx: SiteContents) title content =
         ]
 
         body [] [
-            nav [ Class "links-bar" ] [
-                h1 [ Class "links-bar__logo" ] [ !!"FSharpWrap" ]
+            nav [ Class "navbar" ] [
+                h1 [ Class "navbar__logo" ] [ !!"FSharpWrap" ]
 
                 for (name, link) in links do
                     a [ Href link ] [ !!name ]
+
+                List.map
+                    (fun (article: Article.Info) ->
+                        li [] [
+                            a [ Href article.Link ] [ !!article.Title ]
+                        ])
+                    articles
+                |> ul [ Class "navbar__links" ]
             ]
 
             main [ Class "article" ] content

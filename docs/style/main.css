@@ -4,8 +4,9 @@ html, body {
   margin: 0;
 }
 
-.links-bar {
+.navbar {
   display: none;
+  height: 100%;
   margin: 0;
   padding: 0;
   position: fixed;
@@ -22,7 +23,11 @@ html, body {
     margin-left: 300px;
   }
 
-  .links-bar {
+  .navbar {
     display: block;
   }
+}
+
+.navbar__links {
+  list-style-type: square;
 }
