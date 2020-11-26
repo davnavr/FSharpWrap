@@ -13,7 +13,9 @@ let write (ctx: SiteContents) title content =
             "NuGet", "https://www.nuget.org/packages/FSharpWrap/"
         ]
     let articles =
-        ctx.GetValues<Article.Info>() |> List.ofSeq
+        ctx.GetValues<Article.Info>()
+        |> List.ofSeq
+        |> List.sortBy (fun { Index = i } -> i)
 
     html [] [
         head [] [

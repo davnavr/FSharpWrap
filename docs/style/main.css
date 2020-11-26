@@ -15,6 +15,7 @@ html, body {
 }
 
 .article {
+  padding: 5px 50px 5px 5px;
   position: relative;
 }
 
