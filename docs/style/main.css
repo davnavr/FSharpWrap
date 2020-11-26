@@ -11,7 +11,7 @@ html, body {
   padding: 0;
   position: fixed;
   top: 0;
-  width: 300px;
+  width: 250px;
 }
 
 .article {
@@ -20,7 +20,7 @@ html, body {
 
 @media screen and (min-width: 1000px) {
   .article {
-    margin-left: 300px;
+    margin-left: 250px;
   }
 
   .navbar {
