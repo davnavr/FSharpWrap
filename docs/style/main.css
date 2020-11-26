@@ -64,3 +64,8 @@ html, body {
   padding-top: 5px;
   position: relative;
 }
+
+.code__copy-button {
+  position: absolute;
+  right: 100px;
+}

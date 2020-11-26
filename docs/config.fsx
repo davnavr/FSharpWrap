@@ -10,10 +10,10 @@ let config = {
             let dir = Path.GetDirectoryName file |> Path.GetDirectoryName
             Path.Combine(dir, name)
 
-        let style (root: string, page: string) =
-            page.StartsWith "style" && page.EndsWith ".css"
+        let stat (_: string, page: string) =
+            (page.StartsWith "style" && page.EndsWith ".css") || (page.StartsWith "js" && page.EndsWith ".js")
 
         { Script = "page.fsx"; Trigger = OnFileExt ".md"; OutputFile = Custom page }
-        { Script = "static.fsx"; Trigger = OnFilePredicate style; OutputFile = SameFileName }
+        { Script = "static.fsx"; Trigger = OnFilePredicate stat; OutputFile = SameFileName }
     ]
 }

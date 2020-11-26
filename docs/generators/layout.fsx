@@ -15,6 +15,7 @@ let write (ctx: SiteContents) title content =
             link [ Rel "stylesheet"; Href "//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/vs2015.min.css" ]
             script [ Src "//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js" ] []
             script [ Src "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/languages/fsharp.min.js" ] []
+            script [ Src "js/codecopy.js" ] []
             script [] [ !!"hljs.initHighlightingOnLoad();" ]
         ]
 
@@ -33,7 +34,7 @@ let write (ctx: SiteContents) title content =
                             ])
                     >> ul [ Class "navbar__urls" ]
 
-                h1 [ Class "navbar__logo" ] [ !!"FSharpWrap" ]
+                h1 [] [ !!"FSharpWrap" ]
                 links
                     (fun (article: Article.Info) ->
                         let liprops =
