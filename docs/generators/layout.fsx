@@ -6,17 +6,6 @@
 open Html
 
 let write (ctx: SiteContents) title content =
-    let links =
-        [
-            "Home", "index.html"
-            "GitHub", "https://github.com/davnavr/FSharpWrap"
-            "NuGet", "https://www.nuget.org/packages/FSharpWrap/"
-        ]
-    let articles =
-        ctx.GetValues<Article.Info>()
-        |> List.ofSeq
-        |> List.sortBy (fun { Index = i } -> i)
-
     html [] [
         head [] [
             meta [ CharSet "utf-8" ]
@@ -31,18 +20,35 @@ let write (ctx: SiteContents) title content =
 
         body [] [
             nav [ Class "navbar" ] [
+                let articles =
+                    ctx.GetValues<Article.Info>()
+                    |> List.ofSeq
+                    |> List.sortBy (fun { Index = i } -> i)
+                let links map =
+                    List.map
+                        (fun item ->
+                            let title, url, liprops = map item
+                            li liprops [
+                                a [ Class "navbar__link"; Href url ] [ !!title ]
+                            ])
+                    >> ul [ Class "navbar__urls" ]
+
                 h1 [ Class "navbar__logo" ] [ !!"FSharpWrap" ]
-
-                for (name, link) in links do
-                    a [ Href link ] [ !!name ]
-
-                List.map
+                links
                     (fun (article: Article.Info) ->
-                        li [] [
-                            a [ Href article.Link ] [ !!article.Title ]
-                        ])
+                        let liprops =
+                            if title.EndsWith article.Title
+                            then [ Class "navbar__selected" ]
+                            else []
+                        article.Title, article.Link, liprops)
                     articles
-                |> ul [ Class "navbar__links" ]
+                h2 [ Class "navbar__title" ] [ !!"Links" ]
+                links
+                    (fun (name, url) -> name, url, [])
+                    [
+                        "GitHub", "https://github.com/davnavr/FSharpWrap"
+                        "NuGet", "https://www.nuget.org/packages/FSharpWrap/"
+                    ]
             ]
 
             main [ Class "article" ] content
