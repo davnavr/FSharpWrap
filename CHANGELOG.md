@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation site available at https://davnavr.github.io/FSharpWrap/
 ### Fixed
 - Add check to avoid generating members whose names end with "$W" on computation expression types
+- Add leading space in front of string literals used in custom attribute properties to avoid compilation errors
 
 ## [0.4.0] - 2020-11-24
 ### Added
