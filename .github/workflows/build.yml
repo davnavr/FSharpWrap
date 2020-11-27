@@ -77,6 +77,7 @@ jobs:
         path: |
           ./out/*.nupkg
           ./out/BenchmarkDotNet.Artifacts/results/*.*
+          ./docs/_public/**
           ./CHANGELOG.md
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -102,3 +103,19 @@ jobs:
     - name: Publish NuGet
       run: |
         nuget push ./out/FSharpWrap.${{ needs.build.outputs.release_notes_version }}.nupkg -ApiKey ${{ secrets.NUGET_API_KEY }} -Source https://api.nuget.org/v3/index.json
+  documentation:
+    if: github.ref == 'refs/heads/master'
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Packages
+      uses: actions/download-artifact@v2
+      with:
+        name: FSharpWrap
+    - name: Publish Documentation
+      uses: JamesIves/github-pages-deploy-action@3.7.1
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: docs/_public
+        CLEAN: true

@@ -1,0 +1,88 @@
+html, body {
+  font-family: Verdana, sans-serif;
+  font-size: 16px;
+  margin: 0;
+}
+
+.article {
+  padding: 20px;
+  position: relative;
+}
+
+.infobar {
+  box-sizing: border-box;
+  display: none;
+  height: 100%;
+  margin: 0;
+  padding: 0px 10px 0px 10px;
+  position: fixed;
+  top: 0;
+}
+
+  .infobar ul li {
+    padding: 5px;
+  }
+
+.infobar__link:link, .infobar__link:visited {
+  text-decoration: none;
+}
+
+.infobar__link:hover, .infobar__link:active {
+  text-decoration: underline;
+}
+
+.navbar {
+  background-color: #35464f;
+  color: #ffffff;
+  width: 300px;
+}
+
+.tocbar {
+  right: 0;
+  top: 0;
+  width: 200px;
+}
+
+@media screen and (min-width: 1100px) {
+  .article {
+    margin-left: 300px;
+    margin-right: 200px;
+  }
+
+  .infobar {
+    display: block;
+  }
+}
+
+.navbar__urls {
+  list-style-type: none;
+  padding: 0;
+}
+
+.navbar__selected {
+  background-color: #447087;
+}
+
+.navbar__link {
+  color: #ffffff;
+}
+
+.navbar__title {
+  color: #aaaaaa;
+  font-weight: normal;
+}
+
+.tocbar__contents {
+  list-style-type: square;
+  padding: 0;
+}
+
+.tocbar__link {
+  color: #000000;
+  text-decoration: none;
+}
+
+.code__copy-button {
+  position: absolute;
+  right: 20px;
+}

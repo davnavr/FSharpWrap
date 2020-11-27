@@ -20,6 +20,7 @@ module DotNetCli = Fake.DotNet.DotNet
 module NuGetCli = Fake.DotNet.NuGet.NuGet
 
 let rootDir = __SOURCE_DIRECTORY__
+let docsDir = rootDir </> "docs"
 let outDir = rootDir </> "out"
 let srcDir = rootDir </> "src"
 let slnFile = rootDir </> "FSharpWrap.sln"
@@ -62,6 +63,7 @@ module Helpers =
 
 Target.create "Clean" <| fun _ ->
     Shell.cleanDir outDir
+    docsDir </> "_public" |> Shell.cleanDir
 
     !!(rootDir </> "examples/**/*.autogen.fs") |> File.deleteAll
 
@@ -119,6 +121,11 @@ Target.create "Run Benchmarks" <| fun _ ->
             ])
     |> handleErr "One or more benchmarks could not be run successfully"
 
+Target.create "Build Documentation" <| fun _ ->
+    Shell.chdir docsDir
+    DotNetCli.exec id "fornax" "build" |> handleErr "An error occured while building documentation"
+    Shell.chdir rootDir
+
 Target.create "Pack" <| fun _ ->
     let nuspec = srcDir </> "FSharpWrap" </> "FSharpWrap.nuspec"
     NuGetCli.NuGetPackDirectly
@@ -144,5 +151,8 @@ Target.create "Pack" <| fun _ ->
 
 "Test Tool" ==> "Run Benchmarks" ?=> "Build Examples"
 "Run Benchmarks" ==> "Pack"
+
+"Clean" ==> "Build Documentation" ?=> "Run Benchmarks"
+"Build Documentation" ==> "Pack"
 
 Target.runOrDefault "Build Examples"
