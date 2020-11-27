@@ -107,3 +107,10 @@ let (|IsTuple|_|) =
     | Derives "System.Runtime.CompilerServices" "ITuple" tuple
     | IsTupleType tuple -> Some tuple
     | _ -> None
+
+// NOTE: This is a workaround until F# metadata can be read.
+// Members whose names end with $W usually use member constraints, see FSharp.Linq.QueryBuilder.AverageByNullable for an example.
+let (|FSharpComputationExpressionMemberW|_|) (m: MemberInfo) =
+    if m.Name.EndsWith "$W"
+    then Some()
+    else None
