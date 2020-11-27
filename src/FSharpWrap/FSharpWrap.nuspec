@@ -6,6 +6,7 @@
     <developmentDependency>true</developmentDependency>
     <id>$Name$</id>
     <license type="expression">Apache-2.0</license>
+    <projectUrl>https://davnavr.github.io/FSharpWrap/</projectUrl>
     <releaseNotes>$PackageReleaseNotes$</releaseNotes>
     <repository type="git" url="https://github.com/davnavr/FSharpWrap" />
     <tags>f# fsharp codegen utils helpers</tags>
