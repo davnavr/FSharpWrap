@@ -1,0 +1,153 @@
+<html>
+  <head>
+    <meta charSet="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>
+      FSharpWrap - Getting started
+    </title>
+    <link rel="stylesheet" href="./style/main.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/vs2015.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/languages/fsharp.min.js"></script>
+    <script>
+      hljs.initHighlightingOnLoad();
+    </script>
+    <script src="./js/codecopy.js"></script>
+    <script src="./js/sectionlink.js"></script>
+  </head>
+  <body>
+    <nav class="navbar infobar">
+      <h1>
+        FSharpWrap
+      </h1>
+      <ul class="navbar__urls">
+        <li>
+          <a class="infobar__link navbar__link" href="./index.html">
+            Overview
+          </a>
+        </li>
+        <li class="navbar__selected">
+          <a class="infobar__link navbar__link" href="./getting-started.html">
+            Getting started
+          </a>
+        </li>
+        <li>
+          <a class="infobar__link navbar__link" href="./multi-target.html">
+            Using multiple target frameworks
+          </a>
+        </li>
+      </ul>
+      <h2 class="navbar__title">
+        Links
+      </h2>
+      <ul class="navbar__urls">
+        <li>
+          <a class="infobar__link navbar__link" href="https://github.com/davnavr/FSharpWrap">
+            GitHub
+          </a>
+        </li>
+        <li>
+          <a class="infobar__link navbar__link" href="https://www.nuget.org/packages/FSharpWrap/">
+            NuGet
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <main class="article">
+      <h1>
+        Getting started
+      </h1>
+      <hr/>
+      <h2>Installing the package</h2>
+<p>To install the latest version of FSharpWrap using the
+<a href="https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-add-package">.NET CLI</a>,
+use the following:</p>
+<pre><code class="language-bash">dotnet add package FSharpWrap
+</code></pre>
+<h2>Using generated code</h2>
+<p>In order to use the generated code in your project, add the following element
+to your project file in an <code>&lt;ItemGroup&gt;</code> above all other <code>&lt;Compile&gt;</code> items:</p>
+<pre><code class="language-xml">&lt;Compile Include=&quot;$(FSharpWrapOutputFile)&quot; /&gt;
+</code></pre>
+<p>Because the generated code is quite large by default, the following should also
+be added to a <code>.gitignore</code> file:</p>
+<pre><code class="language-text">*.autogen.fs
+</code></pre>
+<p>Any instance methods, constructors, instance read-only fields, and get-only
+properties on classes and immutable structs will then have F# functions or
+active patterns generated for them.</p>
+<pre><code class="language-fsharp">module MyExampleModule
+
+open System
+open System.Collections.Generic
+
+// Constructors
+let stack: Stack&lt;_&gt; = [ 1..10 ] |&gt; Stack.ofSeq
+
+// Instance method call
+let a: bool = Stack.contains 5 stack
+
+// Get-only properties
+let b: int = Stack.count stack
+let c: string =
+    let arr: int[] = Seq.toArray stack
+    match arr with
+    | Array.IsReadOnly -&gt; &quot;read-only&quot;
+    | _ -&gt; &quot;not read-only&quot;
+</code></pre>
+<h2>Filtering generated code</h2>
+<p>FSharpWrap allows entire assemblies and namespaces to be included or excluded
+from code generation, which helps reduce compilation times by generating only
+code that you will use. Note that assemblies can only either be included or
+excluded, and that namespaces can only either be included or excluded.</p>
+<p>To only include certain assemblies in code generation, use the following:</p>
+<pre><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;!-- Only assemblies with the following names will be included in code generation --&gt;
+  &lt;FSharpWrapIncludeNames Include=&quot;System.Collections.Immutable;Expecto&quot; /&gt;
+&lt;/ItemGroup&gt;
+</code></pre>
+<p>To only exclude certain assemblies from code generation, use the following:</p>
+<pre><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;FSharpWrapExcludeNames Include=&quot;System.Reflection.MetadataLoadContext;FSharp.Core&quot; /&gt;
+&lt;/ItemGroup&gt;
+</code></pre>
+<p>Following the inclusion or exclusion of assemblies, FSharpWrap will also
+include or exclude any specified namespaces. Note that in order to include or
+exclude any &quot;child&quot; namespaces, their names must be specified as well.</p>
+<p>To only include the types in certain namespaces, use the following:</p>
+<pre><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;FSharpWrapIncludeNamespaces Include=&quot;System.Collections.Immutable;System.Collections&quot; /&gt;
+&lt;/ItemGroup&gt;
+</code></pre>
+<p>To only exclude types in certain namespaces, use the following:</p>
+<pre><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;!-- Only the types in the System.Reflection, Microsoft.FSharp.Core, or FParsec namespaces are excluded --&gt;
+  &lt;FSharpWrapExcludeNamespaces Include=&quot;System.Reflection;Microsoft.FSharp.Core;FParsec&quot; /&gt;
+&lt;/ItemGroup&gt;
+</code></pre>
+
+    </main>
+    <aside class="tocbar infobar">
+      <h3>
+        Contents
+      </h3>
+      <ul class="tocbar__contents">
+        <li>
+          <a class="infobar__link tocbar__link" href="#installing-the-package">
+            Installing the package
+          </a>
+        </li>
+        <li>
+          <a class="infobar__link tocbar__link" href="#using-generated-code">
+            Using generated code
+          </a>
+        </li>
+        <li>
+          <a class="infobar__link tocbar__link" href="#filtering-generated-code">
+            Filtering generated code
+          </a>
+        </li>
+      </ul>
+    </aside>
+  </body>
+</html>

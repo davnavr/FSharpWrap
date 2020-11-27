@@ -1,0 +1,105 @@
+<html>
+  <head>
+    <meta charSet="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>
+      FSharpWrap - Using multiple target frameworks
+    </title>
+    <link rel="stylesheet" href="./style/main.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/vs2015.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/languages/fsharp.min.js"></script>
+    <script>
+      hljs.initHighlightingOnLoad();
+    </script>
+    <script src="./js/codecopy.js"></script>
+    <script src="./js/sectionlink.js"></script>
+  </head>
+  <body>
+    <nav class="navbar infobar">
+      <h1>
+        FSharpWrap
+      </h1>
+      <ul class="navbar__urls">
+        <li>
+          <a class="infobar__link navbar__link" href="./index.html">
+            Overview
+          </a>
+        </li>
+        <li>
+          <a class="infobar__link navbar__link" href="./getting-started.html">
+            Getting started
+          </a>
+        </li>
+        <li class="navbar__selected">
+          <a class="infobar__link navbar__link" href="./multi-target.html">
+            Using multiple target frameworks
+          </a>
+        </li>
+      </ul>
+      <h2 class="navbar__title">
+        Links
+      </h2>
+      <ul class="navbar__urls">
+        <li>
+          <a class="infobar__link navbar__link" href="https://github.com/davnavr/FSharpWrap">
+            GitHub
+          </a>
+        </li>
+        <li>
+          <a class="infobar__link navbar__link" href="https://www.nuget.org/packages/FSharpWrap/">
+            NuGet
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <main class="article">
+      <h1>
+        Using multiple target frameworks
+      </h1>
+      <hr/>
+      <p>By default, FSharpWrap will generate different files for each target framework
+used in your project.</p>
+<h2>Code generation defaults</h2>
+<p>If only one target framework is specified using the <code>&lt;TargetFramework&gt;</code>
+element, then the generated code is in a file named <code>output.autogen.fs</code> in
+the current project directory. However, if multiple target frameworks are
+specified using the
+<a href="https://docs.microsoft.com/en-us/nuget/create-packages/multiple-target-frameworks-project-file"><code>&lt;TargetFrameworks&gt;</code></a>
+element, then the path to each generated code file relative to the project
+directory is <code>output.$(TargetFramework).autogen.fs</code>, where
+<code>$(TargetFramework)</code> is the corresponding target framework moniker.</p>
+<h2>Changing the file name</h2>
+<p>If you are only using one target framework, you can change the path to the
+generated code file using the <code>&lt;FSharpWrapOutputFile&gt;</code> property.</p>
+<pre><code class="language-xml">&lt;PropertyGroup&gt;
+  &lt;FSharpWrapOutputFile&gt;Some/Other/Directory/MyCustomFileName.autogen.fs&lt;/FSharpWrapOutputFile&gt;
+&lt;/PropertyGroup&gt;
+</code></pre>
+<p>If using multiple target frameworks, consider inserting the
+<code>$(TargetFramework)</code> in part of the path to the output file.</p>
+<pre><code class="language-xml">&lt;PropertyGroup&gt;
+  &lt;FSharpWrapOutputFile&gt;CustomDirectory/MyCustomFileName.$(TargetFramework).autogen.fs&lt;/FSharpWrapOutputFile&gt;
+&lt;/PropertyGroup&gt;
+</code></pre>
+
+    </main>
+    <aside class="tocbar infobar">
+      <h3>
+        Contents
+      </h3>
+      <ul class="tocbar__contents">
+        <li>
+          <a class="infobar__link tocbar__link" href="#code-generation-defaults">
+            Code generation defaults
+          </a>
+        </li>
+        <li>
+          <a class="infobar__link tocbar__link" href="#changing-the-file-name">
+            Changing the file name
+          </a>
+        </li>
+      </ul>
+    </aside>
+  </body>
+</html>
