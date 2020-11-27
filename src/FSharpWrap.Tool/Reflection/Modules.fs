@@ -162,6 +162,7 @@ module Type =
             |> Seq.where (fun m -> m.DeclaringType = t)
             |> Seq.choose
                 (function
+                | FSharpComputationExpressionMemberW _
                 | IsCompilerGenerated
                 | IsObsoleteError
                 | IsSpecialName

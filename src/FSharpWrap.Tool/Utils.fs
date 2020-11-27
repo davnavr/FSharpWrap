@@ -25,7 +25,7 @@ module String =
             | _ -> id)
 
     let toLiteral (str: string) =
-        str.Replace("\"", "\"\"") |> sprintf "@\"%s\""
+        str.Replace("\"", "\"\"") |> sprintf " @\"%s\""
 
 [<RequireQualifiedAccess>]
 module internal TypeInfo =
