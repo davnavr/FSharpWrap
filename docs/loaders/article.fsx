@@ -35,7 +35,7 @@ let loader (root: string) (ctx: SiteContents) =
               Sections =
                 Seq.choose
                     (fun (line: string) ->
-                        if line.StartsWith "##"
+                        if line.StartsWith "## "
                         then htrim line |> Some
                         else None)
                     content'
