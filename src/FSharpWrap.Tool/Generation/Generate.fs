@@ -164,49 +164,68 @@ let fromType (t: TypeDef): GenModule =
                     let (FsName name) = t.TypeName.Name
                     sprintf "%sBuilder" name
                     |> FsName
+                let zero =
+                    List.exists
+                        (fun mber ->
+                            match mber.Type with
+                            | Constructor [] -> true
+                            | _ -> false)
+                        t.Members
+                let empty =
+                    List.exists
+                        (function
+                        | { Type = StaticField { FieldName = "Empty" } } -> true
+                        | _ -> false)
+                        t.Members
                 let ops =
                     let t' = TypeName t.TypeName |> TypeArg
                     let others =
-                        List.choose
+                        List.collect
                             (function
-                            | { Type = InstanceMethod({ MethodName = "AddRange"; Params = [ arg ] } as mthd) } when mthd.RetType = t' ->
-                                { Combine = sprintf "%s.AddRange(%s)"
-                                  One = t'
-                                  Two = arg.ArgType }
-                                |> Combine
-                                |> Some
-                            // TODO: Allow operations to be generated for methods similar to Add, such as Push or Enqueue
+                            //| { Type = InstanceMethod({ MethodName = "AddRange"; Params = [ arg ] } as mthd) } when mthd.RetType = t' ->
+                            //    { Combine = invalidOp "What to do here?"
+                            //      One = t'
+                            //      Two = arg.ArgType }
+                            //    |> Combine
+                            //    |> Some
+                            // TODO: Allow operations to be generated for methods similar to Add, such as Push or Enqueue.
                             | { Type = InstanceMethod({ MethodName = "Add"; Params = [ arg ] } as mthd) } when mthd.RetType = t' ->
-                                { Item = arg.ArgType
-                                  Yield = Print.typeArg t' |> sprintf "fun (this: %s) -> this.Add %s" }
-                                |> Yield
-                                |> Some
-                            // TODO: Also generate for Add and AddRange methods that return void
-                            | _ -> None)
-                            t.Members
-                    let zero =
-                        List.exists
-                            (fun mber ->
-                                match mber.Type with
-                                | Constructor [] -> true
-                                | _ -> false)
+                                let argt = arg.ArgType
+                                [
+                                    { Combine =
+                                        fun one two ->
+                                            sprintf "%s.%s(%s)" two mthd.MethodName one
+                                      One = argt
+                                      Two = t' }
+                                    |> Combine
+
+                                    if zero then
+                                        { Combine =
+                                            Print.typeName t.TypeName |> sprintf "(new %s()).Add(%s).Add(%s)"
+                                          One = argt
+                                          Two = argt }
+                                        |> Combine
+                                    elif empty then
+                                        { Combine =
+                                            Print.typeName t.TypeName |> sprintf "%s.Empty.Add(%s).Add(%s)"
+                                          One = argt
+                                          Two = argt }
+                                        |> Combine
+                                ]
+                            // TODO: Also generate for Add or AddRange methods that return void.
+                            | _ -> [])
                             t.Members
                     [
                         Delay
-                        Combine
-                            { Combine =
-                                fun one two ->
-                                    Print.typeArg t'
-                                    |> sprintf
-                                        "(%s %s):%s"
-                                        one
-                                        two
-                              One = TypeArg InferredType
-                              Two = t' }
+                        Yield
 
                         if zero then
                             Print.typeName t.TypeName
-                            |> sprintf "%s()"
+                            |> sprintf "new %s()"
+                            |> Zero
+                        elif empty then
+                            Print.typeName t.TypeName
+                            |> sprintf "%s.Empty"
                             |> Zero
 
                         yield! others

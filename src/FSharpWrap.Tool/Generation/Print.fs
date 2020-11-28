@@ -187,19 +187,15 @@ let genBinding out (binding: GenBinding) =
                 out'.Write ")="
                 combine.Combine "one" "two" |> out'.Write
             | Delay -> out'.Write "Delay(f)=f()"
-            | Yield yld ->
-                out'.Write "Yield(item:"
-                typeArg yld.Item |> out'.Write
-                out'.Write ")="
-                yld.Yield "item" |> out'.Write
+            | Yield -> out'.Write "Yield(item)=item"
             | Zero result ->
-                out'.Write "Zero()= new "
+                out'.Write "Zero()="
                 out'.Write result
             out'.Line()
         out.Write "let expr = new "
         out.Write name'
         out.Write "()"
-        out'.Line()
+        out.Line()
     | GenFunction func ->
         out.Write "let inline "
         fsname func.Name |> out.Write

@@ -27,24 +27,11 @@ type ExprCombine =
             let other = obj :?> ExprCombine
             compare (this.One, this.Two) (other.One, other.Two)
 
-[<CustomComparison; CustomEquality>]
-type ExprYield =
-    { Item: TypeArg
-      Yield: string -> string }
-
-    override this.Equals obj = this.Item = (obj :?> ExprYield).Item
-
-    override this.GetHashCode() = hash this.Item
-
-    interface IComparable with
-        member this.CompareTo obj =
-            (obj :?> ExprYield).Item |> compare this.Item
-
 [<StructuralComparison; StructuralEquality>]
 type ExprOperation =
     | Combine of ExprCombine
     | Delay
-    | Yield of ExprYield
+    | Yield
     | Zero of string
 
 [<CustomComparison; CustomEquality>]

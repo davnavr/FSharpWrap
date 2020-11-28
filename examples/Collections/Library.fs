@@ -31,8 +31,12 @@ let hello() =
     |> printfn "%i"
 
     // Computation Expressions
-    let nums = // TODO: Fix and make sure it has the correct types
+    let nums: ImmutableList<int> = // TODO: Fix and make sure it has the correct types
         ImmutableList.expr {
-            yield 0
+            3
+            1
+            4
+            1
+            5
         }
     ()
