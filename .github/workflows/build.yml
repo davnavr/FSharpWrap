@@ -119,4 +119,3 @@ jobs:
         BRANCH: gh-pages
         FOLDER: docs/_public
         CLEAN: true
-        PRESERVE: true
