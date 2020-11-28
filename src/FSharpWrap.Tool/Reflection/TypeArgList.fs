@@ -32,6 +32,7 @@ module TypeArgList =
         | [| h; t |] -> TypeArgPair(h, t)
         | targs -> TypeArgs targs
     let ofSeq targs = Seq.toArray targs |> ofArray
+    let singleton targ = TypeArg targ
     let toList =
         function
         | TypeArg targ -> [ targ ]

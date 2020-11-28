@@ -11,12 +11,54 @@ type GenAttribute =
       AttributeType: TypeName }
 
 [<CustomComparison; CustomEquality>]
+type ExprCombine =
+    { Combine: string -> string -> string
+      One: TypeArg
+      Two: TypeArg }
+
+    override this.Equals obj =
+        let other = obj :?> ExprCombine
+        this.One = other.One && this.Two = other.Two
+
+    override this.GetHashCode() = hash(this.One, this.Two)
+
+    interface IComparable with
+        member this.CompareTo obj =
+            let other = obj :?> ExprCombine
+            compare (this.One, this.Two) (other.One, other.Two)
+
+[<CustomComparison; CustomEquality>]
+type ExprYield =
+    { Item: TypeArg
+      Yield: string -> string }
+
+    override this.Equals obj = this.Item = (obj :?> ExprYield).Item
+
+    override this.GetHashCode() = hash this.Item
+
+    interface IComparable with
+        member this.CompareTo obj =
+            (obj :?> ExprYield).Item |> compare this.Item
+
+[<StructuralComparison; StructuralEquality>]
+type ExprOperation =
+    | Combine of ExprCombine
+    | Delay
+    | Yield of ExprYield
+    | Zero of string
+
+[<CustomComparison; CustomEquality>]
 type GenBinding =
     | GenActivePattern of
         {| Attributes: GenAttribute list
            Body: string
            Parameters: ParamList
            PatternName: FsName |}
+    /// Represents a computation expression type
+    | GenBuilder of
+        {| Attributes: GenAttribute list
+           Name: FsName
+           Operations: Set<ExprOperation> |}
     | GenFunction of
         {| Attributes: GenAttribute list
            Body: string
@@ -26,19 +68,23 @@ type GenBinding =
     member this.Attributes =
         match this with
         | GenActivePattern pattern -> pattern.Attributes
+        | GenBuilder ce -> ce.Attributes
         | GenFunction func -> func.Attributes
 
-    override this.Equals obj =
+    override this.Equals obj = // TODO: How to ensure that there is no conflict between name of CE and a function?
         match this, obj :?> GenBinding with
         | GenFunction this, GenFunction other ->
             this.Name = other.Name
         | GenActivePattern this, GenActivePattern other ->
             this.PatternName = other.PatternName
+        | GenBuilder this, GenBuilder other ->
+            this.Name = other.Name
         | _ -> false
     override this.GetHashCode() =
         match this with
-        | GenActivePattern pattern -> Choice1Of2 pattern.PatternName
-        | GenFunction func -> Choice2Of2 func.Name
+        | GenActivePattern pattern -> Choice1Of3 pattern.PatternName
+        | GenBuilder ce -> Choice2Of3 ce.Name
+        | GenFunction func -> Choice2Of3 func.Name
         |> hash
 
     interface IComparable with
@@ -48,8 +94,12 @@ type GenBinding =
                 compare this.Name other.Name
             | GenActivePattern this, GenActivePattern other ->
                 compare this.PatternName other.PatternName
-            | GenActivePattern _, _ -> -1
-            | _, GenActivePattern _ -> 1
+            | GenBuilder this, GenBuilder other ->
+                compare this.Name other.Name
+            | GenActivePattern _, _
+            | _, GenBuilder _ -> -1
+            | _, GenActivePattern _
+            | GenBuilder _, _ -> 1
 
 [<CustomComparison; CustomEquality>]
 type GenModule =

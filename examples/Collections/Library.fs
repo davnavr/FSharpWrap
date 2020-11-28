@@ -30,4 +30,9 @@ let hello() =
     |> ReadOnlyCollection.count
     |> printfn "%i"
 
+    // Computation Expressions
+    let nums = // TODO: Fix and make sure it has the correct types
+        ImmutableList.expr {
+            yield 0
+        }
     ()

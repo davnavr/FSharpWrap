@@ -171,7 +171,13 @@ module Type =
             |> Seq.map (fun mber -> Member.ofInfo mber ctx)
             |> List.ofSeq
         let attrs = Attributes.ofMember t ctx
+        let intfs =
+            t.GetInterfaces()
+            |> Seq.choose (fun intf -> name intf ctx)
+            |> Set.ofSeq
         { Attributes = attrs
+          Interfaces = intfs
+          IsAbstract = t.IsAbstract
           Members = members
           TypeName = tname }
 

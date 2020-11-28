@@ -65,6 +65,7 @@ let typeRef =
             (typeArg arr.ElementType)
             rank
     | ByRefType tref -> typeArg tref |> sprintf "%s ref"
+    | InferredType -> "_"
     | PointerType (TypeArg (IsNamedType "System" "Void" _)) -> "voidptr"
     | PointerType pnt ->
         typeArg pnt |> sprintf "nativeptr<%s>"
@@ -158,9 +159,9 @@ let parameters =
 
 let genBinding out (binding: GenBinding) =
     attributes out binding.Attributes
-    out.Write "let inline "
     match binding with
     | GenActivePattern pattern ->
+        out.Write "let inline "
         sprintf
             "(|%s|_|)%s= %s"
             (fsname pattern.PatternName)
@@ -168,7 +169,39 @@ let genBinding out (binding: GenBinding) =
             pattern.Body
         |> out.Write
         out.Line()
+    | GenBuilder ce ->
+        let name' = fsname ce.Name
+        out.Write "type "
+        out.Write name'
+        out.Write "()="
+        out.Line()
+        let out' = indented out
+        for op in ce.Operations do
+            out'.Write "member inline _."
+            match op with
+            | Combine combine ->
+                out'.Write "Combine(one:"
+                typeArg combine.One |> out'.Write
+                out'.Write ",two:"
+                typeArg combine.Two |> out'.Write
+                out'.Write ")="
+                combine.Combine "one" "two" |> out'.Write
+            | Delay -> out'.Write "Delay(f)=f()"
+            | Yield yld ->
+                out'.Write "Yield(item:"
+                typeArg yld.Item |> out'.Write
+                out'.Write ")="
+                yld.Yield "item" |> out'.Write
+            | Zero result ->
+                out'.Write "Zero()= new "
+                out'.Write result
+            out'.Line()
+        out.Write "let expr = new "
+        out.Write name'
+        out.Write "()"
+        out'.Line()
     | GenFunction func ->
+        out.Write "let inline "
         fsname func.Name |> out.Write
         parameters func.Parameters |> out.Write
         out.Write "= "

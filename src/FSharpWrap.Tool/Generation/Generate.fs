@@ -14,6 +14,16 @@ let private moduleAttr =
     { Arguments = [ "global.Microsoft.FSharp.Core.CompilationRepresentationFlags.ModuleSuffix" ]
       AttributeType = attrType "Microsoft.FSharp.Core" "CompilationRepresentationAttribute" }
 
+let private ienumerable =
+    { Name = FsName "IEnumerable"
+      Namespace = Namespace.ofStr "System.Collections.Generic"
+      Parent = None
+      TypeArgs =
+        { Constraints = GenericConstraints.Empty()
+          ParamName = FsName "T" }
+        |> TypeParam
+        |> TypeArgList.singleton }
+
 // TODO: How will the arguments be casted to the argument type?
 let attribute (attr: AttributeInfo) =
     let rec arg (t, value) =
@@ -146,6 +156,68 @@ let fromType (t: TypeDef): GenModule =
         | _ -> false
     { Attributes = moduleAttr :: (warnAttrs t.Attributes)
       Bindings =
+        /// Attempts to create a Computation Expression for the type
+        let expr =
+            if not t.IsAbstract && Set.contains ienumerable t.Interfaces
+            then
+                let name' =
+                    let (FsName name) = t.TypeName.Name
+                    sprintf "%sBuilder" name
+                    |> FsName
+                let ops =
+                    let t' = TypeName t.TypeName |> TypeArg
+                    let others =
+                        List.choose
+                            (function
+                            | { Type = InstanceMethod({ MethodName = "AddRange"; Params = [ arg ] } as mthd) } when mthd.RetType = t' ->
+                                { Combine = sprintf "%s.AddRange(%s)"
+                                  One = t'
+                                  Two = arg.ArgType }
+                                |> Combine
+                                |> Some
+                            // TODO: Allow operations to be generated for methods similar to Add, such as Push or Enqueue
+                            | { Type = InstanceMethod({ MethodName = "Add"; Params = [ arg ] } as mthd) } when mthd.RetType = t' ->
+                                { Item = arg.ArgType
+                                  Yield = Print.typeArg t' |> sprintf "fun (this: %s) -> this.Add %s" }
+                                |> Yield
+                                |> Some
+                            // TODO: Also generate for Add and AddRange methods that return void
+                            | _ -> None)
+                            t.Members
+                    let zero =
+                        List.exists
+                            (fun mber ->
+                                match mber.Type with
+                                | Constructor [] -> true
+                                | _ -> false)
+                            t.Members
+                    [
+                        Delay
+                        Combine
+                            { Combine =
+                                fun one two ->
+                                    Print.typeArg t'
+                                    |> sprintf
+                                        "(%s %s):%s"
+                                        one
+                                        two
+                              One = TypeArg InferredType
+                              Two = t' }
+
+                        if zero then
+                            Print.typeName t.TypeName
+                            |> sprintf "%s()"
+                            |> Zero
+
+                        yield! others
+                    ]
+                    |> Set.ofList
+                {| Attributes = List.empty
+                   Name = name'
+                   Operations = ops |}
+                |> GenBuilder
+                |> Set.add
+            else id
         t.Members
         |> List.choose
             (fun mber ->
@@ -162,6 +234,7 @@ let fromType (t: TypeDef): GenModule =
                     Set.add gen bindings
                 | _ -> bindings)
             Set.empty
+        |> expr
       ModuleName = t.TypeName.Name }
 
 let private addType mdles tdef =
