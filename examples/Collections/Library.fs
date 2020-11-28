@@ -31,12 +31,18 @@ let hello() =
     |> printfn "%i"
 
     // Computation Expressions
-    let nums: ImmutableList<int> = // TODO: Fix and make sure it has the correct types
+    let nums: ImmutableList<int> =
         ImmutableList.expr {
             3
             1
             4
             1
             5
+        }
+
+    let dictionary: ImmutableDictionary<string, string> =
+        ImmutableDictionary.expr {
+            yield "word", "the thing to the left"
+            yield "dictionary", "what this is"
         }
     ()

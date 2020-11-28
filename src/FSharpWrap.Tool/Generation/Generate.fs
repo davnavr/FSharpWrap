@@ -180,7 +180,10 @@ let fromType (t: TypeDef): GenModule =
                 let ops =
                     let t' = TypeName t.TypeName |> TypeArg
                     let others =
-                        List.collect
+                        List.map
+                            (fun mber -> mber.Type)
+                            t.Members
+                        |> List.collect
                             (function
                             //| { Type = InstanceMethod({ MethodName = "AddRange"; Params = [ arg ] } as mthd) } when mthd.RetType = t' ->
                             //    { Combine = invalidOp "What to do here?"
@@ -188,8 +191,7 @@ let fromType (t: TypeDef): GenModule =
                             //      Two = arg.ArgType }
                             //    |> Combine
                             //    |> Some
-                            // TODO: Allow operations to be generated for methods similar to Add, such as Push or Enqueue.
-                            | { Type = InstanceMethod({ MethodName = "Add"; Params = [ arg ] } as mthd) } when mthd.RetType = t' ->
+                            | InstanceMethod({ MethodName = String.OneOf [ "Add"; "Push"; "Enqueue" ]; Params = [ arg ] } as mthd) when mthd.RetType = t' ->
                                 let argt = arg.ArgType
                                 [
                                     { Combine =
@@ -201,7 +203,14 @@ let fromType (t: TypeDef): GenModule =
 
                                     if zero then
                                         { Combine =
-                                            Print.typeName t.TypeName |> sprintf "(new %s()).Add(%s).Add(%s)"
+                                            fun one two ->
+                                                sprintf
+                                                    "(new %s()).%s(%s).%s(%s)"
+                                                    (Print.typeName t.TypeName)
+                                                    mthd.MethodName
+                                                    one
+                                                    mthd.MethodName
+                                                    two
                                           One = argt
                                           Two = argt }
                                         |> Combine
@@ -212,9 +221,42 @@ let fromType (t: TypeDef): GenModule =
                                           Two = argt }
                                         |> Combine
                                 ]
+                            | InstanceMethod({ MethodName = "Add"; Params = [ _; _ ] } as mthd) when mthd.RetType = t' ->
+                                [
+                                    { Combine = sprintf "let (key, value) = %s in %s.Add(key, value)"
+                                      One = TypeArg InferredType
+                                      Two = t' }
+                                    |> Combine
+
+                                    if zero then
+                                        { Combine =
+                                            fun one two ->
+                                                sprintf
+                                                    "(new %s()).Add(fst %s, snd %s).Add(fst %s, snd %s)"
+                                                    (Print.typeName t.TypeName)
+                                                    one
+                                                    one
+                                                    two
+                                                    two
+                                          One = TypeArg InferredType
+                                          Two = TypeArg InferredType }
+                                        |> Combine
+                                    elif empty then
+                                        { Combine =
+                                            fun one two ->
+                                                sprintf
+                                                    "%s.Empty.Add(fst %s, snd %s).Add(fst %s, snd %s)"
+                                                    (Print.typeName t.TypeName)
+                                                    one
+                                                    one
+                                                    two
+                                                    two
+                                          One = TypeArg InferredType
+                                          Two = TypeArg InferredType }
+                                        |> Combine
+                                ]
                             // TODO: Also generate for Add or AddRange methods that return void.
                             | _ -> [])
-                            t.Members
                     [
                         Delay
                         Yield
