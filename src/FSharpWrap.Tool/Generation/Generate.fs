@@ -160,10 +160,18 @@ let fromType (t: TypeDef): GenModule =
         let expr =
             if not t.IsAbstract && Set.contains ienumerable t.Interfaces
             then
-                let name' =
-                    let (FsName name) = t.TypeName.Name
-                    sprintf "%sBuilder" name
-                    |> FsName
+                let tname = Print.typeName t.TypeName
+                let t' = TypeName t.TypeName |> TypeArg
+                let empty =
+                    List.tryPick
+                        (fun mber ->
+                            match mber.Type with
+                            | StaticField { FieldName = "Empty" } ->
+                                sprintf "%s.Empty" tname |> Some
+                            | Constructor [] ->
+                                sprintf "new %s()" tname |> Some
+                            | _ -> None)
+                        t.Members
                 let zero =
                     List.exists
                         (fun mber ->
@@ -171,19 +179,18 @@ let fromType (t: TypeDef): GenModule =
                             | Constructor [] -> true
                             | _ -> false)
                         t.Members
-                let empty =
+                let oldempty =
                     List.exists
                         (function
                         | { Type = StaticField { FieldName = "Empty" } } -> true
                         | _ -> false)
                         t.Members
                 let ops =
-                    let t' = TypeName t.TypeName |> TypeArg
                     let others =
                         List.map
                             (fun mber -> mber.Type)
                             t.Members
-                        |> List.collect
+                        |> List.choose
                             (function
                             //| { Type = InstanceMethod({ MethodName = "AddRange"; Params = [ arg ] } as mthd) } when mthd.RetType = t' ->
                             //    { Combine = invalidOp "What to do here?"
@@ -192,89 +199,46 @@ let fromType (t: TypeDef): GenModule =
                             //    |> Combine
                             //    |> Some
                             | InstanceMethod({ MethodName = String.OneOf [ "Add"; "Push"; "Enqueue" ]; Params = [ arg ] } as mthd) when mthd.RetType = t' ->
-                                let argt = arg.ArgType
-                                [
-                                    { Combine =
-                                        fun one two ->
-                                            sprintf "%s.%s(%s)" two mthd.MethodName one
-                                      One = argt
-                                      Two = t' }
-                                    |> Combine
-
-                                    if zero then
-                                        { Combine =
-                                            fun one two ->
-                                                sprintf
-                                                    "(new %s()).%s(%s).%s(%s)"
-                                                    (Print.typeName t.TypeName)
-                                                    mthd.MethodName
-                                                    one
-                                                    mthd.MethodName
-                                                    two
-                                          One = argt
-                                          Two = argt }
-                                        |> Combine
-                                    elif empty then
-                                        { Combine =
-                                            Print.typeName t.TypeName |> sprintf "%s.Empty.Add(%s).Add(%s)"
-                                          One = argt
-                                          Two = argt }
-                                        |> Combine
-                                ]
+                                { Item = arg.ArgType
+                                  Yield =
+                                    sprintf
+                                        "fun (this: %s) -> this.%s(%s)"
+                                        tname
+                                        mthd.MethodName }
+                                |> Yield
+                                |> Some
                             | InstanceMethod({ MethodName = "Add"; Params = [ _; _ ] } as mthd) when mthd.RetType = t' ->
-                                [
-                                    { Combine = sprintf "let (key, value) = %s in %s.Add(key, value)"
-                                      One = TypeArg InferredType
-                                      Two = t' }
-                                    |> Combine
-
-                                    if zero then
-                                        { Combine =
-                                            fun one two ->
-                                                sprintf
-                                                    "(new %s()).Add(fst %s, snd %s).Add(fst %s, snd %s)"
-                                                    (Print.typeName t.TypeName)
-                                                    one
-                                                    one
-                                                    two
-                                                    two
-                                          One = TypeArg InferredType
-                                          Two = TypeArg InferredType }
-                                        |> Combine
-                                    elif empty then
-                                        { Combine =
-                                            fun one two ->
-                                                sprintf
-                                                    "%s.Empty.Add(fst %s, snd %s).Add(fst %s, snd %s)"
-                                                    (Print.typeName t.TypeName)
-                                                    one
-                                                    one
-                                                    two
-                                                    two
-                                          One = TypeArg InferredType
-                                          Two = TypeArg InferredType }
-                                        |> Combine
-                                ]
+                                { Item = TypeArg InferredType
+                                  Yield =
+                                    fun item ->
+                                        sprintf
+                                            "fun (this: %s) -> this.%s(fst %s, snd %s)"
+                                            tname
+                                            mthd.MethodName
+                                            item
+                                            item }
+                                |> Yield
+                                |> Some
                             // TODO: Also generate for Add or AddRange methods that return void.
-                            | _ -> [])
+                            | _ -> None)
                     [
-                        Delay
-                        Yield
+                        let idt = FsFuncType(t', t') |> TypeArg
 
-                        if zero then
-                            Print.typeName t.TypeName
-                            |> sprintf "new %s()"
-                            |> Zero
-                        elif empty then
-                            Print.typeName t.TypeName
-                            |> sprintf "%s.Empty"
-                            |> Zero
+                        { Combine = sprintf "%s >> %s"
+                          One = idt
+                          Two = idt }
+                        |> Combine
+                        Delay idt
+                        if empty.IsSome then Run(idt, empty.Value)
+                        Zero t'
 
                         yield! others
                     ]
                     |> Set.ofList
                 {| Attributes = List.empty
-                   Name = name'
+                   Name =
+                     let (FsName name) = t.TypeName.Name
+                     sprintf "%sBuilder" name |> FsName
                    Operations = ops |}
                 |> GenBuilder
                 |> Set.add

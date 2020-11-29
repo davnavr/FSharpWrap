@@ -64,7 +64,13 @@ let typeRef =
             "%s[%s]"
             (typeArg arr.ElementType)
             rank
-    | ByRefType tref -> typeArg tref |> sprintf "%s ref"
+    | ByRefType tref ->
+        typeArg tref |> sprintf "%s ref"
+    | FsFuncType(param, ret) ->
+        sprintf
+            "(%s -> %s)"
+            (typeArg param)
+            (typeArg ret)
     | InferredType -> "_"
     | PointerType (TypeArg (IsNamedType "System" "Void" _)) -> "voidptr"
     | PointerType pnt ->
@@ -186,11 +192,25 @@ let genBinding out (binding: GenBinding) =
                 typeArg combine.Two |> out'.Write
                 out'.Write ")="
                 combine.Combine "one" "two" |> out'.Write
-            | Delay -> out'.Write "Delay(f)=f()"
-            | Yield -> out'.Write "Yield(item)=item"
-            | Zero result ->
-                out'.Write "Zero()="
-                out'.Write result
+            | Delay ret ->
+                out'.Write "Delay(f): "
+                typeArg ret |> out'.Write
+                out'.Write " =f()"
+            | Run(t, empty) ->
+                out'.Write "Run(f:"
+                typeArg t |> out'.Write
+                out'.Write ")=f ("
+                out'.Write empty
+                out'.Write ")"
+            | Yield yld ->
+                out'.Write "Yield(item:"
+                typeArg yld.Item |> out'.Write
+                out'.Write ")= "
+                yld.Yield "item" |> out'.Write
+            | Zero t ->
+                out'.Write "Zero(): _ -> "
+                typeArg t |> out'.Write
+                out'.Write " =id"
             out'.Line()
         out.Write "let expr = new "
         out.Write name'

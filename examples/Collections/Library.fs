@@ -40,6 +40,8 @@ let hello() =
             5
         }
 
+    let single: ImmutableList<uint32> = ImmutableList.expr { 0x16u }
+
     let dictionary: ImmutableDictionary<string, string> =
         ImmutableDictionary.expr {
             yield "word", "the thing to the left"

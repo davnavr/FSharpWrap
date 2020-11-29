@@ -64,6 +64,7 @@ type TypeRef =
         {| ElementType: TypeArg
            Rank: uint |}
     | ByRefType of TypeArg
+    | FsFuncType of TypeArg * TypeArg
     | InferredType
     | PointerType of TypeArg
     | TypeName of TypeName
