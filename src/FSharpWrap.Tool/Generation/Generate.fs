@@ -192,14 +192,9 @@ let fromType (t: TypeDef): GenModule =
                             t.Members
                         |> List.choose
                             (function
-                            //| { Type = InstanceMethod({ MethodName = "AddRange"; Params = [ arg ] } as mthd) } when mthd.RetType = t' ->
-                            //    { Combine = invalidOp "What to do here?"
-                            //      One = t'
-                            //      Two = arg.ArgType }
-                            //    |> Combine
-                            //    |> Some
-                            | InstanceMethod({ MethodName = String.OneOf [ "Add"; "Push"; "Enqueue" ]; Params = [ arg ] } as mthd) when mthd.RetType = t' ->
-                                { Item = arg.ArgType
+                            | InstanceMethod({ MethodName = String.OneOf [ "Add"; "AddRange"; "Push"; "Enqueue" ]; Params = [ arg ] } as mthd) when mthd.RetType = t' ->
+                                { From = mthd.MethodName = "AddRange"
+                                  Item = arg.ArgType
                                   Yield =
                                     sprintf
                                         "fun (this: %s) -> this.%s(%s)"
@@ -208,7 +203,8 @@ let fromType (t: TypeDef): GenModule =
                                 |> Yield
                                 |> Some
                             | InstanceMethod({ MethodName = "Add"; Params = [ _; _ ] } as mthd) when mthd.RetType = t' ->
-                                { Item = TypeArg InferredType
+                                { From = false
+                                  Item = TypeArg InferredType
                                   Yield =
                                     fun item ->
                                         sprintf

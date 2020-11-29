@@ -38,6 +38,7 @@ let hello() =
             4
             1
             5
+            yield! [ 9; 2; 6; 5 ]
         }
 
     let single: ImmutableList<uint32> = ImmutableList.expr { 0x16u }

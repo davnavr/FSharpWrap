@@ -29,7 +29,8 @@ type ExprCombine =
 
 [<CustomComparison; CustomEquality>]
 type ExprYield =
-    { Item: TypeArg
+    { From: bool
+      Item: TypeArg
       Yield: string -> string }
 
     override this.Equals obj = this.Item = (obj :?> ExprYield).Item

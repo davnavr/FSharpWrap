@@ -203,7 +203,9 @@ let genBinding out (binding: GenBinding) =
                 out'.Write empty
                 out'.Write ")"
             | Yield yld ->
-                out'.Write "Yield(item:"
+                out'.Write "Yield"
+                if yld.From then out'.Write "From"
+                out'.Write "(item:"
                 typeArg yld.Item |> out'.Write
                 out'.Write ")= "
                 yld.Yield "item" |> out'.Write
