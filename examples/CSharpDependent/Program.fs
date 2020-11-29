@@ -1,5 +1,6 @@
 ﻿module Program
 
+open System.Collections.Generic
 open System.Diagnostics
 
 open CSharpDependency
@@ -21,4 +22,14 @@ let main _ =
     msg
     |> MyString.value
     |> printfn "%s"
+    
+    let alphabet =
+        List.expr {
+            'a'
+            'b'
+            'c'
+            yield! [ 'd'..'z' ]
+        }
+
+    Seq.iter (printfn "%c") alphabet
     0 // return an integer exit code

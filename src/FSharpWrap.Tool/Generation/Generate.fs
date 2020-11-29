@@ -186,29 +186,37 @@ let fromType (t: TypeDef): GenModule =
                         | _ -> false)
                         t.Members
                 let ops =
+                    let ret (rt: TypeArg) =
+                        if rt = t'
+                        then System.String.Empty
+                        else " |> ignore; this"
                     let others =
                         List.map
                             (fun mber -> mber.Type)
                             t.Members
                         |> List.choose
                             (function
-                            | InstanceMethod({ MethodName = String.OneOf [ "Add"; "AddRange"; "Push"; "Enqueue" ]; Params = [ arg ] } as mthd) when mthd.RetType = t' ->
+                            | InstanceMethod({ MethodName = String.OneOf [ "Add"; "AddRange"; "Push"; "Enqueue" ]; Params = [ arg ] } as mthd) ->
                                 { From = mthd.MethodName = "AddRange"
                                   Item = arg.ArgType
                                   Yield =
-                                    sprintf
-                                        "fun (this: %s) -> this.%s(%s)"
-                                        tname
-                                        mthd.MethodName }
+                                    fun item ->
+                                        ret mthd.RetType
+                                        |> sprintf
+                                            "fun (this: %s) -> this.%s(%s)%s"
+                                            tname
+                                            mthd.MethodName
+                                            item }
                                 |> Yield
                                 |> Some
-                            | InstanceMethod({ MethodName = "Add"; Params = [ _; _ ] } as mthd) when mthd.RetType = t' ->
+                            | InstanceMethod({ MethodName = "Add"; Params = [ _; _ ] } as mthd) ->
                                 { From = false
                                   Item = TypeArg InferredType
                                   Yield =
                                     fun item ->
-                                        sprintf
-                                            "fun (this: %s) -> this.%s(fst %s, snd %s)"
+                                        ret mthd.RetType
+                                        |> sprintf
+                                            "fun (this: %s) -> this.%s(fst %s, snd %s)%s"
                                             tname
                                             mthd.MethodName
                                             item

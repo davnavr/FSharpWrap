@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <FSharpWrapIncludeNames Include="CSharpDependency;System.Diagnostics.StackTrace;FSharp.Core" />
+    <FSharpWrapIncludeNames Include="CSharpDependency;System.Collections;System.Diagnostics.StackTrace;FSharp.Core" />
     <FSharpWrapExcludeNamespaces Include="System.Diagnostics.SymbolStore;Microsoft.FSharp.Core;Microsoft.FSharp.Collections" />
   </ItemGroup>
 
