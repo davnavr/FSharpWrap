@@ -26,14 +26,7 @@ let main _ =
     let alphabet =
         List.expr {
             yield! [ 'a'..'z' ]
-            for c in [ 'A'..'W' ] do
-                yield c
-            let mutable cchar = 'X'
-            while (printfn "C %c" cchar; cchar <= 'Z') do // TODO: Fix infinite loop.
-                printfn "A %c" cchar
-                yield cchar
-                cchar <- cchar + char 1
-                printfn "B"
+            for c in [ 'A'..'Z' ] do yield c
         }
 
     Seq.iter (printfn "%c") alphabet

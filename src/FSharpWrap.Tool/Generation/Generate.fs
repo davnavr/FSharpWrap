@@ -237,11 +237,6 @@ let fromType (t: TypeDef): GenModule =
                                 tname }
                         |> Using
 
-                        sprintf
-                            "While(guard: unit -> bool, body: %s) = fun this -> let mutable current = this in while guard() do current <- body current done; current"
-                            idtname
-                        |> Custom
-
                         Delay idt
                         Zero t'
 
