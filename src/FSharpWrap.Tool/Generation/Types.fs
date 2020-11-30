@@ -53,6 +53,7 @@ type ExprUsing =
 [<StructuralComparison; StructuralEquality>]
 type ExprOperation =
     | Combine of ExprCombine
+    | Custom of string
     | Delay of TypeArg
     | Run of TypeArg * string
     | Using of ExprUsing

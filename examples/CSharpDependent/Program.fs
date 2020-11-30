@@ -25,10 +25,9 @@ let main _ =
 
     let alphabet =
         List.expr {
-            'a'
-            'b'
-            'c'
-            yield! [ 'd'..'z' ]
+            yield! [ 'a'..'z' ]
+            for c in [ 'A'..'Z' ] do
+                yield c
         }
 
     Seq.iter (printfn "%c") alphabet

@@ -219,7 +219,10 @@ let fromType (t: TypeDef): GenModule =
                           Two = idt }
                         |> Combine
 
-                        // For
+                        sprintf
+                            "For(items: seq<_>, body): %s = fun this -> Seq.fold (fun state item -> body item state) this items"
+                            (Print.typeArg idt)
+                        |> Custom
 
                         // TryFinally
 

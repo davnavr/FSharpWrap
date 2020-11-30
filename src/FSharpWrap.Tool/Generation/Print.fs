@@ -218,6 +218,8 @@ let genBinding out (binding: GenBinding) =
                 out'.Write "Zero(): _ -> "
                 typeArg t |> out'.Write
                 out'.Write " =id"
+            | Custom str ->
+                out'.Write str
             out'.Line()
         out.Write "let expr = new "
         out.Write name'
