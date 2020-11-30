@@ -39,11 +39,23 @@ type ExprYield =
     interface IComparable with
         member this.CompareTo obj = compare this.Item (obj :?> ExprYield).Item
 
+[<CustomComparison; CustomEquality>]
+type ExprUsing =
+    { Type: TypeArg
+      Using: string -> string -> string }
+
+    override this.Equals obj = this.Type = (obj :?> ExprUsing).Type
+    override this.GetHashCode() = this.Type.GetHashCode()
+
+    interface IComparable with
+        member this.CompareTo obj = compare this.Type (obj :?> ExprUsing).Type
+
 [<StructuralComparison; StructuralEquality>]
 type ExprOperation =
     | Combine of ExprCombine
     | Delay of TypeArg
     | Run of TypeArg * string
+    | Using of ExprUsing
     | Yield of ExprYield
     | Zero of TypeArg
 

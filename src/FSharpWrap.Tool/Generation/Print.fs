@@ -202,6 +202,11 @@ let genBinding out (binding: GenBinding) =
                 out'.Write ")=f ("
                 out'.Write empty
                 out'.Write ")"
+            | Using u ->
+                out'.Write "Using(resource,body: _ -> "
+                typeArg u.Type |> out'.Write
+                out'.Write ")= "
+                u.Using "resource" "body" |> out'.Write
             | Yield yld ->
                 out'.Write "Yield"
                 if yld.From then out'.Write "From"

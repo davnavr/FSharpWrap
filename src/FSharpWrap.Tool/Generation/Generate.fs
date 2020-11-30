@@ -162,6 +162,7 @@ let fromType (t: TypeDef): GenModule =
             then
                 let tname = Print.typeName t.TypeName
                 let t' = TypeName t.TypeName |> TypeArg
+                let idt = FsFuncType(t', t') |> TypeArg
                 let empty =
                     List.tryPick
                         (fun mber ->
@@ -172,69 +173,71 @@ let fromType (t: TypeDef): GenModule =
                                 sprintf "new %s()" tname |> Some
                             | _ -> None)
                         t.Members
-                let zero =
-                    List.exists
-                        (fun mber ->
-                            match mber.Type with
-                            | Constructor [] -> true
-                            | _ -> false)
-                        t.Members
-                let oldempty =
-                    List.exists
-                        (function
-                        | { Type = StaticField { FieldName = "Empty" } } -> true
-                        | _ -> false)
-                        t.Members
                 let ops =
                     let ret (rt: TypeArg) =
                         if rt = t'
                         then System.String.Empty
                         else " |> ignore; this"
                     let others =
-                        List.map
-                            (fun mber -> mber.Type)
+                        List.collect
+                            (fun mber ->
+                                match mber.Type with
+                                | InstanceMethod({ MethodName = String.OneOf [ "Add"; "AddRange"; "Push"; "Enqueue" ]; Params = [ arg ] } as mthd) ->
+                                    [
+                                        { From = mthd.MethodName = "AddRange"
+                                          Item = arg.ArgType
+                                          Yield =
+                                            fun item ->
+                                                ret mthd.RetType
+                                                |> sprintf
+                                                    "fun (this: %s) -> this.%s(%s)%s"
+                                                    tname
+                                                    mthd.MethodName
+                                                    item }
+                                        |> Yield
+                                    ]
+                                | InstanceMethod({ MethodName = "Add"; Params = [ _; _ ] } as mthd) ->
+                                    [
+                                        { From = false
+                                          Item = TypeArg InferredType
+                                          Yield =
+                                            fun item ->
+                                                ret mthd.RetType
+                                                |> sprintf
+                                                    "fun (this: %s) -> this.%s(fst %s, snd %s)%s"
+                                                    tname
+                                                    mthd.MethodName
+                                                    item
+                                                    item }
+                                        |> Yield
+                                    ]
+                                | _ -> List.empty)
                             t.Members
-                        |> List.choose
-                            (function
-                            | InstanceMethod({ MethodName = String.OneOf [ "Add"; "AddRange"; "Push"; "Enqueue" ]; Params = [ arg ] } as mthd) ->
-                                { From = mthd.MethodName = "AddRange"
-                                  Item = arg.ArgType
-                                  Yield =
-                                    fun item ->
-                                        ret mthd.RetType
-                                        |> sprintf
-                                            "fun (this: %s) -> this.%s(%s)%s"
-                                            tname
-                                            mthd.MethodName
-                                            item }
-                                |> Yield
-                                |> Some
-                            | InstanceMethod({ MethodName = "Add"; Params = [ _; _ ] } as mthd) ->
-                                { From = false
-                                  Item = TypeArg InferredType
-                                  Yield =
-                                    fun item ->
-                                        ret mthd.RetType
-                                        |> sprintf
-                                            "fun (this: %s) -> this.%s(fst %s, snd %s)%s"
-                                            tname
-                                            mthd.MethodName
-                                            item
-                                            item }
-                                |> Yield
-                                |> Some
-                            // TODO: Also generate for Add or AddRange methods that return void.
-                            | _ -> None)
                     [
-                        let idt = FsFuncType(t', t') |> TypeArg
-
                         { Combine = sprintf "%s >> %s"
                           One = idt
                           Two = idt }
                         |> Combine
+
+                        // For
+
+                        // TryFinally
+
+                        // TryWith
+
+                        { Type = idt
+                          Using =
+                            sprintf
+                                "fun (this: %s) -> this |> using %s %s"
+                                tname }
+                        |> Using
+
+                        // While
+
                         Delay idt
-                        if empty.IsSome then Run(idt, empty.Value)
                         Zero t'
+
+                        if empty.IsSome then Run(idt, empty.Value)
 
                         yield! others
                     ]

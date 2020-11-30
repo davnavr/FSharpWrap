@@ -22,7 +22,7 @@ let main _ =
     msg
     |> MyString.value
     |> printfn "%s"
-    
+
     let alphabet =
         List.expr {
             'a'
