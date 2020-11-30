@@ -163,6 +163,7 @@ let fromType (t: TypeDef): GenModule =
                 let tname = Print.typeName t.TypeName
                 let t' = TypeName t.TypeName |> TypeArg
                 let idt = FsFuncType(t', t') |> TypeArg
+                let idtname = Print.typeArg idt
                 let empty =
                     List.tryPick
                         (fun mber ->
@@ -221,12 +222,13 @@ let fromType (t: TypeDef): GenModule =
 
                         sprintf
                             "For(items: seq<_>, body): %s = fun this -> Seq.fold (fun state item -> body item state) this items"
-                            (Print.typeArg idt)
+                            idtname
                         |> Custom
 
-                        // TryFinally
-
-                        // TryWith
+                        sprintf
+                            "TryFinally(body: %s, fin: unit -> unit) = fun this -> try body this finally fin()"
+                            idtname
+                        |> Custom
 
                         { Type = idt
                           Using =
@@ -235,7 +237,10 @@ let fromType (t: TypeDef): GenModule =
                                 tname }
                         |> Using
 
-                        // While
+                        sprintf
+                            "While(guard: unit -> bool, body: %s) = fun this -> let mutable current = this in while guard() do current <- body current done; current"
+                            idtname
+                        |> Custom
 
                         Delay idt
                         Zero t'
