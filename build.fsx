@@ -68,14 +68,12 @@ Target.create "Clean" <| fun _ ->
 
     !!(testDir </> "**" </> "*.autogen.fs") |> File.deleteAll
 
-    // Clean all solutions with all configurations
-    List.collect
-        (fun cfg ->
-            [
-                cfg, slnFile
-                cfg, rootDir </> "FSharpWrap.TestProjects.sln"
-            ])
+    List.allPairs
         [ "Debug"; "Release" ]
+        [
+            slnFile
+            rootDir </> "FSharpWrap.TestProjects.sln"
+        ]
     |> List.iter
         (fun (cfg, sln) ->
             let err =
@@ -83,14 +81,13 @@ Target.create "Clean" <| fun _ ->
             [
                 sln
                 sprintf "--configuration %s" cfg
-                "--nologo"
             ]
             |> String.concat " "
             |> DotNetCli.exec id "clean"
             |> handleErr err)
 
 Target.create "Build Tool" <| fun _ ->
-    buildProj slnFile [ "Version", version ]
+    buildProj slnFile [ "Version", version; "TreatWarningsAsErrors", "true" ]
 
     DotNetCli.publish
         (fun options ->
@@ -113,6 +110,7 @@ Target.create "Test MSBuild" <| fun _ ->
         path
         [
             "_FSharpWrapLaunchDebugger", Environment.environVarOrDefault "DEBUG_FSHARPWRAP_TOOL" "false"
+            "TreatWarningsAsErrors", "true"
         ]
 
 Target.create "Run Benchmarks" <| fun _ ->
