@@ -1,0 +1,3 @@
+<Project>
+  <Import Condition="$(MSBuildProjectFile.StartsWith(`TestProject`))" Project="$(RootDirectory)/src/FSharpWrap/FSharpWrap.targets" />
+</Project>

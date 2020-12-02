@@ -17,7 +17,7 @@ let collection() =
     }
 
 [<EntryPoint>]
-let main _ =
+let main _ = // TODO: Add Expecto to all "example" projects to ensure that values are correct.
     let msg = MyString.ofString "Hello"
     msg
     |> MyString.value

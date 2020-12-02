@@ -24,6 +24,7 @@ let docsDir = rootDir </> "docs"
 let outDir = rootDir </> "out"
 let srcDir = rootDir </> "src"
 let slnFile = rootDir </> "FSharpWrap.sln"
+let testDir = rootDir </> "test"
 
 let version = Environment.environVarOrDefault "PACKAGE_VERSION" "0.0.0"
 
@@ -63,21 +64,30 @@ module Helpers =
 
 Target.create "Clean" <| fun _ ->
     Shell.cleanDir outDir
-    docsDir </> "_public" |> Shell.cleanDir
+    Shell.cleanDir (docsDir </> "_public")
 
-    !!(rootDir </> "examples/**/*.autogen.fs") |> File.deleteAll
+    !!(testDir </> "**" </> "*.autogen.fs") |> File.deleteAll
 
-    List.iter
+    // Clean all solutions with all configurations
+    List.collect
         (fun cfg ->
             [
-                slnFile
+                cfg, slnFile
+                cfg, rootDir </> "FSharpWrap.TestProjects.sln"
+            ])
+        [ "Debug"; "Release" ]
+    |> List.iter
+        (fun (cfg, sln) ->
+            let err =
+                sprintf "Unexpected error while cleaning solution %s" sln
+            [
+                sln
                 sprintf "--configuration %s" cfg
                 "--nologo"
             ]
             |> String.concat " "
             |> DotNetCli.exec id "clean"
-            |> handleErr "Unexpected error while cleaning solution")
-        [ "Debug"; "Release" ]
+            |> handleErr err)
 
 Target.create "Build Tool" <| fun _ ->
     buildProj slnFile [ "Version", version ]
@@ -92,12 +102,12 @@ Target.create "Build Tool" <| fun _ ->
         (srcDir </> "FSharpWrap.Tool" </> "FSharpWrap.Tool.fsproj")
 
 Target.create "Test Tool" <| fun _ ->
-    rootDir </> "test" </> "FSharpWrap.Tool.Tests" </> "FSharpWrap.Tool.Tests.fsproj"
+    testDir </> "FSharpWrap.Tool.Tests" </> "FSharpWrap.Tool.Tests.fsproj"
     |> runProj id
     |> handleErr "One or more tests failed"
 
-Target.create "Build Examples" <| fun _ ->
-    let path = rootDir </> "FSharpWrap.Examples.sln"
+Target.create "Test MSBuild" <| fun _ ->
+    let path = rootDir </> "FSharpWrap.TestProjects.sln"
     DotNetCli.restore id path
     buildProj
         path
@@ -146,13 +156,13 @@ Target.create "Pack" <| fun _ ->
 "Clean"
 ==> "Build Tool"
 ==> "Test Tool"
-==> "Build Examples"
+==> "Test MSBuild"
 ==> "Pack"
 
-"Test Tool" ==> "Run Benchmarks" ?=> "Build Examples"
+"Test Tool" ==> "Run Benchmarks" ?=> "Test MSBuild"
 "Run Benchmarks" ==> "Pack"
 
 "Clean" ==> "Build Documentation" ?=> "Run Benchmarks"
 "Build Documentation" ==> "Pack"
 
-Target.runOrDefault "Build Examples"
+Target.runOrDefault "Test MSBuild"
