@@ -81,5 +81,20 @@ let main argv =
             let exp = items.Add(vold).Replace(vold, vnew)
             let act = ImmutableList.add vold items |> ImmutableList.replace vold vnew
             Expect.sequenceEqual act exp "The lists should replace the same element"
+
+        testProperty "computation expression works with conditions" <| fun (one: string list) (two: string list) cond ->
+            let exp =
+                let items = List<_>()
+                items.AddRange one
+                if cond then
+                    items.AddRange two
+                items
+            let act =
+                List.expr {
+                    yield! one
+                    if cond then
+                        yield! two
+                }
+            Expect.sequenceEqual act exp "The lists should contain the same elements with the same condition"
     ]
     |> runTestsWithCLIArgs Seq.empty argv

@@ -112,6 +112,7 @@ Target.create "Test MSBuild" <| fun _ ->
             "_FSharpWrapLaunchDebugger", Environment.environVarOrDefault "DEBUG_FSHARPWRAP_TOOL" "false"
             "TreatWarningsAsErrors", "true"
         ]
+    // TODO: Run test projects
 
 Target.create "Run Benchmarks" <| fun _ ->
     rootDir </> "benchmarks" </> "FSharpWrap.Tool.Benchmarks.fsproj"
