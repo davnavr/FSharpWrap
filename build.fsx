@@ -103,7 +103,7 @@ Target.create "Test Tool" <| fun _ ->
     |> runProj id
     |> handleErr "One or more tests failed"
 
-Target.create "Test MSBuild" <| fun _ ->
+Target.create "Build MSBuild" <| fun _ ->
     let path = rootDir </> "FSharpWrap.TestProjects.sln"
     DotNetCli.restore id path
     buildProj
@@ -112,7 +112,24 @@ Target.create "Test MSBuild" <| fun _ ->
             "_FSharpWrapLaunchDebugger", Environment.environVarOrDefault "DEBUG_FSHARPWRAP_TOOL" "false"
             "TreatWarningsAsErrors", "true"
         ]
-    // TODO: Run test projects
+
+Target.create "Test MSBuild" <| fun _ ->
+    let run proj tfms =
+        let msg = sprintf "Error while running test project %s" proj
+        List.iter
+            (fun tfm ->
+                runProj
+                    (fun args -> sprintf "--framework %s" tfm :: args)
+                    proj
+                |> handleErr msg)
+            tfms
+    [
+        "TestProject.Collections" </> "TestProject.Collections.fsproj", [ "netcoreapp3.1" ]
+        "TestProject.CSharpDependent" </> "TestProject.CSharpDependent.fsproj", [ "netcoreapp3.1" ]
+        "TestProject.MultiTarget" </> "TestProject.MultiTarget.fsproj", [ "netcoreapp3.1"; "net5.0" ]
+    ]
+    |> Map.ofList
+    |> Map.iter (fun proj -> testDir </> proj |> run)
 
 Target.create "Run Benchmarks" <| fun _ ->
     rootDir </> "benchmarks" </> "FSharpWrap.Tool.Benchmarks.fsproj"
@@ -155,10 +172,11 @@ Target.create "Pack" <| fun _ ->
 "Clean"
 ==> "Build Tool"
 ==> "Test Tool"
+==> "Build MSBuild"
 ==> "Test MSBuild"
 ==> "Pack"
 
-"Test Tool" ==> "Run Benchmarks" ?=> "Test MSBuild"
+"Test Tool" ==> "Run Benchmarks" ?=> "Build MSBuild"
 "Run Benchmarks" ==> "Pack"
 
 "Clean" ==> "Build Documentation" ?=> "Run Benchmarks"
