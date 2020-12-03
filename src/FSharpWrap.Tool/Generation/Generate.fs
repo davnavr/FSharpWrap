@@ -14,6 +14,16 @@ let private moduleAttr =
     { Arguments = [ "global.Microsoft.FSharp.Core.CompilationRepresentationFlags.ModuleSuffix" ]
       AttributeType = attrType "Microsoft.FSharp.Core" "CompilationRepresentationAttribute" }
 
+let private ienumerable =
+    { Name = FsName "IEnumerable"
+      Namespace = Namespace.ofStr "System.Collections.Generic"
+      Parent = None
+      TypeArgs =
+        { Constraints = GenericConstraints.Empty()
+          ParamName = FsName "T" }
+        |> TypeParam
+        |> TypeArgList.singleton }
+
 // TODO: How will the arguments be casted to the argument type?
 let attribute (attr: AttributeInfo) =
     let rec arg (t, value) =
@@ -146,6 +156,103 @@ let fromType (t: TypeDef): GenModule =
         | _ -> false
     { Attributes = moduleAttr :: (warnAttrs t.Attributes)
       Bindings =
+        /// Attempts to create a Computation Expression for the type
+        let expr =
+            if not t.IsAbstract && Set.contains ienumerable t.Interfaces
+            then
+                let tname = Print.typeName t.TypeName
+                let t' = TypeName t.TypeName |> TypeArg
+                let idt = FsFuncType(t', t') |> TypeArg
+                let idtname = Print.typeArg idt
+                let empty =
+                    List.tryPick
+                        (fun mber ->
+                            match mber.Type with
+                            | StaticField { FieldName = "Empty" } ->
+                                sprintf "%s.Empty" tname |> Some
+                            | Constructor [] ->
+                                sprintf "new %s()" tname |> Some
+                            | _ -> None)
+                        t.Members
+                let ops =
+                    let ret (rt: TypeArg) =
+                        if rt = t'
+                        then System.String.Empty
+                        else " |> ignore; this"
+                    let others =
+                        List.collect
+                            (fun mber ->
+                                match mber.Type with
+                                | InstanceMethod({ MethodName = String.OneOf [ "Add"; "AddRange"; "Push"; "Enqueue" ]; Params = [ arg ] } as mthd) ->
+                                    [
+                                        { From = mthd.MethodName = "AddRange"
+                                          Item = arg.ArgType
+                                          Yield =
+                                            fun item ->
+                                                ret mthd.RetType
+                                                |> sprintf
+                                                    "fun (this: %s) -> this.%s(%s)%s"
+                                                    tname
+                                                    mthd.MethodName
+                                                    item }
+                                        |> Yield
+                                    ]
+                                | InstanceMethod({ MethodName = "Add"; Params = [ _; _ ] } as mthd) ->
+                                    [
+                                        { From = false
+                                          Item = TypeArg InferredType
+                                          Yield =
+                                            fun item ->
+                                                ret mthd.RetType
+                                                |> sprintf
+                                                    "fun (this: %s) -> this.%s(fst %s, snd %s)%s"
+                                                    tname
+                                                    mthd.MethodName
+                                                    item
+                                                    item }
+                                        |> Yield
+                                    ]
+                                | _ -> List.empty)
+                            t.Members
+                    [
+                        { Combine = sprintf "%s >> %s"
+                          One = idt
+                          Two = idt }
+                        |> Combine
+
+                        sprintf
+                            "For(items: seq<_>, body): %s = fun this -> Seq.fold (fun state item -> body item state) this items"
+                            idtname
+                        |> Custom
+
+                        sprintf
+                            "TryFinally(body: %s, fin: unit -> unit) = fun this -> try body this finally fin()"
+                            idtname
+                        |> Custom
+
+                        { Type = idt
+                          Using =
+                            sprintf
+                                "fun (this: %s) -> this |> using %s %s"
+                                tname }
+                        |> Using
+
+                        Delay idt
+                        Zero t'
+
+                        if empty.IsSome then Run(idt, empty.Value)
+
+                        yield! others
+                    ]
+                    |> Set.ofList
+                {| Attributes = List.empty
+                   Name =
+                     let (FsName name) = t.TypeName.Name
+                     sprintf "%sBuilder" name |> FsName
+                   Operations = ops |}
+                |> GenBuilder
+                |> Set.add
+            else id
         t.Members
         |> List.choose
             (fun mber ->
@@ -162,6 +269,7 @@ let fromType (t: TypeDef): GenModule =
                     Set.add gen bindings
                 | _ -> bindings)
             Set.empty
+        |> expr
       ModuleName = t.TypeName.Name }
 
 let private addType mdles tdef =

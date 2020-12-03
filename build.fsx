@@ -24,6 +24,7 @@ let docsDir = rootDir </> "docs"
 let outDir = rootDir </> "out"
 let srcDir = rootDir </> "src"
 let slnFile = rootDir </> "FSharpWrap.sln"
+let testDir = rootDir </> "test"
 
 let version = Environment.environVarOrDefault "PACKAGE_VERSION" "0.0.0"
 
@@ -63,24 +64,30 @@ module Helpers =
 
 Target.create "Clean" <| fun _ ->
     Shell.cleanDir outDir
-    docsDir </> "_public" |> Shell.cleanDir
+    Shell.cleanDir (docsDir </> "_public")
 
-    !!(rootDir </> "examples/**/*.autogen.fs") |> File.deleteAll
+    !!(testDir </> "**" </> "*.autogen.fs") |> File.deleteAll
 
-    List.iter
-        (fun cfg ->
+    List.allPairs
+        [ "Debug"; "Release" ]
+        [
+            slnFile
+            rootDir </> "FSharpWrap.TestProjects.sln"
+        ]
+    |> List.iter
+        (fun (cfg, sln) ->
+            let err =
+                sprintf "Unexpected error while cleaning solution %s" sln
             [
-                slnFile
+                sln
                 sprintf "--configuration %s" cfg
-                "--nologo"
             ]
             |> String.concat " "
             |> DotNetCli.exec id "clean"
-            |> handleErr "Unexpected error while cleaning solution")
-        [ "Debug"; "Release" ]
+            |> handleErr err)
 
 Target.create "Build Tool" <| fun _ ->
-    buildProj slnFile [ "Version", version ]
+    buildProj slnFile [ "Version", version; "TreatWarningsAsErrors", "true" ]
 
     DotNetCli.publish
         (fun options ->
@@ -92,18 +99,37 @@ Target.create "Build Tool" <| fun _ ->
         (srcDir </> "FSharpWrap.Tool" </> "FSharpWrap.Tool.fsproj")
 
 Target.create "Test Tool" <| fun _ ->
-    rootDir </> "test" </> "FSharpWrap.Tool.Tests" </> "FSharpWrap.Tool.Tests.fsproj"
+    testDir </> "FSharpWrap.Tool.Tests" </> "FSharpWrap.Tool.Tests.fsproj"
     |> runProj id
     |> handleErr "One or more tests failed"
 
-Target.create "Build Examples" <| fun _ ->
-    let path = rootDir </> "FSharpWrap.Examples.sln"
+Target.create "Build MSBuild" <| fun _ ->
+    let path = rootDir </> "FSharpWrap.TestProjects.sln"
     DotNetCli.restore id path
     buildProj
         path
         [
             "_FSharpWrapLaunchDebugger", Environment.environVarOrDefault "DEBUG_FSHARPWRAP_TOOL" "false"
+            "TreatWarningsAsErrors", "true"
         ]
+
+Target.create "Test MSBuild" <| fun _ ->
+    let run proj tfms =
+        let msg = sprintf "Error while running test project %s" proj
+        List.iter
+            (fun tfm ->
+                runProj
+                    (fun args -> sprintf "--framework %s" tfm :: args)
+                    proj
+                |> handleErr msg)
+            tfms
+    [
+        "TestProject.Collections" </> "TestProject.Collections.fsproj", [ "netcoreapp3.1" ]
+        "TestProject.CSharpDependent" </> "TestProject.CSharpDependent.fsproj", [ "netcoreapp3.1" ]
+        "TestProject.MultiTarget" </> "TestProject.MultiTarget.fsproj", [ "netcoreapp3.1"; "net5.0" ]
+    ]
+    |> Map.ofList
+    |> Map.iter (fun proj -> testDir </> proj |> run)
 
 Target.create "Run Benchmarks" <| fun _ ->
     rootDir </> "benchmarks" </> "FSharpWrap.Tool.Benchmarks.fsproj"
@@ -146,13 +172,14 @@ Target.create "Pack" <| fun _ ->
 "Clean"
 ==> "Build Tool"
 ==> "Test Tool"
-==> "Build Examples"
+==> "Build MSBuild"
+==> "Test MSBuild"
 ==> "Pack"
 
-"Test Tool" ==> "Run Benchmarks" ?=> "Build Examples"
+"Test Tool" ==> "Run Benchmarks" ?=> "Build MSBuild"
 "Run Benchmarks" ==> "Pack"
 
 "Clean" ==> "Build Documentation" ?=> "Run Benchmarks"
 "Build Documentation" ==> "Pack"
 
-Target.runOrDefault "Build Examples"
+Target.runOrDefault "Test MSBuild"

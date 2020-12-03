@@ -62,7 +62,7 @@ jobs:
             $target = "Pack"
         }
         else {
-            $target = "Build Examples"
+            $target = "Test MSBuild"
         }
         
         -join("::set-output name=target::", $target) | Write-Host

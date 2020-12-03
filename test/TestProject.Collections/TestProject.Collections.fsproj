@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="$(FSharpWrapOutputFile)" />
-    <Compile Include="Library.fs" />
+    <Compile Include="Test.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <FSharpWrapIncludeNames Include="netstandard;System.Collections.Immutable" />
+    <FSharpWrapIncludeNames Include="System.Runtime;System.Collections;System.Collections.Immutable" />
     <FSharpWrapIncludeNamespaces Include="System.Collections.Generic;System.Collections.Immutable;System.Collections.ObjectModel" />
   </ItemGroup>
 

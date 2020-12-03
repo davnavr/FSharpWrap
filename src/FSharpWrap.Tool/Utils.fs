@@ -27,6 +27,13 @@ module String =
     let toLiteral (str: string) =
         str.Replace("\"", "\"\"") |> sprintf " @\"%s\""
 
+    let (|OneOf|_|) (values: string list) =
+        let values' = Set.ofList values
+        fun str ->
+            if Set.contains str values'
+            then Some()
+            else None
+
 [<RequireQualifiedAccess>]
 module internal TypeInfo =
     let inline equal ns name (t: System.Type) =

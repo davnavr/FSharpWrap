@@ -42,6 +42,8 @@ type GenericConstraints =
     interface IEnumerable with
         member this.GetEnumerator() = (this.Constraints :> IEnumerable).GetEnumerator()
 
+    static member Empty() = { Constraints = Set.empty }
+
 [<StructuralComparison; StructuralEquality>]
 type TypeParam =
     { Constraints: GenericConstraints
@@ -62,6 +64,8 @@ type TypeRef =
         {| ElementType: TypeArg
            Rank: uint |}
     | ByRefType of TypeArg
+    | FsFuncType of TypeArg * TypeArg
+    | InferredType
     | PointerType of TypeArg
     | TypeName of TypeName
 
@@ -116,6 +120,8 @@ type Member =
 [<CustomComparison; CustomEquality>]
 type TypeDef =
     { Attributes: AttributeInfo list
+      Interfaces: Set<TypeName>
+      IsAbstract: bool
       Members: Member list
       TypeName: TypeName }
 

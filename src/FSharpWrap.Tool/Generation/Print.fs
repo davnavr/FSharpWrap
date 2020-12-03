@@ -64,7 +64,14 @@ let typeRef =
             "%s[%s]"
             (typeArg arr.ElementType)
             rank
-    | ByRefType tref -> typeArg tref |> sprintf "%s ref"
+    | ByRefType tref ->
+        typeArg tref |> sprintf "%s ref"
+    | FsFuncType(param, ret) ->
+        sprintf
+            "(%s -> %s)"
+            (typeArg param)
+            (typeArg ret)
+    | InferredType -> "_"
     | PointerType (TypeArg (IsNamedType "System" "Void" _)) -> "voidptr"
     | PointerType pnt ->
         typeArg pnt |> sprintf "nativeptr<%s>"
@@ -158,9 +165,9 @@ let parameters =
 
 let genBinding out (binding: GenBinding) =
     attributes out binding.Attributes
-    out.Write "let inline "
     match binding with
     | GenActivePattern pattern ->
+        out.Write "let inline "
         sprintf
             "(|%s|_|)%s= %s"
             (fsname pattern.PatternName)
@@ -168,7 +175,58 @@ let genBinding out (binding: GenBinding) =
             pattern.Body
         |> out.Write
         out.Line()
+    | GenBuilder ce ->
+        let name' = fsname ce.Name
+        out.Write "type "
+        out.Write name'
+        out.Write "()="
+        out.Line()
+        let out' = indented out
+        for op in ce.Operations do
+            out'.Write "member inline _."
+            match op with
+            | Combine combine ->
+                out'.Write "Combine(one:"
+                typeArg combine.One |> out'.Write
+                out'.Write ",two:"
+                typeArg combine.Two |> out'.Write
+                out'.Write ")="
+                combine.Combine "one" "two" |> out'.Write
+            | Delay ret ->
+                out'.Write "Delay(f): "
+                typeArg ret |> out'.Write
+                out'.Write " =f()"
+            | Run(t, empty) ->
+                out'.Write "Run(f:"
+                typeArg t |> out'.Write
+                out'.Write ")=f ("
+                out'.Write empty
+                out'.Write ")"
+            | Using u ->
+                out'.Write "Using(resource,body: _ -> "
+                typeArg u.Type |> out'.Write
+                out'.Write ")= "
+                u.Using "resource" "body" |> out'.Write
+            | Yield yld ->
+                out'.Write "Yield"
+                if yld.From then out'.Write "From"
+                out'.Write "(item:"
+                typeArg yld.Item |> out'.Write
+                out'.Write ")= "
+                yld.Yield "item" |> out'.Write
+            | Zero t ->
+                out'.Write "Zero(): _ -> "
+                typeArg t |> out'.Write
+                out'.Write " =id"
+            | Custom str ->
+                out'.Write str
+            out'.Line()
+        out.Write "let expr = new "
+        out.Write name'
+        out.Write "()"
+        out.Line()
     | GenFunction func ->
+        out.Write "let inline "
         fsname func.Name |> out.Write
         parameters func.Parameters |> out.Write
         out.Write "= "

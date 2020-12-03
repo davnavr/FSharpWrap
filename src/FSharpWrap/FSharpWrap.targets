@@ -26,7 +26,7 @@
       <Using Namespace="System.Linq" />
       <Code Type="Fragment" Language="C#">
         <![CDATA[
-if (!File.Exists(ToolPath))
+if (!File.Exists(Path.GetFullPath(ToolPath)))
 {
     Log.LogError($"Unable to locate FSharpWrap executable at {ToolPath}");
     return false;

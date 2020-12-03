@@ -12,13 +12,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <FSharpWrapIncludeNames Include="CSharpDependency;System.Diagnostics.StackTrace;FSharp.Core" />
+    <FSharpWrapIncludeNames Include="TestProject.CSharpDependency;System.Collections;System.Diagnostics.StackTrace;FSharp.Core" />
     <FSharpWrapExcludeNamespaces Include="System.Diagnostics.SymbolStore;Microsoft.FSharp.Core;Microsoft.FSharp.Collections" />
   </ItemGroup>
 
   <!-- References -->
   <ItemGroup>
-    <ProjectReference Include="$(RootDirectory)/examples/CSharpDependency/CSharpDependency.csproj" />
+    <ProjectReference Include="$(RootDirectory)/test/TestProject.CSharpDependency/TestProject.CSharpDependency.csproj" />
   </ItemGroup>
 
 </Project>
