@@ -16,6 +16,6 @@
     <ProjectReference Include="$(RootDirectory)/test/TestProject.CSharpDependency/TestProject.CSharpDependency.csproj" />
   </ItemGroup>
 
-  <Import Project="$(RootDirectory)/.paket/Paket.Restore.targets" />
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
 
 </Project>
