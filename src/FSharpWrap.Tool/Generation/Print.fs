@@ -235,7 +235,7 @@ let genBinding out (binding: GenBinding) =
 
 let genModule out (mdle: GenModule) =
     attributes out mdle.Attributes
-    out.Write "module "
+    out.Write "module internal "
     fsname mdle.ModuleName |> out.Write
     out.Write " ="
     out.Line()

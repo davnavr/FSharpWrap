@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Generation of computation expressions for types implementing `IEnumerable<T>`
+### Changed
+- Generated modules now have `internal` access
 
 ## [0.4.1] - 2020-11-27
 ### Added
