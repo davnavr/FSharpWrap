@@ -23,7 +23,8 @@ let rootDir = __SOURCE_DIRECTORY__
 let docsDir = rootDir </> "docs"
 let outDir = rootDir </> "out"
 let srcDir = rootDir </> "src"
-let slnFile = rootDir </> "FSharpWrap.sln"
+let mainSln = rootDir </> "FSharpWrap.sln"
+let testSln = rootDir </> "FSharpWrap.TestProjects.sln"
 let testDir = rootDir </> "test"
 
 let version = Environment.environVarOrDefault "PACKAGE_VERSION" "0.0.0"
@@ -62,6 +63,11 @@ module Helpers =
             id
             "run"
 
+Target.create "Restore" <| fun _ ->
+    List.iter
+        (DotNetCli.restore id)
+        [ mainSln; testSln ]
+
 Target.create "Clean" <| fun _ ->
     Shell.cleanDir outDir
     Shell.cleanDir (docsDir </> "_public")
@@ -71,7 +77,7 @@ Target.create "Clean" <| fun _ ->
     List.allPairs
         [ "Debug"; "Release" ]
         [
-            slnFile
+            mainSln
             rootDir </> "FSharpWrap.TestProjects.sln"
         ]
     |> List.iter
@@ -87,7 +93,7 @@ Target.create "Clean" <| fun _ ->
             |> handleErr err)
 
 Target.create "Build Tool" <| fun _ ->
-    buildProj slnFile [ "Version", version; "TreatWarningsAsErrors", "true" ]
+    buildProj mainSln [ "Version", version; "TreatWarningsAsErrors", "true" ]
 
     DotNetCli.publish
         (fun options ->
@@ -104,10 +110,8 @@ Target.create "Test Tool" <| fun _ ->
     |> handleErr "One or more tests failed"
 
 Target.create "Build MSBuild" <| fun _ ->
-    let path = rootDir </> "FSharpWrap.TestProjects.sln"
-    DotNetCli.restore id path
     buildProj
-        path
+        testSln
         [
             "_FSharpWrapLaunchDebugger", Environment.environVarOrDefault "DEBUG_FSHARPWRAP_TOOL" "false"
             "TreatWarningsAsErrors", "true"
@@ -169,7 +173,8 @@ Target.create "Pack" <| fun _ ->
                 WorkingDir = rootDir })
         nuspec
 
-"Clean"
+"Restore"
+==> "Clean"
 ==> "Build Tool"
 ==> "Test Tool"
 ==> "Build MSBuild"

@@ -3,6 +3,7 @@
 open Config
 open System.IO
 
+// TODO: Reference any libraries using Paket load scripts.
 let config = {
     Generators = [
         let page (file: string) =
