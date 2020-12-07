@@ -1,23 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Project properties -->
   <PropertyGroup>
     <AssemblyName>FSharpWrap.Tool.Tests</AssemblyName>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-  
-  <!-- Source files -->
+
   <ItemGroup>
     <Compile Include="Gen.fs" />
     <Compile Include="GenerateTests.fs" />
     <Compile Include="OptionsTests.fs" />
     <Compile Include="Test.fs" />
-  </ItemGroup>
 
-  <!-- References -->
-  <ItemGroup>
     <ProjectReference Include="$(RootDirectory)/src/FSharpWrap.Tool/FSharpWrap.Tool.fsproj" />
   </ItemGroup>
+
+  <Import Project="$(RootDirectory)/.paket/Paket.Restore.targets" />
 
 </Project>

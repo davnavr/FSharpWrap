@@ -8,16 +8,11 @@
   <ItemGroup>
     <Compile Include="$(FSharpWrapOutputFile)" />
     <Compile Include="Test.fs" />
-  </ItemGroup>
 
-  <ItemGroup>
     <FSharpWrapIncludeNames Include="System.Runtime;System.Collections;System.Collections.Immutable" />
     <FSharpWrapIncludeNamespaces Include="System.Collections.Generic;System.Collections.Immutable;System.Collections.ObjectModel" />
   </ItemGroup>
 
-  <!-- References -->
-  <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="1.7.1" />
-  </ItemGroup>
+  <Import Project="$(RootDirectory)/.paket/Paket.Restore.targets" />
 
 </Project>

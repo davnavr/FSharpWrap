@@ -1,6 +1,5 @@
 <Project>
 
-  <!-- Common properties -->
   <PropertyGroup>
     <LangVersion Condition="'$(MSBuildProjectExtension)'=='.fsproj'">4.7</LangVersion>
     <NeutralLanguage>en-US</NeutralLanguage>
