@@ -187,7 +187,7 @@ Target.create "Pack" <| fun _ ->
 "Test Tool" ==> "Run Benchmarks" ?=> "Build MSBuild"
 "Run Benchmarks" ==> "Pack"
 
-"Clean" ==> "Build Documentation" ?=> "Run Benchmarks"
+"Build Tool" ==> "Build Documentation" ?=> "Run Benchmarks"
 "Build Documentation" ==> "Pack"
 
 Target.runOrDefault "Test MSBuild"
