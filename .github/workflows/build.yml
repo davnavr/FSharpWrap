@@ -51,10 +51,8 @@ jobs:
       uses: nuget/setup-nuget@v1
       with:
         nuget-version: '5.x'
-    - name: Install Dependencies
-      run: |
-        dotnet restore ./FSharpWrap.sln
-        dotnet tool restore
+    - name: Install Tools
+      run: dotnet tool restore
     - name: Determine Target
       id: build_script_target
       run: |
