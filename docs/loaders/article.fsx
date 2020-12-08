@@ -1,5 +1,5 @@
 #r "../_lib/Fornax.Core.dll"
-#r "../_lib/Markdig.dll"
+#r "../../packages/documentation/Markdig/lib/netstandard2.0/Markdig.dll"
 
 open System
 open System.IO
