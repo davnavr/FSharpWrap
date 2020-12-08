@@ -62,6 +62,12 @@ module Helpers =
             "run"
 
 Target.create "Restore" <| fun _ ->
+    DotNetCli.exec
+        id
+        "paket"
+        "restore"
+    |> handleErr "Error occurred during Paket restore"
+
     for sln in [ mainSln; testSln ] do
         DotNetCli.restore id sln
 
