@@ -1,4 +1,5 @@
 #r "../_lib/Fornax.Core.dll"
+#r "../../packages/documentation/FSharp.Formatting/lib/netstandard2.0/FSharp.Formatting.Markdown.dll"
 #if !FORNAX
 #load "../loaders/article.fsx"
 #endif

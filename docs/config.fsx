@@ -1,4 +1,5 @@
 #r "_lib/Fornax.Core.dll"
+#r "../packages/documentation/FSharp.Formatting/lib/netstandard2.0/FSharp.Formatting.Markdown.dll"
 
 open Config
 open System.IO
@@ -14,7 +15,11 @@ let config = {
         let stat (_: string, page: string) =
             (page.StartsWith "style" && page.EndsWith ".css") || (page.StartsWith "js" && page.EndsWith ".js")
 
+        let literate (_: string, page: string) =
+            page.EndsWith ".fsx" && page.StartsWith "content"
+
         { Script = "page.fsx"; Trigger = OnFileExt ".md"; OutputFile = Custom page }
+        { Script = "page.fsx"; Trigger = OnFilePredicate literate; OutputFile = Custom page }
         { Script = "static.fsx"; Trigger = OnFilePredicate stat; OutputFile = SameFileName }
     ]
 }
