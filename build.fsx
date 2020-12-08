@@ -62,12 +62,8 @@ module Helpers =
             "run"
 
 Target.create "Restore" <| fun _ ->
-    for args in [ ""; "--group Test" ] do
-        DotNetCli.exec
-            id
-            "paket"
-            (sprintf "restore %s" args)
-        |> handleErr "Error occured while restoring packages"
+    for sln in [ mainSln; testSln ] do
+        DotNetCli.restore id sln
 
 Target.create "Clean" <| fun _ ->
     Shell.cleanDir outDir
