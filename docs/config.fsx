@@ -1,10 +1,8 @@
 #r "_lib/Fornax.Core.dll"
-#r "../packages/documentation/FSharp.Formatting/lib/netstandard2.0/FSharp.Formatting.Markdown.dll"
 
 open Config
 open System.IO
 
-// TODO: Reference any libraries using Paket load scripts.
 let config = {
     Generators = [
         let page (file: string) =
@@ -18,7 +16,6 @@ let config = {
         let literate (_: string, page: string) =
             page.EndsWith ".fsx" && page.StartsWith "content"
 
-        { Script = "page.fsx"; Trigger = OnFileExt ".md"; OutputFile = Custom page }
         { Script = "page.fsx"; Trigger = OnFilePredicate literate; OutputFile = Custom page }
         { Script = "static.fsx"; Trigger = OnFilePredicate stat; OutputFile = SameFileName }
     ]
