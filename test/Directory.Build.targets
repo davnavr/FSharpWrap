@@ -1,8 +1,3 @@
 <Project>
   <Import Condition="$(MSBuildProjectFile.StartsWith(`TestProject`))" Project="$(RootDirectory)/src/FSharpWrap/FSharpWrap.targets" />
-
-  <ItemGroup Condition="'$(MSBuildProjectExtension)'=='.fsproj'">
-    <PackageReference Include="Expecto" Version="9.0.2" />
-    <PackageReference Include="Expecto.FsCheck" Version="9.0.2" />
-  </ItemGroup>
 </Project>

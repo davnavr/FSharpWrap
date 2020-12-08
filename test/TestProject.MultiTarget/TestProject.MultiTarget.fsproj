@@ -8,10 +8,10 @@
   <ItemGroup>
     <Compile Include="$(FSharpWrapOutputFile)" />
     <Compile Include="Test.fs" />
-  </ItemGroup>
 
-  <ItemGroup>
     <FSharpWrapIncludeNamespaces Include="System" />
   </ItemGroup>
+
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
 
 </Project>
