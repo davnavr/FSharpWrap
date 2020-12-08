@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(FSharpWrapOutputFile)" />
+
+    <FSharpWrapIncludeNamespaces Include="System;System.Collections.Immutable" />
+  </ItemGroup>
+
+  <Import Project="$(RootDirectory)/test/TestProject.targets" />
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+
+</Project>

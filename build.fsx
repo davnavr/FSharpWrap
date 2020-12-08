@@ -25,6 +25,8 @@ let outDir = rootDir </> "out"
 let srcDir = rootDir </> "src"
 let mainSln = rootDir </> "FSharpWrap.sln"
 let testSln = rootDir </> "FSharpWrap.TestProjects.sln"
+let toolProj = srcDir </> "FSharpWrap.Tool" </> "FSharpWrap.Tool.fsproj"
+let docsProj = docsDir </> "content" </> "FSharpWrap.Documentation.fsproj"
 let testDir = rootDir </> "test"
 
 let version = Environment.environVarOrDefault "PACKAGE_VERSION" "0.0.0"
@@ -68,7 +70,7 @@ Target.create "Restore" <| fun _ ->
         "restore"
     |> handleErr "Error occurred during Paket restore"
 
-    for sln in [ mainSln; testSln ] do
+    for sln in [ mainSln; testSln; docsProj ] do
         DotNetCli.restore id sln
 
 Target.create "Clean" <| fun _ ->
@@ -105,7 +107,7 @@ Target.create "Build Tool" <| fun _ ->
                 NoBuild = true
                 NoRestore = true
                 OutputPath = srcDir </> "FSharpWrap" </> "tool" |> Some })
-        (srcDir </> "FSharpWrap.Tool" </> "FSharpWrap.Tool.fsproj")
+        toolProj
 
 Target.create "Test Tool" <| fun _ ->
     testDir </> "FSharpWrap.Tool.Tests" </> "FSharpWrap.Tool.Tests.fsproj"
@@ -155,6 +157,7 @@ Target.create "Run Benchmarks" <| fun _ ->
     |> handleErr "One or more benchmarks could not be run successfully"
 
 Target.create "Build Documentation" <| fun _ ->
+    buildProj docsProj []
     Shell.chdir docsDir
     DotNetCli.exec id "fornax" "build" |> handleErr "An error occured while building documentation"
     Shell.chdir rootDir

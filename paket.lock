@@ -1,3 +1,4 @@
+STORAGE: PACKAGES
 RESTRICTION: == netcoreapp3.1
 NUGET
   remote: https://api.nuget.org/v3/index.json
@@ -26,6 +27,7 @@ NUGET
     System.Runtime.CompilerServices.Unsafe (5.0)
 
 GROUP Test
+STORAGE: NONE
 RESTRICTION: || (== net50) (== netcoreapp3.1) (== netstandard2.0)
 NUGET
   remote: https://api.nuget.org/v3/index.json
