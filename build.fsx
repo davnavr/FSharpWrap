@@ -42,9 +42,7 @@ module Helpers =
             (fun opt ->
                 { opt with
                     Configuration = DotNetCli.Release
-                    MSBuildParams =
-                        { opt.MSBuildParams with
-                            Properties = props }
+                    MSBuildParams = { opt.MSBuildParams with Properties = props }
                     NoRestore = true })
             proj
 
@@ -64,9 +62,12 @@ module Helpers =
             "run"
 
 Target.create "Restore" <| fun _ ->
-    List.iter
-        (DotNetCli.restore id)
-        [ mainSln; testSln ]
+    for args in [ ""; "--group Test" ] do
+        DotNetCli.exec
+            id
+            "paket"
+            (sprintf "restore %s" args)
+        |> handleErr "Error occured while restoring packages"
 
 Target.create "Clean" <| fun _ ->
     Shell.cleanDir outDir

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <LangVersion Condition="'$(MSBuildProjectExtension)'=='.fsproj'">4.7</LangVersion>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <PaketRestoreDisabled>true</PaketRestoreDisabled>
     <RootNamespace>$(AssemblyName)</RootNamespace>
     <RootDirectory>$(MSBuildThisFileDirectory)</RootDirectory>
   </PropertyGroup>
