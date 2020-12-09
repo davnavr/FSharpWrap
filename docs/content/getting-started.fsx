@@ -109,6 +109,8 @@ To only exclude types in certain namespaces, use the following:
 ```
 
 ## Code Generation Limitations
+Only public members are included in code generation.
+
 Currently, any non-readonly structs (structs not marked
 [`IsReadOnly`](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/structures#readonly-structs) in F#)
 are excluded from code generation.

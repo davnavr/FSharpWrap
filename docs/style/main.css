@@ -1,3 +1,4 @@
+
 html, body {
   font-family: Verdana, sans-serif;
   font-size: 16px;
@@ -85,4 +86,8 @@ html, body {
 .code__copy-button {
   position: absolute;
   right: 20px;
+}
+
+.fsdocs-tip {
+  display: none;
 }
