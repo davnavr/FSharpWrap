@@ -6,6 +6,7 @@ html, body {
 }
 
 .article {
+  overflow-x: hidden;
   padding: 20px;
   position: relative;
 }
@@ -49,7 +50,7 @@ html, body {
   width: 200px;
 }
 
-@media screen and (min-width: 1100px) {
+@media screen and (min-width: 900px) {
   .article {
     margin-left: 300px;
     margin-right: 200px;
@@ -99,4 +100,18 @@ html, body {
 
 td.snippet {
   width: 100%;
+}
+
+table.pre {
+  display: flex;
+  overflow-x: auto;
+  table-layout: fixed;
+}
+
+h1 {
+  font-weight: 200;
+}
+
+h2, h3 {
+  font-weight: 400;
 }
