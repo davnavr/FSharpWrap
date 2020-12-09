@@ -7,13 +7,8 @@
     </title>
     <link rel="stylesheet" href="./style/main.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/vs2015.min.css"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/languages/fsharp.min.js"></script>
-    <script>
-      hljs.initHighlightingOnLoad();
-    </script>
     <script src="./js/codecopy.js"></script>
-    <script src="./js/sectionlink.js"></script>
+    <script src="./js/highlight.js"></script>
   </head>
   <body>
     <nav class="navbar infobar">
@@ -22,23 +17,28 @@
       </h1>
       <ul class="navbar__urls">
         <li>
-          <a class="infobar__link navbar__link" href="./index.html">
+          <a class="navbar__link" href="./index.html">
             Overview
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="./getting-started.html">
+          <a class="navbar__link" href="./getting-started.html">
             Getting started
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="./multi-target.html">
+          <a class="navbar__link" href="./multi-target.html">
             Using multiple target frameworks
           </a>
         </li>
         <li class="navbar__selected">
-          <a class="infobar__link navbar__link" href="./msbuild.html">
+          <a class="navbar__link" href="./msbuild.html">
             MSBuild properties and items
+          </a>
+        </li>
+        <li>
+          <a class="navbar__link" href="./collection-computation-expressions.html">
+            Collection Computation Expressions
           </a>
         </li>
       </ul>
@@ -47,41 +47,39 @@
       </h2>
       <ul class="navbar__urls">
         <li>
-          <a class="infobar__link navbar__link" href="https://github.com/davnavr/FSharpWrap">
+          <a class="navbar__link" href="https://github.com/davnavr/FSharpWrap">
             GitHub
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="https://www.nuget.org/packages/FSharpWrap/">
+          <a class="navbar__link" href="https://www.nuget.org/packages/FSharpWrap/">
             NuGet
           </a>
         </li>
       </ul>
     </nav>
     <main class="article">
-      <h1>
-        MSBuild properties and items
-      </h1>
-      <hr/>
-      <p>FSharpWrap offers several properties and items to configure how it generates
+      <h1><a name="MSBuild-properties-and-items" class="anchor" href="#MSBuild-properties-and-items">MSBuild properties and items</a></h1>
+<p>FSharpWrap offers several properties and items to configure how it generates
 code.</p>
-<h2>Items</h2>
-<h3><code>&lt;FSharpWrapExcludeNames&gt;</code> <code>&lt;FSharpWrapIncludeNames&gt;</code></h3>
+<h2><a name="Items" class="anchor" href="#Items">Items</a></h2>
+<h3><a name="header" class="anchor" href="#header"><code>&lt;FSharpWrapExcludeNames&gt;</code> <code>&lt;FSharpWrapIncludeNames&gt;</code></a></h3>
 <p>Specifies the names of the assemblies to include or exclude from code
 generation. By default, all assemblies are included in code generation.
 Using both items is an error.</p>
-<h3><code>&lt;FSharpWrapExcludeNamespaces&gt;</code> <code>&lt;FSharpWrapIncludeNamespaces&gt;</code></h3>
+<h3><a name="header-1" class="anchor" href="#header-1"><code>&lt;FSharpWrapExcludeNamespaces&gt;</code> <code>&lt;FSharpWrapIncludeNamespaces&gt;</code></a></h3>
 <p>Specifies the namespaces to included or exclude from code generation. By default,
 all namespaces are included in code generation. Using both items is an error.</p>
-<h2>Properties</h2>
-<h3><code>&lt;FSharpWrapOutputFile&gt;</code></h3>
+<h2><a name="Properties" class="anchor" href="#Properties">Properties</a></h2>
+<h3><a name="header-2" class="anchor" href="#header-2"><code>&lt;FSharpWrapOutputFile&gt;</code></a></h3>
 <p>The path to the output file containing the generated F# code. Defaults to
 <code>$(MSBuildProjectDirectory)/output.autogen.fs</code> for projects with a single
 <code>&lt;TargetFramework&gt;</code> or <code>$(MSBuildProjectDirectory)/output.$(TargetFramework).autogen.fs</code>
 for projects using <code>&lt;TargetFrameworks&gt;</code>.</p>
-<h3><code>&lt;_FSharpWrapLaunchDebugger&gt;</code></h3>
+<h3><a name="header-3" class="anchor" href="#header-3"><code>&lt;_FSharpWrapLaunchDebugger&gt;</code></a></h3>
 <p>Property for internal use. If set to <code>true</code>, calls
 <a href="https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.debugger.launch">Debugger.Launch</a>.</p>
+
 
     </main>
     <aside class="tocbar infobar">
@@ -90,12 +88,12 @@ for projects using <code>&lt;TargetFrameworks&gt;</code>.</p>
       </h3>
       <ul class="tocbar__contents">
         <li>
-          <a class="infobar__link tocbar__link" href="#items">
+          <a class="tocbar__link" href="#Items">
             Items
           </a>
         </li>
         <li>
-          <a class="infobar__link tocbar__link" href="#properties">
+          <a class="tocbar__link" href="#Properties">
             Properties
           </a>
         </li>

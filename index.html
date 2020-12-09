@@ -7,13 +7,8 @@
     </title>
     <link rel="stylesheet" href="./style/main.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/vs2015.min.css"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/languages/fsharp.min.js"></script>
-    <script>
-      hljs.initHighlightingOnLoad();
-    </script>
     <script src="./js/codecopy.js"></script>
-    <script src="./js/sectionlink.js"></script>
+    <script src="./js/highlight.js"></script>
   </head>
   <body>
     <nav class="navbar infobar">
@@ -22,23 +17,28 @@
       </h1>
       <ul class="navbar__urls">
         <li class="navbar__selected">
-          <a class="infobar__link navbar__link" href="./index.html">
+          <a class="navbar__link" href="./index.html">
             Overview
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="./getting-started.html">
+          <a class="navbar__link" href="./getting-started.html">
             Getting started
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="./multi-target.html">
+          <a class="navbar__link" href="./multi-target.html">
             Using multiple target frameworks
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="./msbuild.html">
+          <a class="navbar__link" href="./msbuild.html">
             MSBuild properties and items
+          </a>
+        </li>
+        <li>
+          <a class="navbar__link" href="./collection-computation-expressions.html">
+            Collection Computation Expressions
           </a>
         </li>
       </ul>
@@ -47,35 +47,79 @@
       </h2>
       <ul class="navbar__urls">
         <li>
-          <a class="infobar__link navbar__link" href="https://github.com/davnavr/FSharpWrap">
+          <a class="navbar__link" href="https://github.com/davnavr/FSharpWrap">
             GitHub
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="https://www.nuget.org/packages/FSharpWrap/">
+          <a class="navbar__link" href="https://www.nuget.org/packages/FSharpWrap/">
             NuGet
           </a>
         </li>
       </ul>
     </nav>
     <main class="article">
-      <h1>
-        Overview
-      </h1>
-      <hr/>
-      <p>FSharpWrap generates F# functions and active patterns for your dependencies,
+      <h1><a name="Overview" class="anchor" href="#Overview">Overview</a></h1>
+<p>FSharpWrap generates F# functions and active patterns for your dependencies,
 reducing the amount of F# code you need to write just to use code written
 in other .NET languages.</p>
-<h2>Example</h2>
-<pre><code class="language-fsharp">let myList = System.Collections.Generic.List.ofSeq [| 1; 2; 3 |]
-List.add myList 4 |&gt; ignore
+<h2><a name="Example" class="anchor" href="#Example">Example</a></h2>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="hljs-keyword">open</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="hljs-title">System</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="hljs-title">Collections</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="hljs-title">Immutable</span>
 
-// Currying!
-let addItem: int -&gt; unit = List.add myList
-addItem 5
-</code></pre>
-<h2>Tutorial</h2>
+<span class="hljs-keyword">let</span> <span onmouseout="hideTip(event, 'fs4', 4)" onmouseover="showTip(event, 'fs4', 4)" class="hljs-title">original</span> <span class="hljs-punctuation">=</span> <span onmouseout="hideTip(event, 'fs5', 5)" onmouseover="showTip(event, 'fs5', 5)" class="hljs-type">ImmutableList</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs6', 6)" onmouseover="showTip(event, 'fs6', 6)" class="hljs-title">CreateRange</span> <span class="hljs-punctuation">[|</span> <span class="hljs-number">1</span><span class="hljs-punctuation">;</span> <span class="hljs-number">5</span><span class="hljs-punctuation">;</span> <span class="hljs-number">9</span> <span class="hljs-punctuation">|]</span>
+
+<span class="hljs-comment">// Currying!</span>
+<span class="hljs-keyword">let</span> <span onmouseout="hideTip(event, 'fs7', 7)" onmouseover="showTip(event, 'fs7', 7)" class="hljs-function">add2</span> <span class="hljs-punctuation">=</span> <span onmouseout="hideTip(event, 'fs5', 8)" onmouseover="showTip(event, 'fs5', 8)" class="hljs-type">ImmutableList</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs8', 9)" onmouseover="showTip(event, 'fs8', 9)" class="hljs-title">add</span> <span class="hljs-number">2</span>
+<span class="hljs-keyword">let</span> <span onmouseout="hideTip(event, 'fs9', 10)" onmouseover="showTip(event, 'fs9', 10)" class="hljs-title">copy</span> <span class="hljs-punctuation">=</span> <span onmouseout="hideTip(event, 'fs7', 11)" onmouseover="showTip(event, 'fs7', 11)" class="hljs-function">add2</span> <span onmouseout="hideTip(event, 'fs4', 12)" onmouseover="showTip(event, 'fs4', 12)" class="hljs-title">original</span>
+
+<span class="hljs-comment">// Computation Expressions</span>
+<span class="hljs-keyword">let</span> <span onmouseout="hideTip(event, 'fs10', 13)" onmouseover="showTip(event, 'fs10', 13)" class="hljs-title">example</span> <span class="hljs-punctuation">=</span>
+    <span onmouseout="hideTip(event, 'fs5', 14)" onmouseover="showTip(event, 'fs5', 14)" class="hljs-type">ImmutableList</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs11', 15)" onmouseover="showTip(event, 'fs11', 15)" class="hljs-title">expr</span> <span class="hljs-punctuation">{</span>
+        <span class="hljs-number">3</span>
+        <span class="hljs-number">1</span>
+        <span class="hljs-number">4</span>
+        <span class="hljs-keyword">yield!</span> <span onmouseout="hideTip(event, 'fs9', 16)" onmouseover="showTip(event, 'fs9', 16)" class="hljs-title">copy</span>
+    <span class="hljs-punctuation">}</span>
+
+<span onmouseout="hideTip(event, 'fs12', 17)" onmouseover="showTip(event, 'fs12', 17)" class="hljs-function">printfn</span> <span class="hljs-string">&quot;</span><span class="hljs-regexp">%A</span><span class="hljs-string">&quot;</span> <span onmouseout="hideTip(event, 'fs10', 18)" onmouseover="showTip(event, 'fs10', 18)" class="hljs-title">example</span>
+</code></pre></td>
+</tr>
+</table>
+<table class="pre"><tr><td><pre><code>seq [3; 1; 4; 1; ...]</code></pre></td></tr></table>
+<h2><a name="Tutorial" class="anchor" href="#Tutorial">Tutorial</a></h2>
 <p>Click <a href="./getting-started.html">here</a> to get started with using FSharpWrap.</p>
+<div class="fsdocs-tip" id="fs1">namespace System</div>
+<div class="fsdocs-tip" id="fs2">namespace System.Collections</div>
+<div class="fsdocs-tip" id="fs3">namespace System.Collections.Immutable</div>
+<div class="fsdocs-tip" id="fs4">val original : ImmutableList&lt;int&gt;</div>
+<div class="fsdocs-tip" id="fs5">Multiple items<br />type ImmutableList =<br />&#160;&#160;static member Create&lt;&#39;T&gt; : unit -&gt; ImmutableList&lt;&#39;T&gt; + 2 overloads<br />&#160;&#160;static member CreateBuilder&lt;&#39;T&gt; : unit -&gt; Builder&lt;&#39;T&gt;<br />&#160;&#160;static member CreateRange&lt;&#39;T&gt; : items:IEnumerable&lt;&#39;T&gt; -&gt; ImmutableList&lt;&#39;T&gt;<br />&#160;&#160;static member IndexOf&lt;&#39;T&gt; : list:IImmutableList&lt;&#39;T&gt; * item:&#39;T -&gt; int + 3 overloads<br />&#160;&#160;static member LastIndexOf&lt;&#39;T&gt; : list:IImmutableList&lt;&#39;T&gt; * item:&#39;T -&gt; int + 3 overloads<br />&#160;&#160;static member Remove&lt;&#39;T&gt; : list:IImmutableList&lt;&#39;T&gt; * value:&#39;T -&gt; IImmutableList&lt;&#39;T&gt;<br />&#160;&#160;static member RemoveRange&lt;&#39;T&gt; : list:IImmutableList&lt;&#39;T&gt; * items:IEnumerable&lt;&#39;T&gt; -&gt; IImmutableList&lt;&#39;T&gt;<br />&#160;&#160;static member Replace&lt;&#39;T&gt; : list:IImmutableList&lt;&#39;T&gt; * oldValue:&#39;T * newValue:&#39;T -&gt; IImmutableList&lt;&#39;T&gt;<br />&#160;&#160;static member ToImmutableList&lt;&#39;TSource&gt; : source:IEnumerable&lt;&#39;TSource&gt; -&gt; ImmutableList&lt;&#39;TSource&gt; + 1 overload<br /><br />--------------------<br />type ImmutableList&lt;&#39;T&gt; =<br />&#160;&#160;member Add : value:&#39;T -&gt; ImmutableList&lt;&#39;T&gt;<br />&#160;&#160;member AddRange : items:IEnumerable&lt;&#39;T&gt; -&gt; ImmutableList&lt;&#39;T&gt;<br />&#160;&#160;member BinarySearch : item:&#39;T -&gt; int + 2 overloads<br />&#160;&#160;member Clear : unit -&gt; ImmutableList&lt;&#39;T&gt;<br />&#160;&#160;member Contains : value:&#39;T -&gt; bool<br />&#160;&#160;member ConvertAll&lt;&#39;TOutput&gt; : converter:Func&lt;&#39;T, &#39;TOutput&gt; -&gt; ImmutableList&lt;&#39;TOutput&gt;<br />&#160;&#160;member CopyTo : array:&#39;T[] -&gt; unit + 2 overloads<br />&#160;&#160;member Count : int<br />&#160;&#160;member Exists : match:Predicate&lt;&#39;T&gt; -&gt; bool<br />&#160;&#160;member Find : match:Predicate&lt;&#39;T&gt; -&gt; &#39;T<br />&#160;&#160;...<br />&#160;&#160;nested type Builder<br />&#160;&#160;nested type Enumerator</div>
+<div class="fsdocs-tip" id="fs6">ImmutableList.CreateRange&lt;&#39;T&gt;(items: System.Collections.Generic.IEnumerable&lt;&#39;T&gt;) : ImmutableList&lt;&#39;T&gt;</div>
+<div class="fsdocs-tip" id="fs7">val add2 : (ImmutableList&lt;int&gt; -&gt; ImmutableList&lt;int&gt;)</div>
+<div class="fsdocs-tip" id="fs8">val internal add : value:&#39;T -&gt; this:ImmutableList&lt;&#39;T&gt; -&gt; ImmutableList&lt;&#39;T&gt;</div>
+<div class="fsdocs-tip" id="fs9">val copy : ImmutableList&lt;int&gt;</div>
+<div class="fsdocs-tip" id="fs10">val example : ImmutableList&lt;int&gt;</div>
+<div class="fsdocs-tip" id="fs11">val internal expr : ImmutableList.ImmutableListBuilder</div>
+<div class="fsdocs-tip" id="fs12">val printfn : format:Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+
 
     </main>
     <aside class="tocbar infobar">
@@ -84,12 +128,12 @@ addItem 5
       </h3>
       <ul class="tocbar__contents">
         <li>
-          <a class="infobar__link tocbar__link" href="#example">
+          <a class="tocbar__link" href="#Example">
             Example
           </a>
         </li>
         <li>
-          <a class="infobar__link tocbar__link" href="#tutorial">
+          <a class="tocbar__link" href="#Tutorial">
             Tutorial
           </a>
         </li>

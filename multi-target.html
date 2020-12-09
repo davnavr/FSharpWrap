@@ -7,13 +7,8 @@
     </title>
     <link rel="stylesheet" href="./style/main.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/vs2015.min.css"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/languages/fsharp.min.js"></script>
-    <script>
-      hljs.initHighlightingOnLoad();
-    </script>
     <script src="./js/codecopy.js"></script>
-    <script src="./js/sectionlink.js"></script>
+    <script src="./js/highlight.js"></script>
   </head>
   <body>
     <nav class="navbar infobar">
@@ -22,23 +17,28 @@
       </h1>
       <ul class="navbar__urls">
         <li>
-          <a class="infobar__link navbar__link" href="./index.html">
+          <a class="navbar__link" href="./index.html">
             Overview
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="./getting-started.html">
+          <a class="navbar__link" href="./getting-started.html">
             Getting started
           </a>
         </li>
         <li class="navbar__selected">
-          <a class="infobar__link navbar__link" href="./multi-target.html">
+          <a class="navbar__link" href="./multi-target.html">
             Using multiple target frameworks
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="./msbuild.html">
+          <a class="navbar__link" href="./msbuild.html">
             MSBuild properties and items
+          </a>
+        </li>
+        <li>
+          <a class="navbar__link" href="./collection-computation-expressions.html">
+            Collection Computation Expressions
           </a>
         </li>
       </ul>
@@ -47,25 +47,22 @@
       </h2>
       <ul class="navbar__urls">
         <li>
-          <a class="infobar__link navbar__link" href="https://github.com/davnavr/FSharpWrap">
+          <a class="navbar__link" href="https://github.com/davnavr/FSharpWrap">
             GitHub
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="https://www.nuget.org/packages/FSharpWrap/">
+          <a class="navbar__link" href="https://www.nuget.org/packages/FSharpWrap/">
             NuGet
           </a>
         </li>
       </ul>
     </nav>
     <main class="article">
-      <h1>
-        Using multiple target frameworks
-      </h1>
-      <hr/>
-      <p>By default, FSharpWrap will generate different files for each target framework
+      <h1><a name="Using-multiple-target-frameworks" class="anchor" href="#Using-multiple-target-frameworks">Using multiple target frameworks</a></h1>
+<p>By default, FSharpWrap will generate different files for each target framework
 used in your project.</p>
-<h2>Code generation defaults</h2>
+<h2><a name="Code-generation-defaults" class="anchor" href="#Code-generation-defaults">Code generation defaults</a></h2>
 <p>If only one target framework is specified using the <code>&lt;TargetFramework&gt;</code>
 element, then the generated code is in a file named <code>output.autogen.fs</code> in
 the current project directory. However, if multiple target frameworks are
@@ -74,19 +71,28 @@ specified using the
 element, then the path to each generated code file relative to the project
 directory is <code>output.$(TargetFramework).autogen.fs</code>, where
 <code>$(TargetFramework)</code> is the corresponding target framework moniker.</p>
-<h2>Changing the file name</h2>
+<h2><a name="Changing-the-file-name" class="anchor" href="#Changing-the-file-name">Changing the file name</a></h2>
 <p>If you are only using one target framework, you can change the path to the
 generated code file using the <code>&lt;FSharpWrapOutputFile&gt;</code> property.</p>
-<pre><code class="language-xml">&lt;PropertyGroup&gt;
-  &lt;FSharpWrapOutputFile&gt;Some/Other/Directory/MyCustomFileName.autogen.fs&lt;/FSharpWrapOutputFile&gt;
-&lt;/PropertyGroup&gt;
-</code></pre>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="xml"><span class="k">&lt;</span><span class="i">PropertyGroup</span><span class="k">&gt;</span>
+  <span class="k">&lt;</span><span class="i">FSharpWrapOutputFile</span><span class="k">&gt;</span>Some/Other/Directory/MyCustomFileName.autogen.fs<span class="k">&lt;/</span><span class="i">FSharpWrapOutputFile</span><span class="k">&gt;</span>
+<span class="k">&lt;/</span><span class="i">PropertyGroup</span><span class="k">&gt;</span>
+</code></pre></td></tr></table>
 <p>If using multiple target frameworks, consider inserting the
 <code>$(TargetFramework)</code> in part of the path to the output file.</p>
-<pre><code class="language-xml">&lt;PropertyGroup&gt;
-  &lt;FSharpWrapOutputFile&gt;CustomDirectory/MyCustomFileName.$(TargetFramework).autogen.fs&lt;/FSharpWrapOutputFile&gt;
-&lt;/PropertyGroup&gt;
-</code></pre>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="xml"><span class="k">&lt;</span><span class="i">PropertyGroup</span><span class="k">&gt;</span>
+  <span class="k">&lt;</span><span class="i">FSharpWrapOutputFile</span><span class="k">&gt;</span>CustomDirectory/MyCustomFileName.$(TargetFramework).autogen.fs<span class="k">&lt;/</span><span class="i">FSharpWrapOutputFile</span><span class="k">&gt;</span>
+<span class="k">&lt;/</span><span class="i">PropertyGroup</span><span class="k">&gt;</span>
+</code></pre></td></tr></table>
+
 
     </main>
     <aside class="tocbar infobar">
@@ -95,12 +101,12 @@ generated code file using the <code>&lt;FSharpWrapOutputFile&gt;</code> property
       </h3>
       <ul class="tocbar__contents">
         <li>
-          <a class="infobar__link tocbar__link" href="#code-generation-defaults">
+          <a class="tocbar__link" href="#Code-generation-defaults">
             Code generation defaults
           </a>
         </li>
         <li>
-          <a class="infobar__link tocbar__link" href="#changing-the-file-name">
+          <a class="tocbar__link" href="#Changing-the-file-name">
             Changing the file name
           </a>
         </li>

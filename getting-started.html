@@ -7,13 +7,8 @@
     </title>
     <link rel="stylesheet" href="./style/main.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/vs2015.min.css"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/languages/fsharp.min.js"></script>
-    <script>
-      hljs.initHighlightingOnLoad();
-    </script>
     <script src="./js/codecopy.js"></script>
-    <script src="./js/sectionlink.js"></script>
+    <script src="./js/highlight.js"></script>
   </head>
   <body>
     <nav class="navbar infobar">
@@ -22,23 +17,28 @@
       </h1>
       <ul class="navbar__urls">
         <li>
-          <a class="infobar__link navbar__link" href="./index.html">
+          <a class="navbar__link" href="./index.html">
             Overview
           </a>
         </li>
         <li class="navbar__selected">
-          <a class="infobar__link navbar__link" href="./getting-started.html">
+          <a class="navbar__link" href="./getting-started.html">
             Getting started
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="./multi-target.html">
+          <a class="navbar__link" href="./multi-target.html">
             Using multiple target frameworks
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="./msbuild.html">
+          <a class="navbar__link" href="./msbuild.html">
             MSBuild properties and items
+          </a>
+        </li>
+        <li>
+          <a class="navbar__link" href="./collection-computation-expressions.html">
+            Collection Computation Expressions
           </a>
         </li>
       </ul>
@@ -47,89 +47,180 @@
       </h2>
       <ul class="navbar__urls">
         <li>
-          <a class="infobar__link navbar__link" href="https://github.com/davnavr/FSharpWrap">
+          <a class="navbar__link" href="https://github.com/davnavr/FSharpWrap">
             GitHub
           </a>
         </li>
         <li>
-          <a class="infobar__link navbar__link" href="https://www.nuget.org/packages/FSharpWrap/">
+          <a class="navbar__link" href="https://www.nuget.org/packages/FSharpWrap/">
             NuGet
           </a>
         </li>
       </ul>
     </nav>
     <main class="article">
-      <h1>
-        Getting started
-      </h1>
-      <hr/>
-      <h2>Installing the package</h2>
+      <h1><a name="Getting-started" class="anchor" href="#Getting-started">Getting started</a></h1>
+<h2><a name="Installing-the-package" class="anchor" href="#Installing-the-package">Installing the package</a></h2>
 <p>To install the latest version of FSharpWrap using the
 <a href="https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-add-package">.NET CLI</a>,
 use the following:</p>
-<pre><code class="language-bash">dotnet add package FSharpWrap
-</code></pre>
-<h2>Using generated code</h2>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip"><code lang="bash">dotnet add package FSharpWrap
+</code></pre></td></tr></table>
+<h2><a name="Using-generated-code" class="anchor" href="#Using-generated-code">Using generated code</a></h2>
 <p>In order to use the generated code in your project, add the following element
 to your project file in an <code>&lt;ItemGroup&gt;</code> above all other <code>&lt;Compile&gt;</code> items:</p>
-<pre><code class="language-xml">&lt;Compile Include=&quot;$(FSharpWrapOutputFile)&quot; /&gt;
-</code></pre>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="xml"><span class="k">&lt;</span><span class="i">Compile</span> <span class="o">Include</span><span class="k">="$(FSharpWrapOutputFile)"</span> <span class="k">/&gt;</span>
+</code></pre></td></tr></table>
 <p>Because the generated code is quite large by default, the following should also
 be added to a <code>.gitignore</code> file:</p>
-<pre><code class="language-text">*.autogen.fs
-</code></pre>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip"><code lang="text">*.autogen.fs
+</code></pre></td></tr></table>
 <p>Any instance methods, constructors, instance read-only fields, and get-only
-properties on classes and immutable structs will then have F# functions or
-active patterns generated for them.</p>
-<pre><code class="language-fsharp">module MyExampleModule
+properties on classes and immutable structs will then have F# functions, active
+patterns, or <a href="./collection-computation-expressions">computation expressions</a> generated for them.</p>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+<span class="l">20: </span>
+<span class="l">21: </span>
+<span class="l">22: </span>
+<span class="l">23: </span>
+<span class="l">24: </span>
+<span class="l">25: </span>
+<span class="l">26: </span>
+<span class="l">27: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="hljs-keyword">open</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="hljs-title">System</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="hljs-title">Collections</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="hljs-title">Generic</span>
+<span class="hljs-keyword">open</span> <span onmouseout="hideTip(event, 'fs1', 4)" onmouseover="showTip(event, 'fs1', 4)" class="hljs-title">System</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs2', 5)" onmouseover="showTip(event, 'fs2', 5)" class="hljs-title">Collections</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs4', 6)" onmouseover="showTip(event, 'fs4', 6)" class="hljs-title">Immutable</span>
 
-open System
-open System.Collections.Generic
+<span class="hljs-comment">// Constructors</span>
+<span class="hljs-keyword">let</span> <span onmouseout="hideTip(event, 'fs5', 7)" onmouseover="showTip(event, 'fs5', 7)" class="hljs-title">stack</span><span class="hljs-punctuation">:</span> <span onmouseout="hideTip(event, 'fs6', 8)" onmouseover="showTip(event, 'fs6', 8)" class="hljs-type">Stack</span><span class="hljs-punctuation">&lt;</span><span class="hljs-title">_</span><span class="hljs-punctuation">&gt;</span> <span class="hljs-punctuation">=</span> <span class="hljs-punctuation">[</span> <span class="hljs-number">1..</span><span class="hljs-number">10</span> <span class="hljs-punctuation">]</span> <span class="hljs-punctuation">|&gt;</span> <span onmouseout="hideTip(event, 'fs6', 9)" onmouseover="showTip(event, 'fs6', 9)" class="hljs-type">Stack</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs7', 10)" onmouseover="showTip(event, 'fs7', 10)" class="hljs-title">ofSeq</span>
 
-// Constructors
-let stack: Stack&lt;_&gt; = [ 1..10 ] |&gt; Stack.ofSeq
+<span class="hljs-comment">// Instance method call</span>
+<span class="hljs-keyword">let</span> <span onmouseout="hideTip(event, 'fs8', 11)" onmouseover="showTip(event, 'fs8', 11)" class="hljs-title">a</span><span class="hljs-punctuation">:</span> <span onmouseout="hideTip(event, 'fs9', 12)" onmouseover="showTip(event, 'fs9', 12)" class="hljs-type">bool</span> <span class="hljs-punctuation">=</span> <span onmouseout="hideTip(event, 'fs6', 13)" onmouseover="showTip(event, 'fs6', 13)" class="hljs-type">Stack</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs10', 14)" onmouseover="showTip(event, 'fs10', 14)" class="hljs-title">contains</span> <span class="hljs-number">5</span> <span onmouseout="hideTip(event, 'fs5', 15)" onmouseover="showTip(event, 'fs5', 15)" class="hljs-title">stack</span>
 
-// Instance method call
-let a: bool = Stack.contains 5 stack
+<span class="hljs-comment">// Get-only properties</span>
+<span class="hljs-keyword">let</span> <span onmouseout="hideTip(event, 'fs11', 16)" onmouseover="showTip(event, 'fs11', 16)" class="hljs-title">b</span><span class="hljs-punctuation">:</span> <span onmouseout="hideTip(event, 'fs12', 17)" onmouseover="showTip(event, 'fs12', 17)" class="hljs-type">int</span> <span class="hljs-punctuation">=</span> <span onmouseout="hideTip(event, 'fs6', 18)" onmouseover="showTip(event, 'fs6', 18)" class="hljs-type">Stack</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs13', 19)" onmouseover="showTip(event, 'fs13', 19)" class="hljs-title">count</span> <span onmouseout="hideTip(event, 'fs5', 20)" onmouseover="showTip(event, 'fs5', 20)" class="hljs-title">stack</span>
+<span class="hljs-keyword">let</span> <span onmouseout="hideTip(event, 'fs14', 21)" onmouseover="showTip(event, 'fs14', 21)" class="hljs-title">c</span><span class="hljs-punctuation">:</span> <span onmouseout="hideTip(event, 'fs15', 22)" onmouseover="showTip(event, 'fs15', 22)" class="hljs-type">string</span> <span class="hljs-punctuation">=</span>
+    <span class="hljs-keyword">let</span> <span onmouseout="hideTip(event, 'fs16', 23)" onmouseover="showTip(event, 'fs16', 23)" class="hljs-title">nums</span> <span class="hljs-punctuation">=</span> <span onmouseout="hideTip(event, 'fs5', 24)" onmouseover="showTip(event, 'fs5', 24)" class="hljs-function">stack</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs17', 25)" onmouseover="showTip(event, 'fs17', 25)" class="hljs-title">ToImmutableList</span><span class="hljs-punctuation">(</span><span class="hljs-punctuation">)</span>
+    <span class="hljs-keyword">match</span> <span onmouseout="hideTip(event, 'fs16', 26)" onmouseover="showTip(event, 'fs16', 26)" class="hljs-title">nums</span> <span class="hljs-keyword">with</span>
+    <span class="hljs-punctuation">|</span> <span onmouseout="hideTip(event, 'fs18', 27)" onmouseover="showTip(event, 'fs18', 27)" class="hljs-type">ImmutableList</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs19', 28)" onmouseover="showTip(event, 'fs19', 28)" class="hljs-title">IsEmpty</span> <span class="hljs-keyword">-&gt;</span> <span class="hljs-string">&quot;read-only&quot;</span>
+    <span class="hljs-punctuation">|</span> <span class="hljs-title">_</span> <span class="hljs-keyword">-&gt;</span> <span class="hljs-string">&quot;not read-only&quot;</span>
 
-// Get-only properties
-let b: int = Stack.count stack
-let c: string =
-    let arr: int[] = Seq.toArray stack
-    match arr with
-    | Array.IsReadOnly -&gt; &quot;read-only&quot;
-    | _ -&gt; &quot;not read-only&quot;
-</code></pre>
-<h2>Filtering generated code</h2>
+<span class="hljs-comment">// Computation expressions</span>
+<span class="hljs-keyword">let</span> <span onmouseout="hideTip(event, 'fs20', 29)" onmouseover="showTip(event, 'fs20', 29)" class="hljs-title">d</span><span class="hljs-punctuation">:</span> <span onmouseout="hideTip(event, 'fs6', 30)" onmouseover="showTip(event, 'fs6', 30)" class="hljs-type">Stack</span><span class="hljs-punctuation">&lt;</span><span class="hljs-title">_</span><span class="hljs-punctuation">&gt;</span> <span class="hljs-punctuation">=</span>
+    <span onmouseout="hideTip(event, 'fs6', 31)" onmouseover="showTip(event, 'fs6', 31)" class="hljs-type">Stack</span><span class="hljs-punctuation">.</span><span onmouseout="hideTip(event, 'fs21', 32)" onmouseover="showTip(event, 'fs21', 32)" class="hljs-title">expr</span> <span class="hljs-punctuation">{</span>
+        <span class="hljs-keyword">for</span> <span onmouseout="hideTip(event, 'fs22', 33)" onmouseover="showTip(event, 'fs22', 33)" class="hljs-title">num</span> <span class="hljs-keyword">in</span> <span onmouseout="hideTip(event, 'fs5', 34)" onmouseover="showTip(event, 'fs5', 34)" class="hljs-title">stack</span> <span class="hljs-keyword">do</span> <span onmouseout="hideTip(event, 'fs22', 35)" onmouseover="showTip(event, 'fs22', 35)" class="hljs-title">num</span>
+        <span class="hljs-number">11</span><span class="hljs-punctuation">;</span>
+        <span class="hljs-number">12</span><span class="hljs-punctuation">;</span>
+        <span class="hljs-number">13</span><span class="hljs-punctuation">;</span>
+    <span class="hljs-punctuation">}</span>
+
+<span onmouseout="hideTip(event, 'fs20', 36)" onmouseover="showTip(event, 'fs20', 36)" class="hljs-title">d</span> <span class="hljs-punctuation">:&gt;</span> <span onmouseout="hideTip(event, 'fs23', 37)" onmouseover="showTip(event, 'fs23', 37)" class="hljs-type">seq</span><span class="hljs-punctuation">&lt;</span><span class="hljs-title">_</span><span class="hljs-punctuation">&gt;</span> <span class="hljs-punctuation">|&gt;</span> <span onmouseout="hideTip(event, 'fs24', 38)" onmouseover="showTip(event, 'fs24', 38)" class="hljs-function">printfn</span> <span class="hljs-string">&quot;d is </span><span class="hljs-regexp">%A</span><span class="hljs-string">&quot;</span>
+</code></pre></td>
+</tr>
+</table>
+<table class="pre"><tr><td><pre><code>d is seq [13; 12; 11; 1; ...]</code></pre></td></tr></table>
+<h2><a name="Filtering-generated-code" class="anchor" href="#Filtering-generated-code">Filtering generated code</a></h2>
 <p>FSharpWrap allows entire assemblies and namespaces to be included or excluded
 from code generation, which helps reduce compilation times by generating only
 code that you will use. Note that assemblies can only either be included or
 excluded, and that namespaces can only either be included or excluded.</p>
 <p>To only include certain assemblies in code generation, use the following:</p>
-<pre><code class="language-xml">&lt;ItemGroup&gt;
-  &lt;!-- Only assemblies with the following names will be included in code generation --&gt;
-  &lt;FSharpWrapIncludeNames Include=&quot;System.Collections.Immutable;Expecto&quot; /&gt;
-&lt;/ItemGroup&gt;
-</code></pre>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="xml"><span class="k">&lt;</span><span class="i">ItemGroup</span><span class="k">&gt;</span>
+  <span class="c">&lt;!-- Only assemblies with the following names will be included in code generation --&gt;</span>
+  <span class="k">&lt;</span><span class="i">FSharpWrapIncludeNames</span> <span class="o">Include</span><span class="k">="System.Collections.Immutable;Expecto"</span> <span class="k">/&gt;</span>
+<span class="k">&lt;/</span><span class="i">ItemGroup</span><span class="k">&gt;</span>
+</code></pre></td></tr></table>
 <p>To only exclude certain assemblies from code generation, use the following:</p>
-<pre><code class="language-xml">&lt;ItemGroup&gt;
-  &lt;FSharpWrapExcludeNames Include=&quot;System.Reflection.MetadataLoadContext;FSharp.Core&quot; /&gt;
-&lt;/ItemGroup&gt;
-</code></pre>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="xml"><span class="k">&lt;</span><span class="i">ItemGroup</span><span class="k">&gt;</span>
+  <span class="k">&lt;</span><span class="i">FSharpWrapExcludeNames</span> <span class="o">Include</span><span class="k">="System.Reflection.MetadataLoadContext;FSharp.Core"</span> <span class="k">/&gt;</span>
+<span class="k">&lt;/</span><span class="i">ItemGroup</span><span class="k">&gt;</span>
+</code></pre></td></tr></table>
 <p>Following the inclusion or exclusion of assemblies, FSharpWrap will also
 include or exclude any specified namespaces. Note that in order to include or
-exclude any &quot;child&quot; namespaces, their names must be specified as well.</p>
+exclude any "child" namespaces, their names must be specified as well.</p>
 <p>To only include the types in certain namespaces, use the following:</p>
-<pre><code class="language-xml">&lt;ItemGroup&gt;
-  &lt;FSharpWrapIncludeNamespaces Include=&quot;System.Collections.Immutable;System.Collections&quot; /&gt;
-&lt;/ItemGroup&gt;
-</code></pre>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="xml"><span class="k">&lt;</span><span class="i">ItemGroup</span><span class="k">&gt;</span>
+  <span class="k">&lt;</span><span class="i">FSharpWrapIncludeNamespaces</span> <span class="o">Include</span><span class="k">="System.Collections.Immutable;System.Collections"</span> <span class="k">/&gt;</span>
+<span class="k">&lt;/</span><span class="i">ItemGroup</span><span class="k">&gt;</span>
+</code></pre></td></tr></table>
 <p>To only exclude types in certain namespaces, use the following:</p>
-<pre><code class="language-xml">&lt;ItemGroup&gt;
-  &lt;!-- Only the types in the System.Reflection, Microsoft.FSharp.Core, or FParsec namespaces are excluded --&gt;
-  &lt;FSharpWrapExcludeNamespaces Include=&quot;System.Reflection;Microsoft.FSharp.Core;FParsec&quot; /&gt;
-&lt;/ItemGroup&gt;
-</code></pre>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="xml"><span class="k">&lt;</span><span class="i">ItemGroup</span><span class="k">&gt;</span>
+  <span class="c">&lt;!-- Only the types in the System.Reflection, Microsoft.FSharp.Core, or FParsec namespaces are excluded --&gt;</span>
+  <span class="k">&lt;</span><span class="i">FSharpWrapExcludeNamespaces</span> <span class="o">Include</span><span class="k">="System.Reflection;Microsoft.FSharp.Core;FParsec"</span> <span class="k">/&gt;</span>
+<span class="k">&lt;/</span><span class="i">ItemGroup</span><span class="k">&gt;</span>
+</code></pre></td></tr></table>
+<h2><a name="Code-Generation-Limitations" class="anchor" href="#Code-Generation-Limitations">Code Generation Limitations</a></h2>
+<p>Only public members are included in code generation.</p>
+<p>Currently, any non-readonly structs (structs not marked
+<a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/structures#readonly-structs"><code>IsReadOnly</code></a> in F#)
+are excluded from code generation.</p>
+<div class="fsdocs-tip" id="fs1">namespace System</div>
+<div class="fsdocs-tip" id="fs2">namespace System.Collections</div>
+<div class="fsdocs-tip" id="fs3">namespace System.Collections.Generic</div>
+<div class="fsdocs-tip" id="fs4">namespace System.Collections.Immutable</div>
+<div class="fsdocs-tip" id="fs5">val stack : Stack&lt;int&gt;</div>
+<div class="fsdocs-tip" id="fs6">Multiple items<br />type Stack&lt;&#39;T&gt; =<br />&#160;&#160;new : unit -&gt; Stack&lt;&#39;T&gt; + 2 overloads<br />&#160;&#160;member Clear : unit -&gt; unit<br />&#160;&#160;member Contains : item:&#39;T -&gt; bool<br />&#160;&#160;member CopyTo : array:&#39;T[] * arrayIndex:int -&gt; unit<br />&#160;&#160;member Count : int<br />&#160;&#160;member GetEnumerator : unit -&gt; Enumerator&lt;&#39;T&gt;<br />&#160;&#160;member Peek : unit -&gt; &#39;T<br />&#160;&#160;member Pop : unit -&gt; &#39;T<br />&#160;&#160;member Push : item:&#39;T -&gt; unit<br />&#160;&#160;member ToArray : unit -&gt; &#39;T[]<br />&#160;&#160;...<br />&#160;&#160;nested type Enumerator<br /><br />--------------------<br />Stack() : Stack&lt;&#39;T&gt;<br />Stack(capacity: int) : Stack&lt;&#39;T&gt;<br />Stack(collection: IEnumerable&lt;&#39;T&gt;) : Stack&lt;&#39;T&gt;</div>
+<div class="fsdocs-tip" id="fs7">val internal ofSeq : collection:IEnumerable&lt;&#39;T&gt; -&gt; Stack&lt;&#39;T&gt;</div>
+<div class="fsdocs-tip" id="fs8">val a : bool</div>
+<div class="fsdocs-tip" id="fs9">type bool = System.Boolean</div>
+<div class="fsdocs-tip" id="fs10">val internal contains : item:&#39;T -&gt; this:Stack&lt;&#39;T&gt; -&gt; bool</div>
+<div class="fsdocs-tip" id="fs11">val b : int</div>
+<div class="fsdocs-tip" id="fs12">Multiple items<br />val int : value:&#39;T -&gt; int (requires member op_Explicit)<br /><br />--------------------<br />type int = int32<br /><br />--------------------<br />type int&lt;&#39;Measure&gt; = int</div>
+<div class="fsdocs-tip" id="fs13">val internal count : this:Stack&lt;&#39;T&gt; -&gt; int</div>
+<div class="fsdocs-tip" id="fs14">val c : string</div>
+<div class="fsdocs-tip" id="fs15">Multiple items<br />val string : value:&#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
+<div class="fsdocs-tip" id="fs16">val nums : ImmutableList&lt;int&gt;</div>
+<div class="fsdocs-tip" id="fs17">(extension) IEnumerable.ToImmutableList&lt;&#39;TSource&gt;() : ImmutableList&lt;&#39;TSource&gt;</div>
+<div class="fsdocs-tip" id="fs18">Multiple items<br />type ImmutableList =<br />&#160;&#160;static member Create&lt;&#39;T&gt; : unit -&gt; ImmutableList&lt;&#39;T&gt; + 2 overloads<br />&#160;&#160;static member CreateBuilder&lt;&#39;T&gt; : unit -&gt; Builder&lt;&#39;T&gt;<br />&#160;&#160;static member CreateRange&lt;&#39;T&gt; : items:IEnumerable&lt;&#39;T&gt; -&gt; ImmutableList&lt;&#39;T&gt;<br />&#160;&#160;static member IndexOf&lt;&#39;T&gt; : list:IImmutableList&lt;&#39;T&gt; * item:&#39;T -&gt; int + 3 overloads<br />&#160;&#160;static member LastIndexOf&lt;&#39;T&gt; : list:IImmutableList&lt;&#39;T&gt; * item:&#39;T -&gt; int + 3 overloads<br />&#160;&#160;static member Remove&lt;&#39;T&gt; : list:IImmutableList&lt;&#39;T&gt; * value:&#39;T -&gt; IImmutableList&lt;&#39;T&gt;<br />&#160;&#160;static member RemoveRange&lt;&#39;T&gt; : list:IImmutableList&lt;&#39;T&gt; * items:IEnumerable&lt;&#39;T&gt; -&gt; IImmutableList&lt;&#39;T&gt;<br />&#160;&#160;static member Replace&lt;&#39;T&gt; : list:IImmutableList&lt;&#39;T&gt; * oldValue:&#39;T * newValue:&#39;T -&gt; IImmutableList&lt;&#39;T&gt;<br />&#160;&#160;static member ToImmutableList&lt;&#39;TSource&gt; : source:IEnumerable&lt;&#39;TSource&gt; -&gt; ImmutableList&lt;&#39;TSource&gt; + 1 overload<br /><br />--------------------<br />type ImmutableList&lt;&#39;T&gt; =<br />&#160;&#160;member Add : value:&#39;T -&gt; ImmutableList&lt;&#39;T&gt;<br />&#160;&#160;member AddRange : items:IEnumerable&lt;&#39;T&gt; -&gt; ImmutableList&lt;&#39;T&gt;<br />&#160;&#160;member BinarySearch : item:&#39;T -&gt; int + 2 overloads<br />&#160;&#160;member Clear : unit -&gt; ImmutableList&lt;&#39;T&gt;<br />&#160;&#160;member Contains : value:&#39;T -&gt; bool<br />&#160;&#160;member ConvertAll&lt;&#39;TOutput&gt; : converter:Func&lt;&#39;T, &#39;TOutput&gt; -&gt; ImmutableList&lt;&#39;TOutput&gt;<br />&#160;&#160;member CopyTo : array:&#39;T[] -&gt; unit + 2 overloads<br />&#160;&#160;member Count : int<br />&#160;&#160;member Exists : match:Predicate&lt;&#39;T&gt; -&gt; bool<br />&#160;&#160;member Find : match:Predicate&lt;&#39;T&gt; -&gt; &#39;T<br />&#160;&#160;...<br />&#160;&#160;nested type Builder<br />&#160;&#160;nested type Enumerator</div>
+<div class="fsdocs-tip" id="fs19">active recognizer IsEmpty: ImmutableList&lt;&#39;T&gt; -&gt; unit option</div>
+<div class="fsdocs-tip" id="fs20">val d : Stack&lt;int&gt;</div>
+<div class="fsdocs-tip" id="fs21">val internal expr : Stack.StackBuilder</div>
+<div class="fsdocs-tip" id="fs22">val num : int</div>
+<div class="fsdocs-tip" id="fs23">Multiple items<br />val seq : sequence:seq&lt;&#39;T&gt; -&gt; seq&lt;&#39;T&gt;<br /><br />--------------------<br />type seq&lt;&#39;T&gt; = IEnumerable&lt;&#39;T&gt;</div>
+<div class="fsdocs-tip" id="fs24">val printfn : format:Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+
 
     </main>
     <aside class="tocbar infobar">
@@ -138,18 +229,23 @@ exclude any &quot;child&quot; namespaces, their names must be specified as well.
       </h3>
       <ul class="tocbar__contents">
         <li>
-          <a class="infobar__link tocbar__link" href="#installing-the-package">
+          <a class="tocbar__link" href="#Installing-the-package">
             Installing the package
           </a>
         </li>
         <li>
-          <a class="infobar__link tocbar__link" href="#using-generated-code">
+          <a class="tocbar__link" href="#Using-generated-code">
             Using generated code
           </a>
         </li>
         <li>
-          <a class="infobar__link tocbar__link" href="#filtering-generated-code">
+          <a class="tocbar__link" href="#Filtering-generated-code">
             Filtering generated code
+          </a>
+        </li>
+        <li>
+          <a class="tocbar__link" href="#Code-Generation-Limitations">
+            Code Generation Limitations
           </a>
         </li>
       </ul>
