@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.5.0] - 2020-12-8
+## [0.5.0] - 2020-12-08
 ### Added
 - Generation of computation expressions for types implementing `IEnumerable<T>`
 ### Changed
