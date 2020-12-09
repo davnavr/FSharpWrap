@@ -1,3 +1,7 @@
+(*** hide ***)
+(*
+index=1
+*)
 (**
 # Collection Computation Expressions
 

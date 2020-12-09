@@ -1,7 +1,7 @@
-(**
+(*** hide ***)
+(*
 index=0
 *)
-(*** hide ***)
 #r "../../packages/documentation/System.Collections.Immutable/lib/netstandard2.0/System.Collections.Immutable.dll"
 #load "../content/output.autogen.fs"
 (**
@@ -13,14 +13,13 @@ in other .NET languages.
 
 ## Example
 *)
-
 open System.Collections.Immutable
 
-let original = ImmutableList.CreateRange [| 5; 9; 2 |]
+let original = ImmutableList.CreateRange [| 1; 5; 9 |]
 
 // Currying!
-let add1 = ImmutableList.add 1
-let copy = add1 original
+let add2 = ImmutableList.add 2
+let copy = add2 original
 
 // Computation Expressions
 let example =
@@ -32,7 +31,6 @@ let example =
     }
 
 printfn "%A" example
-
 (*** include-output ***)
 (**
 ## Tutorial
