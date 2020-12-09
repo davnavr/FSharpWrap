@@ -50,6 +50,33 @@ let private (|HasConfig|_|) =
         |> Some
     | _ -> None
 
+let highlight =
+    function
+    | TokenKind.Keyword -> "hljs-keyword"
+    | TokenKind.String -> "hljs-string"
+    | TokenKind.Comment -> "hljs-comment"
+    | TokenKind.Property
+    | TokenKind.Identifier -> "hljs-title"
+    | TokenKind.TypeArgument
+    | TokenKind.Number -> "hljs-number"
+    | TokenKind.Operator
+    | TokenKind.Punctuation -> "hljs-punctuation"
+    | TokenKind.Inactive
+    | TokenKind.Preprocessor -> "hljs-meta"
+    | TokenKind.Pattern
+    | TokenKind.Function -> "hljs-function"
+    | TokenKind.Module
+    | TokenKind.ReferenceType
+    | TokenKind.ValueType
+    | TokenKind.Enumeration
+    | TokenKind.UnionCase
+    | TokenKind.Interface -> "hljs-type"
+    | TokenKind.MutableVar
+    | TokenKind.Disposable
+    | TokenKind.Printf
+    | TokenKind.Escaped -> "hljs-regexp"
+    | TokenKind.Default -> ""
+
 let loader (root: string) (ctx: SiteContents) =
     try
         let dir = Path.Combine(root, "content") |> DirectoryInfo
@@ -63,7 +90,12 @@ let loader (root: string) (ctx: SiteContents) =
                 | _ -> {| Index = Int32.MaxValue; Category = "" |}
             ctx.Add
                 { Category = config.Category
-                  Content = Literate.ToHtml(doc, generateAnchors = true)
+                  Content =
+                    Literate.ToHtml (
+                        doc,
+                        generateAnchors = true,
+                        tokenKindToCss = highlight
+                    )
                   File = script
                   Index = config.Index
                   Link =

@@ -22,7 +22,9 @@ let generate (content: SiteContents) (root: string) (page: string) =
             meta [ Name "viewport"; Content "width=device-width, initial-scale=1" ]
             Html.title [] [ !!(sprintf "FSharpWrap - %s" page'.Title) ]
             link [ Rel "stylesheet"; Href "./style/main.css" ]
+            link [ Rel "stylesheet"; Href "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.4.0/styles/vs2015.min.css" ]
             script [ Src "./js/codecopy.js" ] []
+            script [ Src "./js/highlight.js" ] []
         ]
 
         body [] [

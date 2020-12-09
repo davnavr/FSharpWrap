@@ -1,7 +1,7 @@
 
 html, body {
   font-family: Verdana, Geneva, sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   margin: 0;
 }
 
@@ -90,9 +90,13 @@ html, body {
 
 .code__copy-button {
   position: absolute;
-  right: 20px;
+  right: 23px;
 }
 
 .fsdocs-tip {
   display: none;
+}
+
+td.snippet {
+  width: 100%;
 }
