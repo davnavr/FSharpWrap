@@ -1,4 +1,8 @@
-3
+(*** hide ***)
+(*
+index=3
+*)
+(**
 # MSBuild properties and items
 
 FSharpWrap offers several properties and items to configure how it generates
@@ -24,3 +28,4 @@ for projects using `<TargetFrameworks>`.
 ### `<_FSharpWrapLaunchDebugger>`
 Property for internal use. If set to `true`, calls
 [Debugger.Launch](https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.debugger.launch).
+*)

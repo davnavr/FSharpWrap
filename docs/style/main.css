@@ -1,13 +1,20 @@
+
 html, body {
-  font-family: Verdana, sans-serif;
+  font-family: Verdana, Geneva, sans-serif;
   font-size: 16px;
   margin: 0;
 }
 
 .article {
+  overflow-x: hidden;
   padding: 20px;
   position: relative;
 }
+
+  .article h1 a, .article h2 a, .article h3 a {
+    color: #000000;
+    text-decoration: none;
+  }
 
 .infobar {
   box-sizing: border-box;
@@ -43,7 +50,7 @@ html, body {
   width: 200px;
 }
 
-@media screen and (min-width: 1100px) {
+@media screen and (min-width: 900px) {
   .article {
     margin-left: 300px;
     margin-right: 200px;
@@ -84,5 +91,27 @@ html, body {
 
 .code__copy-button {
   position: absolute;
-  right: 20px;
+  right: 23px;
+}
+
+.fsdocs-tip {
+  display: none;
+}
+
+td.snippet {
+  width: 100%;
+}
+
+table.pre {
+  display: flex;
+  overflow-x: auto;
+  table-layout: fixed;
+}
+
+h1 {
+  font-weight: 200;
+}
+
+h2, h3 {
+  font-weight: 400;
 }

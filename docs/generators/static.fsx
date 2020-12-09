@@ -1,5 +1,4 @@
 #r "../_lib/Fornax.Core.dll"
-#load "./layout.fsx"
 
 open Html
 open System.IO

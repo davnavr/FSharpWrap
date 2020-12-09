@@ -1,4 +1,8 @@
-2
+(*** hide ***)
+(*
+index=2
+*)
+(**
 # Using multiple target frameworks
 
 By default, FSharpWrap will generate different files for each target framework
@@ -34,3 +38,4 @@ If using multiple target frameworks, consider inserting the
   <FSharpWrapOutputFile>CustomDirectory/MyCustomFileName.$(TargetFramework).autogen.fs</FSharpWrapOutputFile>
 </PropertyGroup>
 ```
+*)

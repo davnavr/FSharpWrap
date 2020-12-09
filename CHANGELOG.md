@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Generation of computation expressions for types implementing `IEnumerable<T>`
 ### Changed
 - Generated modules now have `internal` access
+- Update documentation to use `.fsx` scripts
 
 ## [0.4.1] - 2020-11-27
 ### Added

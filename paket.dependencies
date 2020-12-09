@@ -1,9 +1,8 @@
 framework: netcoreapp3.1
-storage: none
+storage: packages
 source https://api.nuget.org/v3/index.json
 
 nuget FSharp.Core
-nuget System.Collections.Immutable
 nuget System.Reflection.MetadataLoadContext
 
 group Documentation
@@ -11,7 +10,9 @@ group Documentation
     storage: packages
     source https://api.nuget.org/v3/index.json
 
+    nuget FSharp.Formatting
     nuget Markdig
+    nuget System.Collections.Immutable
 
 group Test
     framework: net5.0, netcoreapp3.1, netstandard2.0
@@ -20,3 +21,4 @@ group Test
 
     nuget Expecto
     nuget Expecto.FsCheck
+    nuget System.Collections.Immutable

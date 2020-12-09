@@ -1,4 +1,10 @@
-1
+(*** hide ***)
+(*
+index=1
+*)
+#r "../../packages/documentation/System.Collections.Immutable/lib/netstandard2.0/System.Collections.Immutable.dll"
+#load "../content/output.autogen.fs"
+(**
 # Getting started
 
 ## Installing the package
@@ -28,14 +34,11 @@ be added to a `.gitignore` file:
 ```
 
 Any instance methods, constructors, instance read-only fields, and get-only
-properties on classes and immutable structs will then have F# functions or
-active patterns generated for them.
-
-```fsharp
-module MyExampleModule
-
-open System
+properties on classes and immutable structs will then have F# functions, active
+patterns, or [computation expressions](./collection-computation-expressions) generated for them.
+*)
 open System.Collections.Generic
+open System.Collections.Immutable
 
 // Constructors
 let stack: Stack<_> = [ 1..10 ] |> Stack.ofSeq
@@ -46,12 +49,23 @@ let a: bool = Stack.contains 5 stack
 // Get-only properties
 let b: int = Stack.count stack
 let c: string =
-    let arr: int[] = Seq.toArray stack
-    match arr with
-    | Array.IsReadOnly -> "read-only"
+    let nums = stack.ToImmutableList()
+    match nums with
+    | ImmutableList.IsEmpty -> "read-only"
     | _ -> "not read-only"
-```
 
+// Computation expressions
+let d: Stack<_> =
+    Stack.expr {
+        for num in stack do num
+        11;
+        12;
+        13;
+    }
+
+d :> seq<_> |> printfn "d is %A"
+(*** include-output ***)
+(**
 ## Filtering generated code
 
 FSharpWrap allows entire assemblies and namespaces to be included or excluded
@@ -93,3 +107,11 @@ To only exclude types in certain namespaces, use the following:
   <FSharpWrapExcludeNamespaces Include="System.Reflection;Microsoft.FSharp.Core;FParsec" />
 </ItemGroup>
 ```
+
+## Code Generation Limitations
+Only public members are included in code generation.
+
+Currently, any non-readonly structs (structs not marked
+[`IsReadOnly`](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/structures#readonly-structs) in F#)
+are excluded from code generation.
+*)
