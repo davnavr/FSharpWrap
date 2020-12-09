@@ -23,7 +23,6 @@ let generate (content: SiteContents) (root: string) (page: string) =
             Html.title [] [ !!(sprintf "FSharpWrap - %s" page'.Title) ]
             link [ Rel "stylesheet"; Href "./style/main.css" ]
             script [ Src "./js/codecopy.js" ] []
-            script [ Src "./js/sectionlink.js" ] []
         ]
 
         body [] [
@@ -63,10 +62,7 @@ let generate (content: SiteContents) (root: string) (page: string) =
                 ul [ Class "tocbar__contents" ] [
                     for section in page'.Sections do
                         let url =
-                            section
-                                .ToLower()
-                                .Replace(' ', '-')
-                            |> sprintf "#%s"
+                            section.Replace(' ', '-') |> sprintf "#%s"
                         li [] [
                             a [ Class "tocbar__link"; Href url ] [ !!section ]
                         ]

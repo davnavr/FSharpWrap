@@ -1,7 +1,7 @@
 
 html, body {
-  font-family: Verdana, sans-serif;
-  font-size: 16px;
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 14px;
   margin: 0;
 }
 
@@ -9,6 +9,11 @@ html, body {
   padding: 20px;
   position: relative;
 }
+
+  .article h1 a, .article h2 a, .article h3 a {
+    color: #000000;
+    text-decoration: none;
+  }
 
 .infobar {
   box-sizing: border-box;
