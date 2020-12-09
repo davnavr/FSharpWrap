@@ -1,5 +1,9 @@
-#load "../deps.fsx"
+(**
+index=0
+*)
 (*** hide ***)
+#r "../../packages/documentation/System.Collections.Immutable/lib/netstandard2.0/System.Collections.Immutable.dll"
+#load "../content/output.autogen.fs"
 (**
 # Overview
 
@@ -27,7 +31,7 @@ let example =
         yield! copy
     }
 
-printfn "%O" example
+printfn "%A" example
 
 (*** include-output ***)
 (**

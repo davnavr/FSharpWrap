@@ -1,4 +1,5 @@
-#r "_lib/Fornax.Core.dll"
+#r "./_lib/Fornax.Core.dll"
+#r "../packages/documentation/FSharp.Formatting/lib/netstandard2.0/FSharp.Formatting.Common.dll"
 
 open Config
 open System.IO

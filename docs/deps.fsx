@@ -1,8 +1,0 @@
-#r "./_lib/Fornax.Core.dll"
-#r "../packages/documentation/FSharp.Formatting/lib/netstandard2.0/FSharp.Formatting.CodeFormat.dll"
-#r "../packages/documentation/FSharp.Formatting/lib/netstandard2.0/FSharp.Formatting.Common.dll"
-#r "../packages/documentation/FSharp.Formatting/lib/netstandard2.0/FSharp.Formatting.Literate.dll"
-#r "../packages/documentation/FSharp.Formatting/lib/netstandard2.0/FSharp.Formatting.Markdown.dll"
-#r "../packages/documentation/Markdig/lib/netstandard2.0/Markdig.dll"
-#r "../packages/documentation/System.Collections.Immutable/lib/netstandard2.0/System.Collections.Immutable.dll"
-#load "./content/output.autogen.fs"
