@@ -19,6 +19,7 @@ group Test
     storage: none
     source https://api.nuget.org/v3/index.json
 
+    nuget BenchmarkDotNet
     nuget Expecto
     nuget Expecto.FsCheck
     nuget System.Collections.Immutable

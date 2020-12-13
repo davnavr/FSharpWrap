@@ -7,7 +7,7 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharpWrap.Tool", "src\FSha
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharpWrap.Tool.Tests", "test\FSharpWrap.Tool.Tests\FSharpWrap.Tool.Tests.fsproj", "{B1CB6187-AD83-4814-B230-322A2A9D2956}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharpWrap.Tool.Benchmarks", "benchmarks\FSharpWrap.Tool.Benchmarks.fsproj", "{85BAF708-834E-4913-88C7-F5CAA59552C1}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharpWrap.Benchmarks", "test\FSharpWrap.Benchmarks\FSharpWrap.Benchmarks.fsproj", "{01EFBF63-67DD-4A4D-B079-C8A8715FB6FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{B1CB6187-AD83-4814-B230-322A2A9D2956}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1CB6187-AD83-4814-B230-322A2A9D2956}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1CB6187-AD83-4814-B230-322A2A9D2956}.Release|Any CPU.Build.0 = Release|Any CPU
-		{85BAF708-834E-4913-88C7-F5CAA59552C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{85BAF708-834E-4913-88C7-F5CAA59552C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{85BAF708-834E-4913-88C7-F5CAA59552C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{85BAF708-834E-4913-88C7-F5CAA59552C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01EFBF63-67DD-4A4D-B079-C8A8715FB6FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01EFBF63-67DD-4A4D-B079-C8A8715FB6FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01EFBF63-67DD-4A4D-B079-C8A8715FB6FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01EFBF63-67DD-4A4D-B079-C8A8715FB6FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

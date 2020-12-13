@@ -141,7 +141,7 @@ Target.create "Test MSBuild" <| fun _ ->
     |> Map.iter (fun proj -> testDir </> proj |> run)
 
 Target.create "Run Benchmarks" <| fun _ ->
-    rootDir </> "benchmarks" </> "FSharpWrap.Tool.Benchmarks.fsproj"
+    testDir </> "FSharpWrap.Benchmarks" </> "FSharpWrap.Benchmarks.fsproj"
     |> runProj
         (fun _ ->
             [
