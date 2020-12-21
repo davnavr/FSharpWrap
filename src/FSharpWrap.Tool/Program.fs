@@ -4,9 +4,6 @@ module FSharpWrap.Tool.Program
 open System.Diagnostics
 open System.IO
 
-open FSharpWrap.Tool.Reflection
-open FSharpWrap.Tool.Generation
-
 [<EntryPoint>]
 let main argv =
     match List.ofArray argv |> Options.parse with
@@ -21,17 +18,10 @@ let main argv =
             let print =
                 let assms =
                     List.map Path.fullPath args.Assemblies
-                args.Filter
-                |> Reflect.paths assms
-                |> Generate.fromAssemblies
-                |> Print.genFile
+                Generate.fromPaths assms args.Filter
             using
                 file
-                (fun stream ->
-                    { Close = stream.Close
-                      Line = stream.WriteLine
-                      Write = stream.Write }
-                    |> print)
+                (fun stream -> invalidOp "print")
             0
         with
         | ex ->

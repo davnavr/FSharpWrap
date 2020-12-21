@@ -11,15 +11,10 @@
     <Compile Include="Path.fs" />
     <Compile Include="FsName.fs" />
     <Compile Include="Namespace.fs" />
-    <Compile Include="TypeArgList.fs" />
-    <Compile Include="Type.fs" />
     <Compile Include="Filter.fs" />
+    <Compile Include="Printer.fs" />
+    <Compile Include="Generate.fs" />
     <Compile Include="Options.fs" />
-    <Compile Include="Reflect.fs" />
-    <Compile Include="Generation\ParamList.fs" />
-    <Compile Include="Generation\Types.fs" />
-    <Compile Include="Generation\Print.fs" />
-    <Compile Include="Generation\Generate.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

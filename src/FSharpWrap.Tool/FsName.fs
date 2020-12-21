@@ -2,6 +2,7 @@
 
 open System.Reflection
 
+/// An F# identifier.
 [<Struct; StructuralComparison; StructuralEquality>]
 type FsName =
     internal
@@ -17,7 +18,7 @@ module FsName =
         | null | "" -> None
         | str -> FsName str |> Some
 
-    let ofType (t: System.Type) = // TODO: Return option instead of throwing exception?
+    let ofType (t: System.Type) =
         match t.DeclaringType, MemberInfo.compiledName t with
         | _, ""
         | _, null -> invalidArg "t" "The name of the type was null or empty"

@@ -4,7 +4,7 @@ open System
 open System.Reflection
 
 [<AutoOpen>]
-module internal Collections =
+module Collections =
     let inline (|Empty|NotEmpty|) col =
         if (^T : (member IsEmpty : bool) col)
         then Choice1Of2()
@@ -27,20 +27,13 @@ module String =
     let toLiteral (str: string) =
         str.Replace("\"", "\"\"") |> sprintf " @\"%s\""
 
-    let (|OneOf|_|) (values: string list) =
-        let values' = Set.ofList values
-        fun str ->
-            if Set.contains str values'
-            then Some()
-            else None
-
 [<RequireQualifiedAccess>]
-module internal TypeInfo =
+module TypeInfo =
     let inline equal ns name (t: System.Type) =
         t.Name = name && t.Namespace = ns
 
 [<RequireQualifiedAccess>]
-module internal Attribute =
+module Attribute =
     let find ns name chooser (source: seq<CustomAttributeData>) =
         source
         |> Seq.where
@@ -57,7 +50,7 @@ module internal Attribute =
         |> List.ofSeq
 
 [<RequireQualifiedAccess>]
-module internal MemberInfo =
+module MemberInfo =
     let findAttr ns name chooser (m: MemberInfo) =
          m.GetCustomAttributesData() |> Attribute.find ns name chooser
 
