@@ -27,25 +27,12 @@ type Printer(writer: StreamWriter) = // TODO: Create computation expression.
         writer.WriteLine str
         indented <- false
 
+    interface IDisposable with member _.Dispose() = writer.Dispose()
+
 /// Writes a newline.
-let nl (printer: Printer) = printer.WriteLine String.Empty
-
-let fsname (FsName name) (printer: Printer) =
-    printer.Write "``"
-    printer.Write name
-    printer.Write "``"
-
-/// Writes the name of a namespace.
-let ns (Namespace names) (printer: Printer) =
-    match names with
-    | [] -> printer.Write "global"
-    | head :: tail ->
-        fsname head printer
-        for name in tail do
-            printer.Write "."
-            fsname name printer
-
-type PrintExpr = Printer -> unit
+let inline nl (printer: Printer) = printer.WriteLine String.Empty
+let inline indent (printer: Printer) = printer.Indent()
+let inline dedent (printer: Printer) = printer.Dedent()
 
 type PrintBuilder internal() =
     member inline _.Combine(one: PrintExpr, two: PrintExpr) =
@@ -53,8 +40,46 @@ type PrintBuilder internal() =
     member inline _.Delay(f: unit -> PrintExpr) = fun printer -> f () printer
     member inline _.For(items: seq<'T>, body: 'T -> PrintExpr) =
         fun printer -> for item in items do body item printer
-    member inline _.Yield(str: string): PrintExpr = fun printer -> printer.WriteLine str
+    member inline _.Yield(str: string): PrintExpr = fun printer -> printer.Write str
     member inline _.Yield(f: PrintExpr) = f
     member inline _.Zero() = ignore<Printer>
 
 let print = PrintBuilder()
+
+let fsname (FsName name) = print { "``"; name; "``" }
+
+/// Writes the name of a namespace.
+let ns (Namespace names) =
+    print {
+        match names with
+        | [] -> "global"
+        | head :: tail ->
+            fsname head
+            for name in tail do
+                "."
+                fsname name
+    }
+
+/// Writes an F# module.
+let mdle (name: FsName) (body: PrintExpr) =
+    print {
+        "[<global.Microsoft.FSharp.Core.CompilationRepresentationAttribute(global.Microsoft.FSharp.Core.CompilationRepresentationFlags.ModuleSuffix)>]"; nl
+        "module internal "
+        fsname name
+        " ="
+        nl
+        indent
+        "begin"
+        nl
+        indent
+        body
+        dedent
+        nl
+        "end"
+        dedent
+        nl
+    }
+
+type PrintExpr = Printer -> unit
+
+

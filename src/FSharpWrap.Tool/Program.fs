@@ -20,8 +20,8 @@ let main argv =
                     List.map Path.fullPath args.Assemblies
                 Generate.fromPaths assms args.Filter
             using
-                file
-                (fun stream -> invalidOp "print")
+                (new Print.Printer(file))
+                print
             0
         with
         | ex ->
