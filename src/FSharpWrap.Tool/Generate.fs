@@ -12,6 +12,9 @@ type private TypeIdentifier =
     | SingleType of Type
     | MultipleTypes of Map<uint32, Type>
 
+let genericArgCount (t: Type) =
+    t.GetGenericArguments() |> Array.length |> uint32
+
 let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
     print {
         let assemblies' =
@@ -30,19 +33,24 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
                 |> Seq.collect (fun assembly -> assembly.ExportedTypes)
                 |> Seq.where
                     (fun t ->
-                        Filter.typeIncluded filter t && not t.IsNested) // TODO: Include nested types inside nested modules.
+                        not t.IsNested && Filter.typeIncluded filter t) // TODO: Include nested types inside nested modules.
             let dict = Dictionary<Namespace, Dictionary<TypeName, TypeIdentifier>> assemblies'.Length
             for t in types do
                 let ns = Namespace.ofStr t.Namespace // TODO: Figure out how to cache namespaces.
                 let name = TypeName.ofType t
                 match dict.TryGetValue ns with
                 | true, previous ->
-                    match previous.TryGetValue name with
-                    | (true, SingleType other) -> invalidOp "bad"
-                    | (true, MultipleTypes others) ->
-                        let gargs = t.GetGenericArguments().Length |> uint32
-                        previous.Item <- name, Map.add gargs t others |> MultipleTypes
-                    | (false, _) -> previous.Add(name, SingleType t)
+                    let entry =
+                        match previous.TryGetValue name with
+                        | (true, SingleType other) ->
+                            Map.empty
+                            |> Map.add (genericArgCount other) other
+                            |> Map.add (genericArgCount t) t
+                            |> MultipleTypes
+                        | (true, MultipleTypes others) ->
+                            Map.add (genericArgCount t) t others |> MultipleTypes
+                        | (false, _) -> SingleType t
+                    previous.Item <- name, entry
                 | false, _ ->
                     let entry = Dictionary 1
                     entry.Item <- name, SingleType t
@@ -67,9 +75,9 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
             nl
     }
 
-let fromResolver resolver loader =
+let fromResolver resolver loader filter printer =
     use context = new MetadataLoadContext(resolver)
-    loader context |> fromAssemblies
+    fromAssemblies (loader context) filter printer
 
 let fromPaths assemblies =
     let files =
