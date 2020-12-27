@@ -27,11 +27,8 @@ type Printer(writer: StreamWriter) = // TODO: Create computation expression.
         writer.WriteLine str
         indented <- false
 
-    // TODO: Mark these methods below as Obsolete.
-    member this.WriteNamespace(names: Namespace) = ns names this 
-
-    //[<Obsolete>]
-    member this.WriteComment(str: string) = comment str this
+/// Writes a newline.
+let nl (printer: Printer) = printer.WriteLine String.Empty
 
 let fsname (FsName name) (printer: Printer) =
     printer.Write "``"
@@ -48,6 +45,16 @@ let ns (Namespace names) (printer: Printer) =
             printer.Write "."
             fsname name printer
 
-let comment str (printer: Printer) =
-    printer.Write "// "
-    printer.WriteLine str
+type PrintExpr = Printer -> unit
+
+type PrintBuilder internal() =
+    member inline _.Combine(one: PrintExpr, two: PrintExpr) =
+        fun printer -> one printer; two printer
+    member inline _.Delay(f: unit -> PrintExpr) = fun printer -> f () printer
+    member inline _.For(items: seq<'T>, body: 'T -> PrintExpr) =
+        fun printer -> for item in items do body item printer
+    member inline _.Yield(str: string): PrintExpr = fun printer -> printer.WriteLine str
+    member inline _.Yield(f: PrintExpr) = f
+    member inline _.Zero() = ignore<Printer>
+
+let print = PrintBuilder()

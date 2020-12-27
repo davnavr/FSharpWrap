@@ -11,6 +11,7 @@
     <Compile Include="Path.fs" />
     <Compile Include="FsName.fs" />
     <Compile Include="Namespace.fs" />
+    <Compile Include="TypeName.fs" />
     <Compile Include="Filter.fs" />
     <Compile Include="Print.fs" />
     <Compile Include="Generate.fs" />
