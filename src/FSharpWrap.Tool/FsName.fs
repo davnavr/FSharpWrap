@@ -8,9 +8,6 @@ type FsName =
     internal
     | FsName of string
 
-    override this.ToString() =
-        let (FsName name) = this in name
-
 [<RequireQualifiedAccess>]
 module FsName =
     let ofStr =
