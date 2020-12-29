@@ -8,12 +8,65 @@ open System.Reflection
 
 open FSharpWrap.Tool.Print
 
-type private TypeIdentifier =
+type TypeIdentifier =
     | SingleType of Type
     | MultipleTypes of Map<uint32, Type>
 
 let genericArgCount (t: Type) =
     t.GetGenericArguments() |> Array.length |> uint32
+
+let memberName (mber: MemberInfo) =
+    match mber with
+    | Type t -> FsName.ofType t
+    | Constructor ctor ->
+        let parameters =
+            ctor.GetParameters()
+            |> List.ofArray
+            |> List.map (fun t -> t.ParameterType)
+        match parameters with
+        // TODO: Match other patterns
+        | _ -> FsName "create"
+    | Event _
+    | Field _
+    | Method _
+    | Property _ -> String.toCamelCase mber.Name |> FsName
+
+let mdle name (t: Type) = // TODO: How to check for name conflicts for members contained in the module?
+    let tname = FsName.ofType t // TODO: What if the type has generic arguments?
+    let members = t.GetMembers()
+    let bindings = HashSet<FsName> members.Length
+    let members' =
+        members
+        |> Seq.where (fun m -> m.DeclaringType = t)
+        |> Seq.choose
+            (function
+            // TODO: Exclude property accessors.
+            | :? EventInfo -> None
+            | mber -> Some mber)
+
+    print {
+        for mber in members' do
+            let name = memberName mber
+            if bindings.Contains name then // TODO: How to prioritize certain method overloads?
+                sprintf "// Duplicate member %O" name
+            else
+                match mber with // TODO: How to ensure unique parameter names for constructors, methods, and properties with parameters
+                | Constructor ctor -> sprintf "TODO: Generate code for constructor calls."
+                | Event e -> sprintf "// NOTE: Generation of members for event %s is not yet supported" e.Name
+                | Field(Instance field) when field.IsInitOnly -> accessor name tname field.Name
+                | Method(Instance mthd) -> "TODO: Generate code for instance methods."
+                | Method(Static mthd) -> "TODO: Generate code for static methods."
+                // TODO: Check if property is instance property for these two checks.
+                | Property (Indexer prop) -> sprintf "NOTE: Generation of member for proeprty with parameter %s is not yet supported" prop.Name
+                | Property prop when prop.CanRead && not prop.CanWrite -> accessor name tname prop.Name 
+                | Type t -> sprintf "// NOTE: Generation of nested module for nested type %s is not yet supported" t.Name
+            nl
+
+        // TODO: Create computation expression.
+    }
+    |> Print.mdle name t
+
+let mdle1 = invalidOp "bad"
 
 let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
     print {
@@ -61,16 +114,13 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
             Print.ns ns
             nl
             indent
-            for KeyValue(name, t) in types do
+            for KeyValue({ Name = name }, t) in types do
                 match t with
-                | SingleType t' ->
-                    print {
-                        ""
-                    }
-                    |> mdle name.Name
-                | _ ->
-                    // TODO: Figure out how code for a module is generated if the types have the same name but a different number of generic parameters.
-                    "// Code generation for types with same name not yet implemented"
+                | SingleType t' -> mdle name t'
+                | MultipleTypes dups ->
+                    for KeyValue(i, t') in dups do
+                        let name' = FsName.append (sprintf "_%i" i) name
+                        mdle1 name' t'
             dedent
             nl
     }

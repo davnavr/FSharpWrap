@@ -8,6 +8,8 @@ type FsName =
     internal
     | FsName of string
 
+    override this.ToString() = let (FsName name) = this in name
+
 [<RequireQualifiedAccess>]
 module FsName =
     let ofStr =
@@ -26,3 +28,5 @@ module FsName =
 
     let ofParameter (param: ParameterInfo) =
         ofStr param.Name |> Option.defaultValue (sprintf "_arg%i" param.Position |> FsName)
+
+    let append (str: string) (FsName name) = FsName(name + str)

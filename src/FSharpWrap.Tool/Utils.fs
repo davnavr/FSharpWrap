@@ -28,16 +28,13 @@ module String =
         str.Replace("\"", "\"\"") |> sprintf " @\"%s\""
 
 [<RequireQualifiedAccess>]
-module TypeInfo =
-    let inline equal ns name (t: System.Type) =
-        t.Name = name && t.Namespace = ns
-
-[<RequireQualifiedAccess>]
 module Attribute =
     let find ns name chooser (source: seq<CustomAttributeData>) =
         source
         |> Seq.where
-            (fun attr -> TypeInfo.equal ns name attr.AttributeType)
+            (fun attr ->
+                let t = attr.AttributeType
+                t.Name = name && t.Namespace = ns)
         |> Seq.tryPick chooser
 
     let ctorArgs<'arg> (data: CustomAttributeData) =

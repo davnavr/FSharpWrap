@@ -48,6 +48,16 @@ let print = PrintBuilder()
 
 let fsname (FsName name) = print { "``"; name; "``" }
 
+let accessor name tname (field: string) =
+    print {
+        "let "
+        fsname name
+        " (this: "
+        fsname tname
+        ") = this."
+        field
+    }
+
 /// Writes the name of a namespace.
 let ns (Namespace names) =
     print {
@@ -60,8 +70,10 @@ let ns (Namespace names) =
                 fsname name
     }
 
-/// Writes an F# module.
-let mdle (name: FsName) (body: PrintExpr) =
+/// <summary>
+/// Writes an F# module from a <see cref="System.Type"/>.
+/// </summary>
+let mdle (name: FsName) (t: Type) (body: PrintExpr) =
     print {
         "[<global.Microsoft.FSharp.Core.CompilationRepresentationAttribute(global.Microsoft.FSharp.Core.CompilationRepresentationFlags.ModuleSuffix)>]"; nl
         "module internal "
