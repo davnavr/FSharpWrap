@@ -12,8 +12,7 @@ type TypeIdentifier =
     | SingleType of Type
     | MultipleTypes of Map<uint32, Type>
 
-let genericArgCount (t: Type) =
-    t.GetGenericArguments() |> Array.length |> uint32
+let genericArgCount (GenericArgs gargs) = Array.length gargs |> uint32
 
 let memberName (mber: MemberInfo) =
     match mber with
@@ -32,7 +31,7 @@ let memberName (mber: MemberInfo) =
     | Property _ -> String.toCamelCase mber.Name |> FsName
 
 let mdle name (t: Type) = // TODO: How to check for name conflicts for members contained in the module?
-    let tname = FsName.ofType t // TODO: What if the type has generic arguments?
+    let tname = Type.name t
     let members = t.GetMembers()
     let bindings = HashSet<FsName> members.Length
     let members' =
@@ -48,17 +47,27 @@ let mdle name (t: Type) = // TODO: How to check for name conflicts for members c
         for mber in members' do
             let name = memberName mber
             if bindings.Contains name then // TODO: How to prioritize certain method overloads?
-                sprintf "// Duplicate member %O" name
+                sprintf "// Duplicate member %s with generated name %O" mber.Name name
             else
                 match mber with // TODO: How to ensure unique parameter names for constructors, methods, and properties with parameters
-                | Constructor ctor -> sprintf "TODO: Generate code for constructor calls."
+                | Constructor ctor ->
+                    print {
+                        Params.ofCtor ctor |> parameters
+                        "= new "
+                        //something tname
+                        // TODO: Print the arguments.
+                    }
+                    |> binding name
+                    sprintf "// TODO: Generate code for constructor calls."
                 | Event e -> sprintf "// NOTE: Generation of members for event %s is not yet supported" e.Name
                 | Field(Instance field) when field.IsInitOnly -> accessor name tname field.Name
-                | Method(Instance mthd) -> "TODO: Generate code for instance methods."
-                | Method(Static mthd) -> "TODO: Generate code for static methods."
+                | Field field -> sprintf "// NOTE: Generation of member for mutable or static fields such as %s is not yet supported" field.Name
+                | Method(Instance mthd) -> "// TODO: Generate code for instance methods."
+                | Method(Static mthd) -> "// TODO: Generate code for static methods."
                 // TODO: Check if property is instance property for these two checks.
-                | Property (Indexer prop) -> sprintf "NOTE: Generation of member for proeprty with parameter %s is not yet supported" prop.Name
-                | Property prop when prop.CanRead && not prop.CanWrite -> accessor name tname prop.Name 
+                | Property (Indexer prop) -> sprintf "// NOTE: Generation of member for property with parameter %s is not yet supported" prop.Name
+                | Property prop when prop.CanRead && not prop.CanWrite -> accessor name tname prop.Name
+                | Property prop -> sprintf "// NOTE: Generation of member for property %s with setters not yet supported" prop.Name
                 | Type t -> sprintf "// NOTE: Generation of nested module for nested type %s is not yet supported" t.Name
             nl
 
@@ -90,7 +99,7 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
             let dict = Dictionary<Namespace, Dictionary<TypeName, TypeIdentifier>> assemblies'.Length
             for t in types do
                 let ns = Namespace.ofStr t.Namespace // TODO: Figure out how to cache namespaces.
-                let name = TypeName.ofType t
+                let name = Type.name t
                 match dict.TryGetValue ns with
                 | true, previous ->
                     let entry =

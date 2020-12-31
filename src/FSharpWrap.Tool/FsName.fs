@@ -1,9 +1,10 @@
 ﻿namespace FSharpWrap.Tool
 
 open System.Reflection
+open System.Runtime.CompilerServices
 
 /// An F# identifier.
-[<Struct; StructuralComparison; StructuralEquality>]
+[<IsReadOnly; Struct; StructuralComparison; StructuralEquality>]
 type FsName =
     internal
     | FsName of string

@@ -48,16 +48,6 @@ let print = PrintBuilder()
 
 let fsname (FsName name) = print { "``"; name; "``" }
 
-let accessor name tname (field: string) =
-    print {
-        "let "
-        fsname name
-        " (this: "
-        fsname tname
-        ") = this."
-        field
-    }
-
 /// Writes the name of a namespace.
 let ns (Namespace names) =
     print {
@@ -68,6 +58,86 @@ let ns (Namespace names) =
             for name in tail do
                 "."
                 fsname name
+    }
+
+let typeName { Name = name; Namespace = nspace; Parent = parent; TypeArgs = targs } =
+    print {
+        ns nspace
+        match parent with
+        | None -> "."
+        | Some parent' ->
+            "."
+            typeName parent'
+            "."
+        fsname name
+        if Array.isEmpty targs |> not then
+            let max = targs.Length - 1
+            "<"
+            for i = 0 to max do
+                Array.get targs i |> typeArg
+                if i < max then
+                    ","
+            ">"
+    }
+
+let typeArg t: PrintExpr =
+    print {
+        match t with
+        | ArrayType arr ->
+            let rank =
+                match arr.Rank with
+                | 0u | 1u -> ""
+                | _ -> String(',', arr.Rank - 1u |> int)
+            typeArg arr.ElementType
+            "["
+            rank
+            "]"
+        | ByRefType tref ->
+            typeArg tref
+            " ref"
+        | FsFuncType(param, ret) ->
+            "("
+            typeArg param
+            " -> "
+            typeArg ret
+            ")"
+        | InferredType -> "_"
+        // PointerType () -> "voidptr" // TODO: Have special case for when it is a pointer to System.Void
+        | PointerType pnt ->
+            "nativeptr<"
+            typeArg pnt
+            ">"
+        | TypeName tname -> typeName tname
+        | TypeParam tparam ->
+            "'"
+            fsname tparam.ParamName
+    }
+
+let binding (name: FsName) (body: PrintExpr) =
+    print {
+        "let inline "
+        fsname name
+        " "
+        body
+    }
+
+let accessor name tname (field: string) =
+    print {
+        "(this: "
+        typeName tname
+        ") = this."
+        field
+    }
+    |> binding name
+
+let parameters (parr: Params) =
+    print {
+        for (name, t) in parr do
+            "("
+            fsname name
+            ": "
+            Type.arg t |> typeArg
+            ") "
     }
 
 /// <summary>

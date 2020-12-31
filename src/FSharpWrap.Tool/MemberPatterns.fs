@@ -24,3 +24,19 @@ let (|Indexer|_|) (prop: PropertyInfo) =
     if prop.GetIndexParameters() |> Array.isEmpty
     then Some prop
     else None
+
+let (|GenericParam|_|) (t: Type) =
+    if t.IsGenericParameter
+    then t.GetGenericParameterConstraints() |> Some
+    else None
+
+let (|GenericArgs|) (t: Type) = t.GetGenericArguments()
+
+let (|IsArray|_|) (t: Type) =
+    if t.IsArray then t.GetElementType() |> Some else None
+
+let (|IsByRef|_|) (t: Type) =
+    if t.IsByRef then t.GetElementType() |> Some else None
+
+let (|IsPointer|_|) (t: Type) =
+    if t.IsPointer then t.GetElementType() |> Some else None
