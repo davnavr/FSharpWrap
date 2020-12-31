@@ -130,15 +130,32 @@ let accessor name tname (field: string) =
     }
     |> binding name
 
-let parameters (parr: Params) =
-    print {
-        for (name, t) in parr do
-            "("
-            fsname name
-            ": "
-            Type.arg t |> typeArg
-            ") "
-    }
+let parameters =
+    function
+    | [||] -> print { "()" }
+    | (parr: Params) ->
+        print {
+            for (name, t) in parr do
+                "("
+                fsname name
+                ": "
+                Type.arg t |> typeArg
+                ") "
+        }
+
+let arguments =
+    function
+    | [||] -> print { "()" }
+    | (args: Params) ->
+        print {
+            let max = args.Length - 1
+            for i = 0 to args.Length - 1 do
+                "("
+                Array.get args i |> fst |> fsname
+                ")"
+                if i < max then
+                    ", "
+        }
 
 /// <summary>
 /// Writes an F# module from a <see cref="System.Type"/>.

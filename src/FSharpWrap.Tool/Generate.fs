@@ -51,19 +51,20 @@ let mdle name (t: Type) = // TODO: How to check for name conflicts for members c
             else
                 match mber with // TODO: How to ensure unique parameter names for constructors, methods, and properties with parameters
                 | Constructor ctor ->
+                    let parameters = Params.ofCtor ctor
                     print {
-                        Params.ofCtor ctor |> parameters
-                        "= new "
-                        //something tname
-                        // TODO: Print the arguments.
+                        Print.parameters parameters
+                        " = new "
+                        typeName tname
+                        Print.arguments parameters
                     }
                     |> binding name
                     sprintf "// TODO: Generate code for constructor calls."
                 | Event e -> sprintf "// NOTE: Generation of members for event %s is not yet supported" e.Name
                 | Field(Instance field) when field.IsInitOnly -> accessor name tname field.Name
                 | Field field -> sprintf "// NOTE: Generation of member for mutable or static fields such as %s is not yet supported" field.Name
-                | Method(Instance mthd) -> "// TODO: Generate code for instance methods."
-                | Method(Static mthd) -> "// TODO: Generate code for static methods."
+                | Method(Instance mthd) -> sprintf "// NOTE: Generation of code for instance method %s is not yet supported" mthd.Name
+                | Method(Static mthd) -> sprintf "// NOTE: Generation of code for static method %s is not yet supported" mthd.Name
                 // TODO: Check if property is instance property for these two checks.
                 | Property (Indexer prop) -> sprintf "// NOTE: Generation of member for property with parameter %s is not yet supported" prop.Name
                 | Property prop when prop.CanRead && not prop.CanWrite -> accessor name tname prop.Name
@@ -74,8 +75,6 @@ let mdle name (t: Type) = // TODO: How to check for name conflicts for members c
         // TODO: Create computation expression.
     }
     |> Print.mdle name t
-
-let mdle1 = invalidOp "bad"
 
 let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
     print {
@@ -129,7 +128,7 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
                 | MultipleTypes dups ->
                     for KeyValue(i, t') in dups do
                         let name' = FsName.append (sprintf "_%i" i) name
-                        mdle1 name' t'
+                        mdle name' t'
             dedent
             nl
     }
