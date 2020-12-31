@@ -20,10 +20,19 @@ let (|Constructor|Event|Field|Method|Property|Type|) (mber: MemberInfo) =
 let inline (|Static|Instance|) (mber: ^T) =
     if (^T : (member IsStatic: bool) mber) then Choice1Of2 mber else Choice2Of2 mber
 
-let (|Indexer|_|) (prop: PropertyInfo) =
+let (|IsIndexer|_|) (prop: PropertyInfo) =
     if prop.GetIndexParameters() |> Array.isEmpty
     then Some prop
     else None
+
+let (|IsPropAccessor|_|): MemberInfo -> _ =
+    let check (mthd: MethodInfo) =
+        mthd.DeclaringType.GetProperties()
+        |> Seq.collect (fun prop -> prop.GetAccessors())
+        |> Seq.contains mthd
+    function
+    | :? MethodInfo as mthd when check mthd -> Some()
+    | _ -> None
 
 let (|GenericParam|_|) (t: Type) =
     if t.IsGenericParameter

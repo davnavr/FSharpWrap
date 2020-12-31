@@ -143,19 +143,16 @@ let parameters =
                 ") "
         }
 
-let arguments =
-    function
-    | [||] -> print { "()" }
-    | (args: Params) ->
-        print {
-            let max = args.Length - 1
-            for i = 0 to args.Length - 1 do
-                "("
-                Array.get args i |> fst |> fsname
-                ")"
-                if i < max then
-                    ", "
-        }
+let arguments (args: Params) =
+    print {
+        "("
+        let max = args.Length - 1
+        for i = 0 to args.Length - 1 do
+            Array.get args i |> fst |> fsname
+            if i < max then
+                ", "
+        ")"
+    }
 
 /// <summary>
 /// Writes an F# module from a <see cref="System.Type"/>.
@@ -173,7 +170,6 @@ let mdle (name: FsName) (t: Type) (body: PrintExpr) =
         indent
         body
         dedent
-        nl
         "end"
         dedent
         nl

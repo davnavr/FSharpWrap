@@ -10,7 +10,7 @@ type Params = Param[]
 
 [<RequireQualifiedAccess>]
 module Params =
-    let create (parr: ParameterInfo[]) =
+    let ofInfos (parr: ParameterInfo[]) =
         let parr' = Dictionary<FsName, Type> parr.Length
         Array.map
             (fun p ->
@@ -23,4 +23,15 @@ module Params =
                 pname', p.ParameterType)
             parr
 
-    let inline ofCtor (ctor: ConstructorInfo) = ctor.GetParameters() |> create
+    let inline ofCtor (ctor: ConstructorInfo) = ctor.GetParameters() |> ofInfos
+    let inline ofMethod (mthd: MethodInfo) =
+        let parameters = mthd.GetParameters()
+        match mthd with
+        | Instance _ ->
+            let this =
+                { new ParameterInfo() with
+                    member _.Name = "this"
+                    member _.ParameterType = mthd.DeclaringType }
+            Array.append [| this |] parameters
+        | Static _ -> parameters
+        |> ofInfos

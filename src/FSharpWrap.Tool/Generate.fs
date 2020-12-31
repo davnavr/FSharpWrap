@@ -39,7 +39,7 @@ let mdle name (t: Type) = // TODO: How to check for name conflicts for members c
         |> Seq.where (fun m -> m.DeclaringType = t)
         |> Seq.choose
             (function
-            // TODO: Exclude property accessors.
+            | IsPropAccessor
             | :? EventInfo -> None
             | mber -> Some mber)
 
@@ -49,7 +49,8 @@ let mdle name (t: Type) = // TODO: How to check for name conflicts for members c
             if bindings.Contains name then // TODO: How to prioritize certain method overloads?
                 sprintf "// Duplicate member %s with generated name %O" mber.Name name
             else
-                match mber with // TODO: How to ensure unique parameter names for constructors, methods, and properties with parameters
+                bindings.Add name |> ignore
+                match mber with
                 | Constructor ctor ->
                     let parameters = Params.ofCtor ctor
                     print {
@@ -59,17 +60,37 @@ let mdle name (t: Type) = // TODO: How to check for name conflicts for members c
                         Print.arguments parameters
                     }
                     |> binding name
-                    sprintf "// TODO: Generate code for constructor calls."
                 | Event e -> sprintf "// NOTE: Generation of members for event %s is not yet supported" e.Name
                 | Field(Instance field) when field.IsInitOnly -> accessor name tname field.Name
-                | Field field -> sprintf "// NOTE: Generation of member for mutable or static fields such as %s is not yet supported" field.Name
-                | Method(Instance mthd) -> sprintf "// NOTE: Generation of code for instance method %s is not yet supported" mthd.Name
-                | Method(Static mthd) -> sprintf "// NOTE: Generation of code for static method %s is not yet supported" mthd.Name
+                | Method(Instance mthd) ->
+                    let parameters = Params.ofMethod mthd
+                    let this, parameters' = Params.ofMethod mthd |> Array.splitAt 1
+                    let this', _ = Array.head this
+                    print {
+                        Print.parameters parameters
+                        " = "
+                        fsname this'
+                        "."
+                        FsName mthd.Name |> fsname
+                        Print.arguments parameters'
+                    }
+                    |> binding name
+                | Method(Static mthd) ->
+                    let parameters = Params.ofMethod mthd
+                    print {
+                        Print.parameters parameters
+                        " = "
+                        typeName tname
+                        "."
+                        FsName mthd.Name |> fsname
+                    }
+                    |> binding name
                 // TODO: Check if property is instance property for these two checks.
-                | Property (Indexer prop) -> sprintf "// NOTE: Generation of member for property with parameter %s is not yet supported" prop.Name
+                | Property (IsIndexer prop) -> sprintf "// NOTE: Generation of member for property with parameter %s is not yet supported" prop.Name
                 | Property prop when prop.CanRead && not prop.CanWrite -> accessor name tname prop.Name
-                | Property prop -> sprintf "// NOTE: Generation of member for property %s with setters not yet supported" prop.Name
                 | Type t -> sprintf "// NOTE: Generation of nested module for nested type %s is not yet supported" t.Name
+                | Field _ -> ()
+                | Property _ -> ()
             nl
 
         // TODO: Create computation expression.
