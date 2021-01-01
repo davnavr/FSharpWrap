@@ -19,16 +19,19 @@ let (|IsReadOnlyBool|_|) (prop: PropertyInfo) =
     | IsReadOnly _, NamedType "System" "Boolean" _ -> Some prop
     | _ -> None
 
-let memberName (mber: MemberInfo) =
+let memberName (mber: MemberInfo) = // TODO: Create a system for having one or more backup names in case one already exists.
     match mber with
     | Type t -> FsName.ofType t
     | Constructor ctor ->
         let parameters =
-            ctor.GetParameters()
-            |> List.ofArray
-            |> List.map (fun t -> t.ParameterType)
+            ctor.GetParameters() |> Array.map (fun t -> t.ParameterType)
         match parameters with
-        // TODO: Match other patterns
+        | [| IsArray _ |] -> FsName "ofArray"
+        | [| NamedType "System" "Object" _ |] -> FsName "ofObj"
+        | [| NamedType "System.Collections.Generic" "IEnumerable`1" _ |] -> FsName "ofSeq"
+        | [| NamedType "System.Collections.Generic" "List`1" _ |] -> FsName "ofResizeArray"
+        | [| NamedType "Microsoft.FSharp.Collections" "FSharpList`1" _ |] -> FsName "ofList"
+        | [| GenericArg  t |] -> FsName.concat (FsName "of") (FsName.ofType t)
         | _ -> FsName "create"
     | Property (IsReadOnlyBool _) -> FsName mber.Name
     | Event _
@@ -46,6 +49,7 @@ let rec mdle mname (t: Type): PrintExpr = // TODO: How to check for name conflic
         |> Seq.choose
             (function
             | IsPropAccessor
+            // TODO: Skip static methods that represent operations (ex: op_Implicit)
             | :? EventInfo -> None
             | mber -> Some mber)
 

@@ -34,10 +34,10 @@ let (|IsPropAccessor|_|): MemberInfo -> _ =
     | :? MethodInfo as mthd when check mthd -> Some()
     | _ -> None
 
-let (|GenericParam|_|) (t: Type) =
+let (|GenericParam|GenericArg|) (t: Type) =
     if t.IsGenericParameter
-    then t.GetGenericParameterConstraints() |> Some
-    else None
+    then t.GetGenericParameterConstraints() |> Choice1Of2
+    else Choice2Of2 t
 
 let (|GenericArgs|) (t: Type) = t.GetGenericArguments()
 
