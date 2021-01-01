@@ -130,7 +130,7 @@ let accessor name tname (field: string) =
     }
     |> binding name
 
-let parameters =
+let parameters (cache: NameCache) =
     function
     | [||] -> print { "()" }
     | (parr: Params) ->
@@ -139,7 +139,7 @@ let parameters =
                 "("
                 fsname name
                 ": "
-                Type.arg t |> typeArg
+                cache.GetTypeArg t |> typeArg
                 ") "
         }
 

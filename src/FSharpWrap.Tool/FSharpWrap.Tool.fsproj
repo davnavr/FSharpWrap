@@ -15,6 +15,7 @@
     <Compile Include="Type.fs" />
     <Compile Include="Params.fs" />
     <Compile Include="Filter.fs" />
+    <Compile Include="NameCache.fs" />
     <Compile Include="Print.fs" />
     <Compile Include="Generate.fs" />
     <Compile Include="Options.fs" />
