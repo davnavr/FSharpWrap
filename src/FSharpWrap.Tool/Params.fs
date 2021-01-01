@@ -18,7 +18,7 @@ module Params =
                 let pname' =
                     let mutable name = pname
                     while parr'.ContainsKey name do
-                        name <- FsName.append "'" name
+                        name <- FsName.append name "'"
                     name
                 pname', p.ParameterType)
             parr

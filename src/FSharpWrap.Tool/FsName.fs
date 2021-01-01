@@ -30,5 +30,5 @@ module FsName =
     let ofParameter (param: ParameterInfo) =
         ofStr param.Name |> Option.defaultValue (sprintf "_arg%i" param.Position |> FsName)
 
-    let append (str: string) (FsName name) = FsName(name + str)
+    let append (FsName name) (str: string) = FsName(name + str)
     let concat (FsName name1) (FsName name2) = FsName(name1 + name2)

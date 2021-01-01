@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code generation for static methods is back
 ### Changed
 - Implementation for code generation rewritten to be less confusing and to make less allocations for better performance
+- Instead of merging modules together, different modules are instead generated for types with the same name but with differing numbers of generic arguments
 
 ## [0.5.0] - 2020-12-08
 ### Added

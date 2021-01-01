@@ -27,7 +27,14 @@ type TypeArg =
     | TypeParam of TypeParam
 
 [<RequireQualifiedAccess>]
-module Type = // TODO: Consider having a cache that stores a Dictionary<Type, TypeArg>.
+module Type =
+    let nameComparer =
+        { new System.Collections.Generic.IEqualityComparer<TypeName> with
+            member _.Equals(x, y) =
+                x.Name = y.Name && x.Namespace = y.Namespace && x.Parent = y.Parent
+            member _.GetHashCode obj =
+                hash (obj.Name, obj.Namespace, obj.Parent) }
+
     let name (GenericArgs gargs as t) =
         let parent = Option.ofObj t.DeclaringType
         { Name = FsName.ofType t
@@ -42,6 +49,7 @@ module Type = // TODO: Consider having a cache that stores a Dictionary<Type, Ty
                     gargs
             |> Array.map arg }
 
+    // TODO: Consider having a cache that stores a Dictionary<Type, TypeArg>.
     let arg (t: Type) =
         match t with
         | GenericParam constraints ->

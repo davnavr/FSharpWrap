@@ -135,7 +135,8 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
                 |> Seq.collect (fun assembly -> assembly.ExportedTypes)
                 |> Seq.where
                     (fun t ->
-                        not t.IsNested && Filter.typeIncluded filter t) // TODO: Include nested types inside nested modules.
+                        not t.IsNested && Filter.typeIncluded filter t)
+            // TODO: Fix bug where StructuralEquality means that TypeNames with the same number of type arguments are considered different, resulting in modules with the same name.
             let dict = Dictionary<Namespace, Dictionary<TypeName, TypeIdentifier>> assemblies'.Length
             for t in types do
                 let ns = Namespace.ofStr t.Namespace // TODO: Figure out how to cache namespaces.
@@ -154,7 +155,7 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
                         | (false, _) -> SingleType t
                     previous.Item <- name, entry
                 | false, _ ->
-                    let entry = Dictionary 1
+                    let entry = Dictionary(1, Type.nameComparer)
                     entry.Item <- name, SingleType t
                     dict.Item <- ns, entry
             dict
@@ -168,7 +169,7 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
                 | SingleType t' -> mdle name t'
                 | MultipleTypes dups ->
                     for KeyValue(i, t') in dups do
-                        let name' = FsName.append (sprintf "_%i" i) name
+                        let name' = sprintf "_%i" i |> FsName.append name
                         mdle name' t'
             dedent
             nl
