@@ -30,7 +30,7 @@ let memberName (mber: MemberInfo) =
     | Method _
     | Property _ -> String.toCamelCase mber.Name |> FsName
 
-let mdle name (t: Type) = // TODO: How to check for name conflicts for members contained in the module?
+let rec mdle mname (t: Type): PrintExpr = // TODO: How to check for name conflicts for members contained in the module?
     let tname = Type.name t
     let members = t.GetMembers()
     let bindings = HashSet<FsName> members.Length
@@ -75,7 +75,7 @@ let mdle name (t: Type) = // TODO: How to check for name conflicts for members c
                         Print.arguments parameters'
                     }
                     |> binding name
-                | Method(Static mthd) ->
+                | Method(Static mthd) -> // TODO: What if the static method is a constructor for an F# union case?
                     let parameters = Params.ofMethod mthd
                     print {
                         Print.parameters parameters
@@ -88,14 +88,14 @@ let mdle name (t: Type) = // TODO: How to check for name conflicts for members c
                 // TODO: Check if property is instance property for these two checks.
                 | Property (IsIndexer prop) -> sprintf "// NOTE: Generation of member for property with parameter %s is not yet supported" prop.Name
                 | Property prop when prop.CanRead && not prop.CanWrite -> accessor name tname prop.Name
-                | Type t -> sprintf "// NOTE: Generation of nested module for nested type %s is not yet supported" t.Name
+                | Type t' -> mdle name t'
                 | Field _ -> ()
                 | Property _ -> ()
             nl
 
         // TODO: Create computation expression.
     }
-    |> Print.mdle name t
+    |> Print.mdle mname t
 
 let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
     print {
