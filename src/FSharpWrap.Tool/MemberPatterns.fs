@@ -60,6 +60,9 @@ let (|NamedType|_|) ns name (t: Type) =
     then Some t
     else None
 
+let (|SpecialMethod|_|) (mthd: MethodInfo) =
+    if mthd.IsSpecialName then Some mthd else None
+
 let (|StaticProp|InstanceProp|) (prop: PropertyInfo) =
     let mthd =
         if prop.CanRead

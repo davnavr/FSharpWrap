@@ -45,8 +45,8 @@ let rec mdle mname (t: Type) (cache: NameCache): PrintExpr =
         |> Seq.choose
             (function
             | IsPropAccessor
-            // TODO: Skip static methods that represent operations (ex: op_Implicit)
-            | :? EventInfo -> None
+            | Method (SpecialMethod _)
+            | Event _ -> None
             | mber -> Some mber)
 
     print {

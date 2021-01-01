@@ -1,10 +1,10 @@
-﻿module rec FSharpWrap.Tool.Print // TODO: Remove "rec".
+﻿module FSharpWrap.Tool.Print
 
 open System
 open System.IO
 
 /// Prints formatted F# source code.
-type Printer(writer: StreamWriter) = // TODO: Create computation expression.
+type Printer(writer: StreamWriter) =
     [<Literal>]
     let IndentLevel = 4
 
@@ -34,6 +34,8 @@ let inline nl (printer: Printer) = printer.WriteLine String.Empty
 let inline indent (printer: Printer) = printer.Indent()
 let inline dedent (printer: Printer) = printer.Dedent()
 
+type PrintExpr = Printer -> unit
+
 type PrintBuilder internal() =
     member inline _.Combine(one: PrintExpr, two: PrintExpr) =
         fun printer -> one printer; two printer
@@ -60,7 +62,7 @@ let ns (Namespace names) =
                 fsname name
     }
 
-let typeName { Name = name; Namespace = nspace; Parent = parent; TypeArgs = targs } =
+let rec typeName { Name = name; Namespace = nspace; Parent = parent; TypeArgs = targs } =
     print {
         ns nspace
         match parent with
@@ -79,8 +81,7 @@ let typeName { Name = name; Namespace = nspace; Parent = parent; TypeArgs = targ
                     ","
             ">"
     }
-
-let typeArg t: PrintExpr =
+and typeArg t: PrintExpr =
     print {
         match t with
         | ArrayType arr ->
@@ -174,7 +175,3 @@ let mdle (name: FsName) (t: Type) (body: PrintExpr) =
         dedent
         nl
     }
-
-type PrintExpr = Printer -> unit
-
-
