@@ -14,6 +14,11 @@ type TypeIdentifier =
 
 let genericArgCount (GenericArgs gargs) = Array.length gargs |> uint32
 
+let (|IsReadOnlyBool|_|) (prop: PropertyInfo) =
+    match prop, prop.PropertyType with
+    | IsReadOnly _, NamedType "System" "Boolean" _ -> Some prop
+    | _ -> None
+
 let memberName (mber: MemberInfo) =
     match mber with
     | Type t -> FsName.ofType t
@@ -25,6 +30,7 @@ let memberName (mber: MemberInfo) =
         match parameters with
         // TODO: Match other patterns
         | _ -> FsName "create"
+    | Property (IsReadOnlyBool _) -> FsName mber.Name
     | Event _
     | Field _
     | Method _
@@ -87,7 +93,17 @@ let rec mdle mname (t: Type): PrintExpr = // TODO: How to check for name conflic
                     |> binding name
                 // TODO: Check if property is instance property for these two checks.
                 | Property (IsIndexer prop) -> sprintf "// NOTE: Generation of member for property with parameter %s is not yet supported" prop.Name
-                | Property prop when prop.CanRead && not prop.CanWrite -> accessor name tname prop.Name
+                | Property (IsReadOnlyBool _) ->
+                    print {
+                        "let inline (|"
+                        fsname name
+                        "|_|) (this: "
+                        typeName tname
+                        ") = if this."
+                        fsname name
+                        " then Some this else None"
+                    }
+                | Property (IsReadOnly prop) -> accessor name tname prop.Name
                 | Type t' -> mdle name t'
                 | Field _ -> ()
                 | Property _ -> ()

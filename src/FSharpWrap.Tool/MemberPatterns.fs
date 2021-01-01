@@ -49,3 +49,13 @@ let (|IsByRef|_|) (t: Type) =
 
 let (|IsPointer|_|) (t: Type) =
     if t.IsPointer then t.GetElementType() |> Some else None
+
+let (|IsReadOnly|_|) (prop: PropertyInfo) =
+    if prop.CanRead && not prop.CanWrite
+    then Some prop
+    else None
+
+let (|NamedType|_|) ns name (t: Type) =
+    if t.Namespace = ns && t.Name = name
+    then Some t
+    else None
