@@ -59,3 +59,12 @@ let (|NamedType|_|) ns name (t: Type) =
     if t.Namespace = ns && t.Name = name
     then Some t
     else None
+
+let (|StaticProp|InstanceProp|) (prop: PropertyInfo) =
+    let mthd =
+        if prop.CanRead
+        then prop.GetMethod
+        else prop.SetMethod
+    if mthd.IsStatic
+    then Choice1Of2 prop
+    else Choice2Of2 prop

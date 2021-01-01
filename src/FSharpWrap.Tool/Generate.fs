@@ -96,9 +96,8 @@ let rec mdle mname (t: Type): PrintExpr =
                         Print.arguments parameters
                     }
                     |> binding name
-                // TODO: Check if property is instance property for these three checks.
-                | Property (IsIndexer prop) -> sprintf "// NOTE: Generation of member for property with parameter %s is not yet supported" prop.Name
-                | Property (IsReadOnlyBool _) ->
+                | Property (IsIndexer prop & InstanceProp _) -> sprintf "// NOTE: Generation of member for property with parameter %s is not yet supported" prop.Name
+                | Property (IsReadOnlyBool _ & InstanceProp _) ->
                     print {
                         "let inline (|"
                         fsname name
@@ -108,7 +107,7 @@ let rec mdle mname (t: Type): PrintExpr =
                         fsname name
                         " then Some this else None"
                     }
-                | Property (IsReadOnly prop) -> accessor name tname prop.Name
+                | Property (IsReadOnly prop & InstanceProp _) -> accessor name tname prop.Name
                 | Type t' -> mdle name t'
                 | Field _ -> ()
                 | Property _ -> ()
@@ -130,7 +129,7 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
         "// # Included Assemblies:"; nl
         for assembly in assemblies' do
             sprintf "// - %s" assembly.FullName; nl
-        "#nowarn \"44\" \"57\" \"64\""
+        "#nowarn \"44\" \"57\" \"64\""; nl
         let namespaces =
             let types =
                 assemblies'
