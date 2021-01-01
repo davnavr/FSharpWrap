@@ -131,12 +131,16 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
             let types =
                 assemblies'
                 |> Seq.collect (fun assembly -> assembly.ExportedTypes)
-                |> Seq.where
-                    (fun t ->
-                        not t.IsNested && Filter.typeIncluded filter t)
+                |> Seq.choose
+                    (function
+                    | DerivesType "System" "Delegate" _
+                    | NestedType _
+                    | TupleType _ -> None
+                    | t -> Some t)
+                |> Seq.where (Filter.typeIncluded filter)
             let dict = Dictionary<Namespace, Dictionary<TypeName, TypeIdentifier>> assemblies'.Length
             for t in types do
-                let ns = Namespace.ofStr t.Namespace // TODO: Figure out how to cache namespaces.
+                let ns = cache.GetNamespace t.Namespace
                 let name = cache.GetTypeName t
                 match dict.TryGetValue ns with
                 | true, previous ->

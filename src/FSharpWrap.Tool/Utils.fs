@@ -4,6 +4,7 @@ open System
 open System.Reflection
 
 [<AutoOpen>]
+[<Obsolete>]
 module Collections =
     let inline (|Empty|NotEmpty|) col =
         if (^T : (member IsEmpty : bool) col)

@@ -60,6 +60,33 @@ let (|NamedType|_|) ns name (t: Type) =
     then Some t
     else None
 
+let (|NestedType|_|) (t: Type) =
+    if t.IsNested then Some t else None
+
+let rec (|DerivesType|_|) ns name =
+    function
+    | NamedType ns name t -> Some t
+    | t ->
+        t.BaseType
+        |> Option.ofObj
+        |> Option.bind ((|DerivesType|_|) ns name)
+
+let (|TupleType|_|) =
+    let tuples =
+        List.allPairs
+            [
+                "Tuple"
+                "ValueTuple"
+            ]
+            [ 1..8 ]
+        |> List.map
+            (fun (name, count) -> sprintf "%s`%i" name count)
+        |> Set.ofList
+    fun (t: Type) ->
+        if t.Namespace = "System" && Set.contains t.Name tuples
+        then Some t
+        else None
+
 let (|SpecialMethod|_|) (mthd: MethodInfo) =
     if mthd.IsSpecialName then Some mthd else None
 
