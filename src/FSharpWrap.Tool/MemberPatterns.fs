@@ -21,7 +21,7 @@ let inline (|Static|Instance|) (mber: ^T) =
     if (^T : (member IsStatic: bool) mber) then Choice1Of2 mber else Choice2Of2 mber
 
 let (|IsIndexer|_|) (prop: PropertyInfo) =
-    if prop.GetIndexParameters() |> Array.isEmpty
+    if prop.GetIndexParameters() |> Array.isEmpty |> not
     then Some prop
     else None
 

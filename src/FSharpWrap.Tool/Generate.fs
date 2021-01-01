@@ -39,7 +39,7 @@ let memberName (mber: MemberInfo) = // TODO: Create a system for having one or m
     | Method _
     | Property _ -> String.toCamelCase mber.Name |> FsName
 
-let rec mdle mname (t: Type): PrintExpr = // TODO: How to check for name conflicts for members contained in the module?
+let rec mdle mname (t: Type): PrintExpr =
     let tname = Type.name t
     let members = t.GetMembers()
     let bindings = HashSet<FsName> members.Length
@@ -93,9 +93,10 @@ let rec mdle mname (t: Type): PrintExpr = // TODO: How to check for name conflic
                         typeName tname
                         "."
                         FsName mthd.Name |> fsname
+                        Print.arguments parameters
                     }
                     |> binding name
-                // TODO: Check if property is instance property for these two checks.
+                // TODO: Check if property is instance property for these three checks.
                 | Property (IsIndexer prop) -> sprintf "// NOTE: Generation of member for property with parameter %s is not yet supported" prop.Name
                 | Property (IsReadOnlyBool _) ->
                     print {
@@ -129,6 +130,7 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
         "// # Included Assemblies:"; nl
         for assembly in assemblies' do
             sprintf "// - %s" assembly.FullName; nl
+        "#nowarn \"44\" \"57\" \"64\""
         let namespaces =
             let types =
                 assemblies'
@@ -136,7 +138,6 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
                 |> Seq.where
                     (fun t ->
                         not t.IsNested && Filter.typeIncluded filter t)
-            // TODO: Fix bug where StructuralEquality means that TypeNames with the same number of type arguments are considered different, resulting in modules with the same name.
             let dict = Dictionary<Namespace, Dictionary<TypeName, TypeIdentifier>> assemblies'.Length
             for t in types do
                 let ns = Namespace.ofStr t.Namespace // TODO: Figure out how to cache namespaces.
@@ -169,7 +170,10 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
                 | SingleType t' -> mdle name t'
                 | MultipleTypes dups ->
                     for KeyValue(i, t') in dups do
-                        let name' = sprintf "_%i" i |> FsName.append name
+                        let name' =
+                            if i > 0u
+                            then sprintf "_%i" i |> FsName.append name
+                            else name
                         mdle name' t'
             dedent
             nl

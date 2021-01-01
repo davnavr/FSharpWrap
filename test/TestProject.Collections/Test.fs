@@ -63,7 +63,7 @@ let main argv =
         testProperty "computation expression singletons should be equal" <| fun (item: uint32) ->
             Expect.sequenceEqual
                 (ImmutableList.expr { item })
-                (ImmutableList.Create item)
+                (ImmutableList.create item)
                 "Both lists should contain the same element"
 
         testProperty "computation expression is correct for mutable type" <| fun(items: string list) ->
