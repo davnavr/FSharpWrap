@@ -1,10 +1,36 @@
 ﻿namespace rec FSharpWrap.Tool
 
 open System
+open System.Collections
+open System.Collections.Generic
+
+[<StructuralComparison; StructuralEquality>]
+type GenericConstraint =
+    | TypeConstraint of TypeArg
+
+[<CustomComparison; CustomEquality>]
+type GenericConstraints =
+    internal
+    | GenericConstraints of Lazy<Set<GenericConstraint>>
+
+    member private this.Constraints = let (GenericConstraints constraints) = this in constraints.Value
+
+    member this.Count = this.Constraints.Count
+
+    override this.GetHashCode() = this.Constraints.GetHashCode()
+
+    override this.Equals obj = this.Constraints = (obj :?> GenericConstraints).Constraints
+
+    interface IComparable with
+        member this.CompareTo obj = (obj :?> GenericConstraints).Constraints |> compare this.Constraints
+    interface IEnumerable<GenericConstraint> with
+        member this.GetEnumerator() = (this.Constraints :> IEnumerable<_>).GetEnumerator()
+    interface IEnumerable with
+        member this.GetEnumerator() = (this.Constraints :> IEnumerable).GetEnumerator()
 
 [<StructuralComparison; StructuralEquality>]
 type TypeParam =
-    { //Constraints: GenericConstraints // TODO: Add constraints for type parameters.
+    { Constraints: GenericConstraints
       ParamName: FsName }
 
 [<StructuralComparison; StructuralEquality>]

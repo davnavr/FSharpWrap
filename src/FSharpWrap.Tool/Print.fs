@@ -64,13 +64,10 @@ let ns (Namespace names) =
 
 let rec typeName { Name = name; Namespace = nspace; Parent = parent; TypeArgs = targs } =
     print {
-        ns nspace
         match parent with
-        | None -> "."
-        | Some parent' ->
-            "."
-            typeName parent'
-            "."
+        | None -> ns nspace
+        | Some parent' -> typeName parent'
+        "."
         fsname name
         if Array.isEmpty targs |> not then
             let max = targs.Length - 1
@@ -140,7 +137,22 @@ let parameters (cache: NameCache) =
                 "("
                 fsname name
                 ": "
-                cache.GetTypeArg t |> typeArg
+                let targ = cache.GetTypeArg t
+                typeArg targ
+                match targ with
+                | TypeParam { Constraints = constraints } ->
+                    let count = constraints.Count
+                    if count > 0 then
+                        " when "
+                        let mutable i = 0
+                        for constr in constraints do
+                            i <- i + 1
+                            let (TypeConstraint derives) = constr
+                            typeArg targ
+                            " :> "
+                            typeArg derives
+                            if i < count then " and "
+                | _ -> ()
                 ") "
         }
 
@@ -154,6 +166,26 @@ let arguments (args: Params) =
                 ", "
         ")"
     }
+
+let method name fparams (callee: PrintExpr) mname (targs: TypeArg[]) args (cache: NameCache) =
+    print {
+        parameters cache fparams
+        " = "
+        callee
+        "."
+        FsName mname |> fsname
+        match targs with
+        | [||] -> ()
+        | _ ->
+            "<"
+            let max = targs.Length - 1
+            for i = 0 to targs.Length - 1 do
+                Array.get targs i |> typeArg
+                if i < max then ", "
+            ">"
+        arguments args
+    }
+    |> binding name
 
 /// <summary>
 /// Writes an F# module from a <see cref="System.Type"/>.

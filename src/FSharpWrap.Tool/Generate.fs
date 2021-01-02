@@ -68,30 +68,25 @@ let rec mdle mname (t: Type) (cache: NameCache): PrintExpr =
                     |> binding name
                 | Event e -> sprintf "// NOTE: Generation of members for event %s is not yet supported" e.Name
                 | Field(Instance field) when field.IsInitOnly -> accessor name tname field.Name
-                | Method(Instance mthd) ->
+                | Method mthd ->
                     let parameters = Params.ofMethod mthd
-                    let this, parameters' = Params.ofMethod mthd |> Array.splitAt 1
-                    let this', _ = Array.head this
-                    print {
-                        Print.parameters cache parameters
-                        " = "
-                        fsname this'
-                        "."
-                        FsName mthd.Name |> fsname
-                        Print.arguments parameters'
-                    }
-                    |> binding name
-                | Method(Static mthd) -> // TODO: What if the static method is a constructor for an F# union case?
-                    let parameters = Params.ofMethod mthd
-                    print {
-                        Print.parameters cache parameters
-                        " = "
-                        typeName tname
-                        "."
-                        FsName mthd.Name |> fsname
-                        Print.arguments parameters
-                    }
-                    |> binding name
+                    let callee, args =
+                        match mthd with
+                        | Instance _ ->
+                            let this, parameters' = Params.ofMethod mthd |> Array.splitAt 1
+                            let this', _ = Array.head this
+                            fsname this', parameters'
+                        | Static _ ->
+                            typeName tname, parameters
+                    let gargs = mthd.GetGenericArguments() |> Array.map (cache.GetTypeArg)
+                    method
+                        name
+                        parameters
+                        callee
+                        mthd.Name
+                        gargs
+                        args
+                        cache
                 | Property (IsIndexer prop & InstanceProp _) -> sprintf "// NOTE: Generation of member for property with parameter %s is not yet supported" prop.Name
                 | Property (IsReadOnlyBool _ & InstanceProp _) ->
                     print {

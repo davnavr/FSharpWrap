@@ -46,7 +46,16 @@ type NameCache(assms: Assembly[]) =
             let t' =
                 match t with
                 | GenericParam constraints ->
-                    TypeParam { ParamName = FsName.ofType t }
+                    { Constraints =
+                        lazy
+                            // TODO: How are different types of constraints handled?
+                            Array.map
+                                (fun ct -> this.GetTypeArg ct |> TypeConstraint)
+                                constraints
+                            |> Set.ofArray
+                        |> GenericConstraints
+                      ParamName = FsName.ofType t }
+                    |> TypeParam 
                 | IsArray elem ->
                     {| ElementType = this.GetTypeArg elem
                        Rank = t.GetArrayRank() |> uint |}
