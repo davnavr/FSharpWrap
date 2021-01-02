@@ -13,10 +13,11 @@ let genericArgCount (GenericArgs gargs) = Array.length gargs |> uint32
 let (|IgnoredType|_|) =
     function
     | DerivesType "System" "Delegate" _
+    | FsModuleType _
     | IsMutableStruct
     | NestedType _
     | TupleType _ -> Some()
-    | t -> None
+    | _ -> None
 
 let (|IsReadOnlyBool|_|) (prop: PropertyInfo) =
     match prop, prop.PropertyType with

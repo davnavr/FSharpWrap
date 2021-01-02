@@ -87,6 +87,11 @@ let (|TupleType|_|) =
         then Some t
         else None
 
+let (|FsModuleType|_|) (t: Type) =
+    if FSharp.Reflection.FSharpType.IsModule t
+    then Some t
+    else None
+
 let (|IsMutableStruct|_|) (t: Type) =
     let attr =
         t.GetCustomAttributesData()
