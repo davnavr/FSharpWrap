@@ -10,6 +10,14 @@ open FSharpWrap.Tool.Print
 
 let genericArgCount (GenericArgs gargs) = Array.length gargs |> uint32
 
+let (|IgnoredType|_|) =
+    function
+    | DerivesType "System" "Delegate" _
+    | IsMutableStruct
+    | NestedType _
+    | TupleType _ -> Some()
+    | t -> None
+
 let (|IsReadOnlyBool|_|) (prop: PropertyInfo) =
     match prop, prop.PropertyType with
     | IsReadOnly _, NamedType "System" "Boolean" _ -> Some prop
@@ -46,7 +54,8 @@ let rec mdle mname (t: Type) (cache: NameCache): PrintExpr =
             (function
             | IsPropAccessor
             | Method (SpecialMethod _)
-            | Event _ -> None
+            | Event _
+            | Type IgnoredType -> None
             | mber -> Some mber)
 
     print {
@@ -128,9 +137,7 @@ let fromAssemblies (assemblies: seq<Assembly>) (filter: Filter) =
                 |> Seq.collect (fun assembly -> assembly.ExportedTypes)
                 |> Seq.choose
                     (function
-                    | DerivesType "System" "Delegate" _
-                    | NestedType _
-                    | TupleType _ -> None
+                    | IgnoredType -> None
                     | t -> Some t)
                 |> Seq.where (Filter.typeIncluded filter)
             let dict = Dictionary<Namespace, Dictionary<TypeName, TypeIdentifier>> assemblies'.Length

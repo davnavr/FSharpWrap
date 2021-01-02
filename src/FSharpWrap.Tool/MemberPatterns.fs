@@ -87,6 +87,18 @@ let (|TupleType|_|) =
         then Some t
         else None
 
+let (|IsMutableStruct|_|) (t: Type) =
+    let attr =
+        t.GetCustomAttributesData()
+        |> Seq.tryFind
+            (fun attr ->
+                match attr.AttributeType with
+                | NamedType "System.Runtime.CompilerServices" "IsReadOnlyAttribute" _ -> true
+                | _ -> false)
+    match attr with
+    | None when t.IsValueType -> Some()
+    | _ -> None
+
 let (|SpecialMethod|_|) (mthd: MethodInfo) =
     if mthd.IsSpecialName then Some mthd else None
 
