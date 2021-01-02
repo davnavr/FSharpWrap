@@ -100,7 +100,7 @@ and typeArg t: PrintExpr =
             typeArg ret
             ")"
         | InferredType -> "_"
-        // PointerType () -> "voidptr" // TODO: Have special case for when it is a pointer to System.Void
+        | PointerType (TypeName { Name = FsName "Void"; Namespace = Namespace [ FsName "System" ]; Parent = None; TypeArgs = [||] }) -> "voidptr"
         | PointerType pnt ->
             "nativeptr<"
             typeArg pnt
