@@ -11,7 +11,7 @@ type NameCache(assms: Assembly[]) =
     let namespaces = assms.Length |> Dictionary<string, Namespace>
     let types = assms.Length * 12 |> Dictionary<Type, TypeArg> // TODO: Should TypeName instances not be stored here to avoid redundancy and reduce the amount of allocations?
 
-    member this.GetNamespace (ns: string) =
+    member _.GetNamespace (ns: string) =
         match namespaces.TryGetValue ns with
         | true, existing -> existing
         | false, _ ->
@@ -23,19 +23,22 @@ type NameCache(assms: Assembly[]) =
         match names.TryGetValue t with
         | true, existing -> existing
         | false, _ ->
-            let parent = Option.ofObj t.DeclaringType
+            let gargs', parent =
+                let gargs' = Array.map this.GetTypeArg gargs
+                match t.DeclaringType with
+                | null -> gargs', None
+                | parent' ->
+                    let parent'' = this.GetTypeName parent'
+                    let gargs'' =
+                        Array.where
+                            (fun garg -> Array.contains garg parent''.TypeArgs |> not)
+                            gargs'
+                    gargs'', Some parent''
             let name =
                 { Name = FsName.ofType t
                   Namespace = this.GetNamespace t.Namespace
-                  Parent = Option.map (this.GetTypeName) parent
-                  TypeArgs =
-                    match parent with
-                    | None -> gargs
-                    | Some (GenericArgs inherited) ->
-                        Array.where
-                            (fun garg -> Array.contains garg inherited |> not)
-                            gargs
-                    |> Array.map this.GetTypeArg }
+                  Parent = parent
+                  TypeArgs = gargs' }
             names.Item <- t, name
             name
 
